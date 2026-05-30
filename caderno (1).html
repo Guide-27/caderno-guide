@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G Project — Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08);
+  --gold-mid:rgba(201,162,39,0.22); --gold-glow:rgba(201,162,39,0.05);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#7a7870; --muted2:#4a4845;
+  --border:rgba(201,162,39,0.14); --border2:rgba(201,162,39,0.07);
+  --blue-glow:rgba(80,100,200,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;min-height:100vh;}
+
+/* ── CANVAS ANIMADO ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7;}
+
+/* ── NOISE ── */
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size:200px 200px;}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent 0%,var(--gold) 20%,var(--gold) 80%,transparent 100%);z-index:100;opacity:0.35;}
+
+/* ── TOP BAR ── */
+.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,0.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:200;}
+.top-logo{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--gold);font-weight:600;letter-spacing:0.06em;}
+.top-label{font-size:10px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+
+/* ── DOC ── */
+.doc{max-width:980px;margin:0 auto;padding:100px 56px 120px;position:relative;z-index:2;}
+
+/* ── LOADING ── */
+.page-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;position:relative;z-index:2;}
+.page-loading p{font-size:13px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+.spinner{width:32px;height:32px;border:1.5px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── ENTRADA / CAPA ── */
+.capa{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 0;border-bottom:1px solid var(--border);margin-bottom:80px;position:relative;}
+.capa-tag{font-size:10px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:28px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.capa-tag::after{content:'';display:block;width:40px;height:1px;background:linear-gradient(to right,var(--gold),transparent);}
+.capa-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(58px,9vw,104px);font-weight:300;line-height:0.92;letter-spacing:-0.02em;color:var(--white);margin-bottom:10px;}
+.capa-titulo em{color:var(--gold);font-style:italic;}
+.capa-sub{font-size:clamp(13px,1.8vw,16px);font-weight:300;color:var(--muted);margin-bottom:56px;letter-spacing:0.1em;text-transform:uppercase;}
+.capa-meta{display:flex;gap:44px;padding-top:36px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.meta-item{display:flex;flex-direction:column;gap:5px;}
+.meta-label{font-size:8px;letter-spacing:0.2em;color:var(--muted2);text-transform:uppercase;font-weight:500;}
+.meta-val{font-size:14px;font-weight:400;color:var(--white);}
+
+/* ── BOAS VINDAS ── */
+.bv-box{background:linear-gradient(135deg,rgba(201,162,39,0.06) 0%,rgba(80,100,200,0.04) 100%);border:1px solid var(--border);border-radius:20px;padding:48px;margin-bottom:80px;position:relative;overflow:hidden;}
+.bv-box::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(201,162,39,0.08) 0%,transparent 70%);pointer-events:none;}
+.bv-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,40px);font-weight:300;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.bv-titulo em{color:var(--gold);font-style:italic;}
+.bv-texto{font-size:15px;color:var(--off);line-height:1.85;max-width:600px;}
+.bv-texto + .bv-texto{margin-top:14px;}
+
+/* ── ETAPAS NAV ── */
+.etapas-nav{margin-bottom:80px;}
+.etapas-label{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.etapas-label::before{content:'';display:block;width:18px;height:1px;background:var(--gold);}
+.etapas-track{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.etapa-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:all 0.3s;cursor:default;}
+.etapa-card.ativa{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.08) 0%,var(--card) 100%);}
+.etapa-card.bloqueada{opacity:0.5;}
+.etapa-card.bloqueada:hover .tooltip-dev{opacity:1;transform:translateY(0);}
+.etapa-num-badge{font-size:10px;font-weight:500;color:var(--gold);letter-spacing:0.12em;margin-bottom:10px;}
+.etapa-card.bloqueada .etapa-num-badge{color:var(--muted);}
+.etapa-nome-card{font-size:13px;color:var(--white);font-weight:400;line-height:1.4;}
+.etapa-card.bloqueada .etapa-nome-card{color:var(--muted);}
+.etapa-status{font-size:10px;color:var(--muted2);margin-top:8px;letter-spacing:0.08em;}
+.etapa-card.ativa .etapa-status{color:var(--gold);}
+.tooltip-dev{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(8px);background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--off);white-space:nowrap;opacity:0;transition:all 0.25s;pointer-events:none;z-index:10;margin-bottom:8px;}
+
+/* ── DIVISOR ── */
+.divisor{height:1px;background:linear-gradient(to right,transparent,var(--border) 20%,var(--border) 80%,transparent);margin:72px 0;}
+
+/* ── BLOCO EDUCATIVO ── */
+.edu-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:36px;margin-bottom:56px;}
+.edu-tag{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;}
+.edu-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3vw,30px);font-weight:300;color:var(--white);margin-bottom:20px;line-height:1.3;}
+.edu-titulo em{color:var(--gold);font-style:italic;}
+.edu-itens{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px;}
+.edu-item{display:flex;gap:14px;align-items:flex-start;}
+.edu-icon{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.edu-item-texto{font-size:13px;color:var(--off);line-height:1.65;}
+.edu-item-titulo{font-size:12px;font-weight:500;color:var(--white);margin-bottom:3px;letter-spacing:0.03em;}
+
+/* ── SECTION HEADER ── */
+.sec-header{margin-bottom:48px;}
+.sec-tag{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.sec-tag::before{content:'';display:block;width:18px;height:1px;background:var(--gold);}
+.sec-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,5vw,52px);font-weight:300;line-height:1.1;color:var(--white);margin-bottom:14px;}
+.sec-titulo em{color:var(--gold);font-style:italic;}
+.sec-lead{font-size:15px;color:var(--muted);line-height:1.75;max-width:540px;}
+
+/* ── AMBIENTE ── */
+.ambiente-bloco{margin-bottom:80px;}
+.ambiente-header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border2);}
+.ambiente-num{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--gold);opacity:0.35;line-height:1;min-width:64px;}
+.ambiente-info{}
+.ambiente-titulo{font-size:20px;font-weight:400;color:var(--white);letter-spacing:0.02em;}
+.ambiente-instrucao{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;max-width:520px;}
+
+/* ── OPCOES CARDS ── */
+.opcoes-intro{font-size:13px;color:var(--muted);margin-bottom:20px;font-style:italic;}
+.opcoes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+.opcao-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;cursor:pointer;transition:all 0.28s;position:relative;overflow:hidden;}
+.opcao-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.opcao-card.expanded{grid-column:1/-1;border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.06) 0%,var(--card) 100%);}
+.opcao-tag{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;font-weight:500;}
+.opcao-preview{font-size:12px;color:var(--muted);margin-bottom:0;}
+.opcao-card.expanded .opcao-preview{display:none;}
+.opcao-expandida{display:none;}
+.opcao-card.expanded .opcao-expandida{display:block;}
+.opcao-expandida-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;margin-top:16px;}
+.opcao-planta-wrap{position:relative;background:var(--card2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;min-height:280px;display:flex;align-items:center;justify-content:center;}
+.opcao-planta-wrap img{width:100%;height:100%;object-fit:contain;max-height:400px;}
+.opcao-planta-empty{text-align:center;color:var(--muted);padding:40px 20px;}
+.opcao-planta-empty span{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-top:8px;}
+.opcao-planta-label{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;font-weight:500;}
+.opcao-refs-col{}
+.refs-label{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;font-weight:500;}
+.refs-aviso{font-size:11px;color:var(--muted);margin-bottom:12px;font-style:italic;line-height:1.5;}
+.refs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.ref-img{background:var(--card2);border:1px solid var(--border2);border-radius:8px;aspect-ratio:4/3;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.ref-img img{width:100%;height:100%;object-fit:cover;}
+.ref-img-empty{font-size:10px;color:var(--muted2);text-align:center;padding:8px;}
+.opcao-pontos{margin-top:16px;}
+.opcao-pontos-label{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;font-weight:500;}
+.opcao-ponto{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
+.opcao-ponto::before{content:'–';color:var(--gold);opacity:0.6;flex-shrink:0;font-size:13px;margin-top:1px;}
+.opcao-ponto span{font-size:13px;color:var(--off);line-height:1.5;}
+.btn-fechar{margin-top:20px;background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 18px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;letter-spacing:0.08em;}
+.btn-fechar:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ── COMPARAÇÃO ── */
+.comp-box{background:var(--card2);border:1px solid var(--border2);border-radius:14px;padding:28px;margin-top:24px;}
+.comp-tag{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.comp-tag::before{content:'';width:14px;height:1px;background:var(--gold);display:block;}
+.comp-titulo{font-size:16px;font-weight:400;color:var(--white);margin-bottom:20px;}
+.comp-itens{display:flex;flex-direction:column;gap:14px;}
+.comp-item{display:flex;gap:16px;align-items:flex-start;padding:14px;background:var(--card);border-radius:10px;border:1px solid var(--border2);}
+.comp-num{width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.comp-texto{font-size:13px;color:var(--off);line-height:1.65;}
+.comp-texto strong{color:var(--white);font-weight:500;}
+
+/* ── SUGESTÃO GUIDE ── */
+.sugestao-section{margin-bottom:72px;}
+.sugestao-box{background:linear-gradient(135deg,rgba(201,162,39,0.07) 0%,var(--card) 60%);border:1px solid var(--border);border-radius:20px;padding:44px;margin-bottom:32px;}
+.sugestao-badge{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--black);font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px;}
+.sugestao-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,40px);font-weight:300;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.sugestao-titulo em{color:var(--gold);font-style:italic;}
+.sugestao-texto{font-size:14px;color:var(--off);line-height:1.8;max-width:580px;margin-bottom:28px;}
+.sugestao-img-area{background:var(--card2);border:2px dashed var(--border);border-radius:14px;min-height:320px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;transition:all 0.25s;cursor:pointer;}
+.sugestao-img-area:hover{border-color:var(--gold);}
+.sugestao-img-area input[type=file]{display:none;}
+.sugestao-img-area img.uploaded{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}
+.sugestao-img-empty{text-align:center;color:var(--muted);padding:40px;}
+.sugestao-img-empty div{font-size:32px;margin-bottom:12px;opacity:0.4;}
+.sugestao-img-empty span{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;}
+
+/* ── RETORNO AOS AMBIENTES ── */
+.retorno-section{margin-bottom:72px;}
+.retorno-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:20px;}
+.btn-retorno{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;text-align:left;letter-spacing:0.04em;}
+.btn-retorno:hover{border-color:var(--gold);color:var(--gold);}
+.btn-retorno span{display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;letter-spacing:0.1em;text-transform:uppercase;}
+
+/* ── AÇÃO FINAL ── */
+.acao-section{margin-bottom:80px;}
+.acao-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:44px;text-align:center;}
+.acao-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,3.5vw,36px);font-weight:300;color:var(--white);margin-bottom:14px;line-height:1.3;}
+.acao-titulo em{color:var(--gold);font-style:italic;}
+.acao-texto{font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin:0 auto 32px;}
+.btn-aprovar{background:var(--gold);color:var(--black);border:none;border-radius:12px;padding:18px 48px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;display:inline-block;}
+.btn-aprovar:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,162,39,0.25);}
+
+/* ── MODAL APROVAÇÃO ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(8,8,10,0.88);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px;max-width:520px;width:100%;position:relative;transform:translateY(20px);transition:transform 0.3s;}
+.modal-overlay.show .modal-box{transform:translateY(0);}
+.modal-tag{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;}
+.modal-titulo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.modal-titulo em{color:var(--gold);font-style:italic;}
+.modal-texto{font-size:14px;color:var(--off);line-height:1.8;margin-bottom:28px;}
+.modal-aviso{background:rgba(201,162,39,0.07);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--off);line-height:1.7;margin-bottom:28px;}
+.modal-aviso strong{color:var(--white);font-weight:500;}
+.modal-acoes{display:flex;gap:12px;justify-content:flex-end;}
+.btn-cancelar{background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px 24px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em;}
+.btn-cancelar:hover{border-color:var(--muted);color:var(--white);}
+.btn-confirmar{background:var(--gold);color:var(--black);border:none;border-radius:10px;padding:12px 28px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;letter-spacing:0.08em;text-transform:uppercase;}
+.btn-confirmar:hover{background:var(--gold-light);}
+
+/* ── RODAPÉ ── */
+footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.rodape-logo{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);font-weight:600;letter-spacing:0.05em;}
+.rodape-tag{font-size:10px;color:var(--muted2);letter-spacing:0.14em;text-transform:uppercase;}
+
+/* ── UPLOAD ── */
+.uploading-indicator{position:absolute;inset:0;background:rgba(8,8,10,0.75);display:flex;align-items:center;justify-content:center;border-radius:inherit;}
+.uploading-indicator span{font-size:12px;color:var(--gold);letter-spacing:0.1em;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-size:13px;color:var(--white);transform:translateY(16px);opacity:0;transition:all 0.3s;max-width:300px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:768px){
+  .doc{padding:80px 22px 80px;}
+  .top-bar{padding:0 22px;}
+  .opcoes-grid{grid-template-columns:1fr 1fr;}
+  .opcao-expandida-grid{grid-template-columns:1fr;}
+  .etapas-track{grid-template-columns:repeat(2,1fr);}
+  .edu-itens{grid-template-columns:1fr;}
+  .capa-meta{gap:24px;}
+  .modal-box{padding:32px 24px;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="sidebar"></div>
+
+<div class="top-bar">
+  <span class="top-logo">Guide</span>
+  <span class="top-label" id="top-label">G Project</span>
+</div>
+
+<main class="doc" id="app">
+  <div class="page-loading">
+    <div class="spinner"></div>
+    <p>Carregando seu projeto...</p>
+  </div>
+</main>
+
+<!-- MODAL APROVAÇÃO -->
+<div class="modal-overlay" id="modal-aprovacao">
+  <div class="modal-box">
+    <div class="modal-tag">Aprovação de projeto</div>
+    <div class="modal-titulo">Você está prestes a <em>aprovar</em> este layout.</div>
+    <div class="modal-texto">Antes de confirmar, certifique-se de que analisou todas as opções de cada ambiente e que a sugestão da Guide atende às suas expectativas.</div>
+    <div class="modal-aviso">
+      <strong>Importante:</strong> ao aprovar, o projeto avança para a próxima etapa — Definição de Conceito. As plantas de layout não serão alteradas após a aprovação. Caso precise revisar algum ponto, entre em contato com sua arquiteta antes de confirmar.
+    </div>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Voltar e revisar</button>
+      <button class="btn-confirmar" onclick="confirmarAprovacao()">Confirmar aprovação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0IUgFI-iKEfi_w0uuLFjzA_OiFsQoQ2';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── CANVAS ANIMADO (névoa suave) ──
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+  const orbs = [
+    { x: 0.15, y: 0.15, r: 0.45, c: [201,162,39], a: 0.055 },
+    { x: 0.85, y: 0.85, r: 0.38, c: [201,162,39], a: 0.038 },
+    { x: 0.5,  y: 0.5,  r: 0.30, c: [80,100,200], a: 0.028 },
+    { x: 0.2,  y: 0.8,  r: 0.25, c: [201,162,39], a: 0.022 },
+  ];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    t += 0.003;
+    orbs.forEach((o, i) => {
+      const dx = Math.sin(t * 0.7 + i * 1.3) * 0.06;
+      const dy = Math.cos(t * 0.5 + i * 0.9) * 0.05;
+      const x = (o.x + dx) * W;
+      const y = (o.y + dy) * H;
+      const r = o.r * Math.min(W, H);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(${o.c.join(',')},${o.a})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', resize);
+  resize(); draw();
+})();
+
+// ── UTILS ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show';
+  setTimeout(() => el.className = 'toast', 3200);
+}
+function getProjetoId() { return new URLSearchParams(location.search).get('id'); }
+
+// ── UPLOAD ──
+async function uploadImagem(file, pasta) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['jpg','jpeg','png'].includes(ext)) { toast('Use arquivos JPG ou PNG.'); throw new Error('Formato inválido'); }
+  const nome = `${pasta}/${Date.now()}.${ext}`;
+  const { error } = await db.storage.from('imagens').upload(nome, file, { upsert: true });
+  if (error) throw error;
+  const { data } = db.storage.from('imagens').getPublicUrl(nome);
+  return data.publicUrl;
+}
+
+// ── MODAL ──
+function abrirModal() { document.getElementById('modal-aprovacao').classList.add('show'); }
+function fecharModal() { document.getElementById('modal-aprovacao').classList.remove('show'); }
+async function confirmarAprovacao() {
+  const id = getProjetoId();
+  await db.from('projetos').update({ etapa_atual: 2 }).eq('id', id);
+  fecharModal();
+  toast('Projeto aprovado! A próxima etapa será desbloqueada em breve.');
+}
+
+// ── EXPANDIR OPÇÃO ──
+function toggleOpcao(card) {
+  const pai = card.closest('.opcoes-grid');
+  const jaExpandido = card.classList.contains('expanded');
+  pai.querySelectorAll('.opcao-card').forEach(c => c.classList.remove('expanded'));
+  if (!jaExpandido) card.classList.add('expanded');
+}
+
+// ── RENDER SLOT IMAGEM ──
+function criarSlotImg(url, cls, pasta, tipo, ambId) {
+  const div = document.createElement('div');
+  div.className = cls;
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    div.appendChild(img);
+  } else {
+    div.innerHTML = `<div class="${cls === 'opcao-planta-wrap' ? 'opcao-planta-empty' : 'ref-img-empty'}"><span>${cls === 'opcao-planta-wrap' ? 'Planta será adicionada pelo arquiteto' : '—'}</span></div>`;
+  }
+  return div;
+}
+
+// ── RENDER AMBIENTE ──
+function renderAmbiente(amb, imagens, opcoes, idx) {
+  const bloco = document.createElement('div');
+  bloco.className = 'ambiente-bloco';
+  bloco.id = `amb-${amb.id}`;
+
+  bloco.innerHTML = `
+    <div class="ambiente-header">
+      <div class="ambiente-num">${String(idx+1).padStart(2,'0')}</div>
+      <div class="ambiente-info">
+        <div class="ambiente-titulo">${amb.nome}</div>
+        <div class="ambiente-instrucao">Aqui estão as opções de layout para ${amb.nome.toLowerCase()}. Clique em cada opção para explorá-la — veja a planta, as referências visuais e os pontos principais. Ao final, compare todas antes de decidir.</div>
+      </div>
+    </div>
+  `;
+
+  // Cards de opções
+  const opcIntro = document.createElement('div');
+  opcIntro.className = 'opcoes-intro';
+  opcIntro.textContent = `${opcoes.length} opção${opcoes.length !== 1 ? 'ões desenvolvida' : ' desenvolvida'}${opcoes.length !== 1 ? 's' : ''} para este ambiente — clique para expandir.`;
+  bloco.appendChild(opcIntro);
+
+  const grid = document.createElement('div');
+  grid.className = 'opcoes-grid';
+
+  if (opcoes.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:14px;">O arquiteto ainda está preparando as opções para este ambiente.</div>`;
+  }
+
+  opcoes.forEach((opc, oi) => {
+    const card = document.createElement('div');
+    card.className = 'opcao-card';
+    card.onclick = () => toggleOpcao(card);
+
+    const planta = imagens.find(i => i.ambiente_id === amb.id && i.tipo === 'planta' && i.opcao_idx === oi);
+    const refs = imagens.filter(i => i.ambiente_id === amb.id && i.tipo === 'referencia' && i.opcao_idx === oi);
+    const pontos = opc.caracteristicas || [];
+
+    card.innerHTML = `
+      <div class="opcao-tag">Opção ${String(oi+1).padStart(2,'0')}</div>
+      <div class="opcao-preview">${pontos[0] || 'Clique para ver os detalhes desta opção'}</div>
+      <div class="opcao-expandida">
+        <div class="opcao-expandida-grid">
+          <div>
+            <div class="opcao-planta-label">Planta do ambiente</div>
+            <div class="opcao-planta-wrap">
+              ${planta ? `<img src="${planta.url}" alt="Planta opção ${oi+1}">` : `<div class="opcao-planta-empty"><div style="font-size:28px;opacity:0.2;margin-bottom:8px">📐</div><span>Planta em preparação</span></div>`}
+            </div>
+          </div>
+          <div>
+            <div class="refs-label">Referências visuais</div>
+            <div class="refs-aviso">Estas imagens são apenas referências de estilo — não representam o resultado final do seu projeto.</div>
+            <div class="refs-grid">
+              ${[0,1,2,3].map(r => refs[r] ? `<div class="ref-img"><img src="${refs[r].url}"></div>` : `<div class="ref-img"><div class="ref-img-empty">—</div></div>`).join('')}
+            </div>
+            <div class="opcao-pontos">
+              <div class="opcao-pontos-label">Pontos principais</div>
+              ${pontos.length ? pontos.map(p => `<div class="opcao-ponto"><span>${p}</span></div>`).join('') : '<div class="opcao-ponto"><span>O arquiteto adicionará os pontos desta opção em breve.</span></div>'}
+            </div>
+          </div>
+        </div>
+        <button class="btn-fechar" onclick="event.stopPropagation();this.closest('.opcao-card').classList.remove('expanded')">Fechar opção</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  bloco.appendChild(grid);
+
+  // Comparação
+  if (opcoes.length > 1) {
+    const comp = document.createElement('div');
+    comp.className = 'comp-box';
+    comp.innerHTML = `
+      <div class="comp-tag">Comparativo</div>
+      <div class="comp-titulo">Entendendo as diferenças entre as opções</div>
+      <div class="comp-itens">
+        ${opcoes.map((o, oi) => {
+          const pontos = o.caracteristicas || [];
+          return `<div class="comp-item">
+            <div class="comp-num">${oi+1}</div>
+            <div class="comp-texto"><strong>Opção ${String(oi+1).padStart(2,'0')}</strong> — ${pontos.slice(0,2).join(' · ') || 'Características em preparação.'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    bloco.appendChild(comp);
+  }
+
+  return bloco;
+}
+
+// ── INIT ──
+async function init() {
+  const id = getProjetoId();
+  const app = document.getElementById('app');
+
+  if (!id) {
+    app.innerHTML = '<div class="page-loading"><p>Projeto não encontrado.</p></div>';
+    return;
+  }
+
+  const { data: projeto, error } = await db.from('projetos').select('*').eq('id', id).single();
+  if (error || !projeto) {
+    app.innerHTML = '<div class="page-loading"><p>Projeto não encontrado.</p></div>';
+    return;
+  }
+
+  document.getElementById('top-label').textContent = `G Project · ${projeto.nome_cliente}`;
+  document.title = `G Project — ${projeto.nome_cliente}`;
+
+  const { data: ambientes } = await db.from('ambientes').select('*').eq('projeto_id', id).order('ordem');
+  const ambIds = (ambientes || []).map(a => a.id);
+  const { data: imagens } = ambIds.length ? await db.from('imagens').select('*').in('ambiente_id', ambIds) : { data: [] };
+  const { data: opcoes } = ambIds.length ? await db.from('opcoes_layout').select('*').in('ambiente_id', ambIds).order('ordem') : { data: [] };
+
+  const dataFmt = new Date(projeto.criado_em).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  app.innerHTML = '';
+
+  // ── CAPA ──
+  const capa = document.createElement('section');
+  capa.className = 'capa';
+  capa.innerHTML = `
+    <div class="capa-tag">G Project · Guide Arquitetura</div>
+    <h1 class="capa-titulo">Estudo de<br><em>Layout</em></h1>
+    <p class="capa-sub">Definição de espaços e alternativas</p>
+    <div class="capa-meta">
+      <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val">${projeto.nome_cliente}</span></div>
+      <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val">${projeto.endereco || '—'}</span></div>
+      <div class="meta-item"><span class="meta-label">Arquiteto</span><span class="meta-val">${projeto.arquiteto || 'Guide Arquitetura'}</span></div>
+      <div class="meta-item"><span class="meta-label">Data</span><span class="meta-val">${dataFmt}</span></div>
+    </div>
+  `;
+  app.appendChild(capa);
+
+  // ── BOAS VINDAS ──
+  const bv = document.createElement('div');
+  bv.className = 'bv-box';
+  bv.innerHTML = `
+    <div class="bv-titulo">${projeto.nome_cliente.split(' ')[0]}, seu projeto começa <em>aqui.</em></div>
+    <p class="bv-texto">Preparamos este caderno especialmente para você — com clareza, cuidado e atenção a cada detalhe do seu espaço. Aqui você vai acompanhar todas as etapas do seu projeto, do primeiro esboço à entrega final.</p>
+    <p class="bv-texto">Navegue com calma. Cada seção foi pensada para que você entenda e se envolva com o processo, mesmo sem conhecimento técnico em arquitetura.</p>
+  `;
+  app.appendChild(bv);
+
+  // ── ETAPAS ──
+  const etapasSection = document.createElement('div');
+  etapasSection.className = 'etapas-nav';
+  const etapas = [
+    { nome: 'Estudo de Layout', ativa: true },
+    { nome: 'Definição de Conceito', ativa: false },
+    { nome: 'Imagens Finais', ativa: false },
+    { nome: 'Executivo', ativa: false },
+  ];
+  etapasSection.innerHTML = `
+    <div class="etapas-label">Seu processo</div>
+    <div class="etapas-track">
+      ${etapas.map((e, i) => `
+        <div class="etapa-card ${e.ativa ? 'ativa' : 'bloqueada'}">
+          ${!e.ativa ? `<div class="tooltip-dev">Este capítulo estará disponível em breve — seu projeto está sendo preparado com cuidado.</div>` : ''}
+          <div class="etapa-num-badge">Etapa ${String(i+1).padStart(2,'0')}</div>
+          <div class="etapa-nome-card">${e.nome}</div>
+          <div class="etapa-status">${e.ativa ? 'Em andamento' : 'Em desenvolvimento'}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  app.appendChild(etapasSection);
+
+  // ── DIVISOR ──
+  app.appendChild(Object.assign(document.createElement('div'), { className: 'divisor' }));
+
+  // ── BLOCO EDUCATIVO ──
+  const edu = document.createElement('div');
+  edu.className = 'edu-box';
+  edu.innerHTML = `
+    <div class="edu-tag">Antes de começar</div>
+    <div class="edu-titulo">O que é uma <em>planta baixa</em>?</div>
+    <p style="font-size:14px;color:var(--off);line-height:1.8;margin-bottom:16px;">Para analisar as opções de layout do seu projeto, você vai encontrar plantas baixas de cada ambiente. Entender o que elas mostram é o primeiro passo para fazer escolhas com confiança.</p>
+    <div class="edu-itens">
+      <div class="edu-item">
+        <div class="edu-icon">👁</div>
+        <div>
+          <div class="edu-item-titulo">A perspectiva de cima</div>
+          <div class="edu-item-texto">A planta baixa é uma vista do ambiente de cima para baixo, como se o teto fosse retirado. Você vê o espaço inteiro — paredes, portas, janelas e móveis — todos representados por símbolos simples.</div>
+        </div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-icon">🪑</div>
+        <div>
+          <div class="edu-item-titulo">Os móveis e o espaço</div>
+          <div class="edu-item-texto">Cada retângulo ou forma representa um móvel — sofá, cama, mesa, armário. O espaço entre eles é a área de circulação: onde você vai andar no dia a dia.</div>
+        </div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-icon">🚪</div>
+        <div>
+          <div class="edu-item-titulo">Paredes, portas e janelas</div>
+          <div class="edu-item-texto">As linhas mais grossas são as paredes. Aberturas nas paredes indicam portas e janelas. O arco junto à porta mostra para qual lado ela abre — importante para pensar na circulação.</div>
+        </div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-icon">✅</div>
+        <div>
+          <div class="edu-item-titulo">O que observar em cada opção</div>
+          <div class="edu-item-texto">Pense no seu dia a dia: consegue passar com facilidade? Os móveis estão onde você precisa? O espaço parece confortável para a sua rotina? Não existe certo ou errado — existe o que funciona melhor para você.</div>
+        </div>
+      </div>
+    </div>
+  `;
+  app.appendChild(edu);
+
+  // ── AMBIENTES ──
+  const opcSection = document.createElement('section');
+  const hdr = document.createElement('div');
+  hdr.className = 'sec-header';
+  hdr.innerHTML = `
+    <div class="sec-tag">Estudo de alternativas</div>
+    <h2 class="sec-titulo">As opções do seu <em>layout</em></h2>
+    <p class="sec-lead">Para cada ambiente do seu imóvel, desenvolvemos alternativas de layout. Explore cada uma, compare e veja qual faz mais sentido para a sua vida.</p>
+  `;
+  opcSection.appendChild(hdr);
+
+  for (let i = 0; i < (ambientes || []).length; i++) {
+    const amb = ambientes[i];
+    const imgs = (imagens || []).filter(im => im.ambiente_id === amb.id);
+    const opcs = (opcoes || []).filter(o => o.ambiente_id === amb.id);
+    opcSection.appendChild(renderAmbiente(amb, imgs, opcs, i));
+    if (i < ambientes.length - 1) {
+      opcSection.appendChild(Object.assign(document.createElement('div'), { className: 'divisor' }));
+    }
+  }
+  app.appendChild(opcSection);
+
+  app.appendChild(Object.assign(document.createElement('div'), { className: 'divisor' }));
+
+  // ── SUGESTÃO GUIDE ──
+  const sugSection = document.createElement('section');
+  sugSection.className = 'sugestao-section';
+  sugSection.innerHTML = `
+    <div class="sec-header">
+      <div class="sec-tag">Recomendação Guide</div>
+      <h2 class="sec-titulo">A nossa <em>sugestão</em></h2>
+      <p class="sec-lead">Com base no seu briefing e na análise técnica dos ambientes, esta é a proposta que melhor equilibra circulação, conforto e a sua rotina.</p>
+    </div>
+  `;
+  const sugBox = document.createElement('div');
+  sugBox.className = 'sugestao-box';
+  sugBox.innerHTML = `<div class="sugestao-badge">✦ Sugestão Guide</div><div class="sugestao-titulo">Layout <em>recomendado</em> para o seu projeto</div><div class="sugestao-texto">Esta proposta considera todos os ambientes integrados — a forma como cada espaço conversa com o outro, a circulação entre os cômodos e o aproveitamento da iluminação natural.</div>`;
+  const sugImg = document.createElement('div');
+  sugImg.className = 'sugestao-img-area';
+  sugImg.innerHTML = `<div class="sugestao-img-empty"><div>🏠</div><span>Planta completa do apartamento</span></div>`;
+  const sugInput = document.createElement('input');
+  sugInput.type = 'file'; sugInput.accept = 'image/png,image/jpeg';
+  sugImg.appendChild(sugInput);
+  sugImg.addEventListener('click', () => sugInput.click());
+  sugInput.addEventListener('change', async () => {
+    const file = sugInput.files[0]; if (!file) return;
+    const ind = document.createElement('div');
+    ind.className = 'uploading-indicator'; ind.innerHTML = '<span>Enviando...</span>';
+    sugImg.appendChild(ind);
+    try {
+      const url = await uploadImagem(file, `projeto-${id}/sugestao`);
+      await db.from('imagens').insert([{ ambiente_id: null, tipo: 'sugestao', url, nome: file.name }]);
+      let img = sugImg.querySelector('img.uploaded');
+      if (!img) { img = document.createElement('img'); img.className = 'uploaded'; sugImg.appendChild(img); }
+      img.src = url;
+      sugImg.querySelector('.sugestao-img-empty').style.display = 'none';
+      toast('Planta final salva!');
+    } catch(e) { toast('Erro ao enviar. Tente novamente.'); }
+    finally { ind.remove(); }
+  });
+  sugBox.appendChild(sugImg);
+  sugSection.appendChild(sugBox);
+  app.appendChild(sugSection);
+
+  // ── RETORNO ──
+  const retSection = document.createElement('section');
+  retSection.className = 'retorno-section';
+  retSection.innerHTML = `<div class="sec-tag">Revisar</div><h3 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--white);margin-bottom:8px;">Voltar a um ambiente</h3><p style="font-size:14px;color:var(--muted);margin-bottom:0;">Quer revisar algum ambiente antes de aprovar? Use os atalhos abaixo.</p>`;
+  const retGrid = document.createElement('div');
+  retGrid.className = 'retorno-grid';
+  (ambientes || []).forEach(amb => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-retorno';
+    btn.innerHTML = `<span>Ambiente</span>${amb.nome}`;
+    btn.onclick = () => document.getElementById(`amb-${amb.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    retGrid.appendChild(btn);
+  });
+  retSection.appendChild(retGrid);
+  app.appendChild(retSection);
+
+  app.appendChild(Object.assign(document.createElement('div'), { className: 'divisor' }));
+
+  // ── AÇÃO FINAL ──
+  const acaoSection = document.createElement('section');
+  acaoSection.className = 'acao-section';
+  acaoSection.innerHTML = `
+    <div class="acao-box">
+      <h2 class="acao-titulo">Pronto para <em>avançar?</em></h2>
+      <p class="acao-texto">Depois de explorar todas as opções e ver a sugestão da Guide, é hora de tomar a sua decisão. A aprovação confirma que você está satisfeito com o estudo de layout e autoriza o início da próxima etapa — a Definição de Conceito.</p>
+      <button class="btn-aprovar" onclick="abrirModal()">Aprovar layout e avançar</button>
+    </div>
+  `;
+  app.appendChild(acaoSection);
+
+  // ── RODAPÉ ──
+  const footer = document.createElement('footer');
+  footer.innerHTML = `<span class="rodape-logo">Guide</span><span class="rodape-tag">Arquitetura que transforma no seu ritmo</span>`;
+  app.appendChild(footer);
+}
+
+init();
+</script>
+</body>
+</html>
