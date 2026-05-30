@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/caderno", "destination": "/caderno.html" }
+    { "source": "/(.*)", "destination": "/$1.html" }
   ]
 }
