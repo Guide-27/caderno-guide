@@ -194,7 +194,7 @@ async function carregarProjetos() {
   }
   lista.innerHTML = data.map(p => {
     const data_fmt = new Date(p.criado_em).toLocaleDateString('pt-BR');
-    const link = `${location.origin}/caderno.html?id=${p.id}`;
+    const link = `${location.origin}caderno.html?id=${p.id}`;
     return `
       <div class="projeto-card">
         <div class="projeto-info">
@@ -204,7 +204,7 @@ async function carregarProjetos() {
         <span class="projeto-plano">${p.plano}</span>
         <div class="projeto-acoes">
           <button class="btn-link" onclick="copiarLink('${link}')">📋 Copiar link</button>
-          <a class="btn-abrir" href="/caderno.html?id=${p.id}" target="_blank">Abrir caderno</a>
+          <a class="btn-abrir" href="caderno.html?id=${p.id}" target="_blank">Abrir caderno</a>
         </div>
       </div>
     `;
