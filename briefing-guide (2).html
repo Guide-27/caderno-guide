@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing · Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
+  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);--gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --border:rgba(201,162,39,0.14);--border2:rgba(255,255,255,0.06);
+  --green:#50C878;--green-dim:rgba(80,200,120,0.09);--green-border:rgba(80,200,120,0.28);
+  --blue:rgba(80,140,220,0.9);--blue-dim:rgba(80,140,220,0.09);--blue-border:rgba(80,140,220,0.28);
+  --amber:#E8A020;--amber-dim:rgba(232,160,32,0.09);--amber-border:rgba(232,160,32,0.3);
+  --red:rgba(220,80,80,0.9);--red-dim:rgba(220,80,80,0.08);--red-border:rgba(220,80,80,0.28);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:"Outfit",sans-serif;font-weight:300;line-height:1.7;min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent,var(--gold) 20%,var(--gold) 80%,transparent);z-index:100;opacity:0.35;}
+.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,0.94);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:300;}
+.top-logo{font-family:"Cormorant Garamond",serif;font-size:21px;color:var(--gold);font-weight:600;letter-spacing:0.06em;}
+.top-right{display:flex;align-items:center;gap:16px;}
+.top-etapa-label{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
+.top-salvo{font-size:10px;color:var(--green);opacity:0;transition:opacity 0.4s;display:flex;align-items:center;gap:5px;}
+.top-salvo.vis{opacity:1;}
+.progress-wrap{position:fixed;top:58px;left:0;right:0;z-index:299;background:rgba(8,8,10,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border2);padding:0 48px;}
+.progress-blocos{display:flex;gap:3px;padding:10px 0;overflow-x:auto;scrollbar-width:none;align-items:center;}
+.progress-blocos::-webkit-scrollbar{display:none;}
+.bloco-track{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.bloco-label{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted2);white-space:nowrap;margin-right:4px;margin-left:8px;}
+.bloco-label:first-child{margin-left:0;}
+.etapa-pip{width:24px;height:5px;border-radius:3px;background:var(--card2);cursor:pointer;transition:all 0.3s;position:relative;flex-shrink:0;}
+.etapa-pip:hover{background:var(--muted2);}
+.etapa-pip.visitada{background:rgba(201,162,39,0.3);}
+.etapa-pip.ativa{background:var(--gold);}
+.etapa-pip.concluida{background:rgba(80,200,120,0.5);}
+.etapa-pip.bloqueada{opacity:0.25;cursor:default;}
+.etapa-pip-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--off);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:10;}
+.etapa-pip:hover .etapa-pip-tip{opacity:1;}
+.progress-pct{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap;padding:10px 0 10px 12px;flex-shrink:0;}
+.main{max-width:740px;margin:0 auto;padding:148px 40px 120px;position:relative;z-index:2;}
+.etapa-tela{display:none;animation:fadeUp 0.35s ease;}
+.etapa-tela.ativa{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.etapa-bloco-tag{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.etapa-bloco-tag::before{content:"";display:block;width:14px;height:1px;background:var(--gold);}
+.etapa-num{font-size:10px;color:var(--muted2);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:8px;}
+.etapa-titulo{font-family:"Cormorant Garamond",serif;font-size:clamp(28px,5vw,48px);font-weight:300;line-height:1.05;color:var(--white);margin-bottom:12px;}
+.etapa-titulo em{color:var(--gold);font-style:italic;}
+.etapa-lead{font-size:15px;color:var(--off);line-height:1.85;margin-bottom:32px;max-width:580px;}
+.campo{margin-bottom:26px;}
+.campo-label{font-size:12px;font-weight:500;color:var(--white);margin-bottom:6px;display:block;letter-spacing:0.03em;}
+.campo-hint{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;}
+.campo-dica{font-size:11px;color:var(--off);background:var(--card2);border-left:2px solid var(--gold);border-radius:0 6px 6px 0;padding:9px 13px;margin-top:8px;line-height:1.6;}
+.campo-dica strong{color:var(--gold);font-weight:500;}
+.input{width:100%;background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:13px 16px;font-family:"Outfit",sans-serif;font-size:14px;font-weight:300;color:var(--white);outline:none;transition:border-color 0.2s;}
+.input:focus{border-color:var(--gold-mid);}
+.input::placeholder{color:var(--muted2);font-style:italic;}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.input-row.tres{grid-template-columns:1fr 1fr 1fr;}
+select.input{cursor:pointer;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7870' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.cards-sel{display:flex;flex-wrap:wrap;gap:9px;}
+.card-sel{background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:11px 15px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--off);user-select:none;}
+.card-sel:hover{border-color:var(--gold-mid);background:var(--gold-dim);color:var(--white);}
+.card-sel.sel{border-color:var(--gold);background:var(--gold-dim);color:var(--white);font-weight:500;}
+.cs-icon{font-size:17px;flex-shrink:0;line-height:1;}
+.cs-label{font-size:13px;line-height:1.3;}
+.cs-sub{font-size:11px;color:var(--muted);margin-top:2px;display:block;}
+.radio-group{display:flex;flex-direction:column;gap:8px;}
+.radio-item{background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:14px 16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:13px;user-select:none;}
+.radio-item:hover{border-color:var(--gold-mid);}
+.radio-item.sel{border-color:var(--gold);background:var(--gold-dim);}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--muted2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.radio-item.sel .radio-dot{border-color:var(--gold);background:var(--gold);}
+.radio-dot-inner{width:7px;height:7px;border-radius:50%;background:var(--black);opacity:0;}
+.radio-item.sel .radio-dot-inner{opacity:1;}
+.radio-txt{flex:1;}
+.radio-titulo{font-size:13px;color:var(--white);font-weight:400;line-height:1.35;}
+.radio-sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.edu-bloco{background:rgba(201,162,39,0.05);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:12px 0;display:none;}
+.edu-bloco.vis{display:block;}
+.edu-titulo{font-size:11px;font-weight:500;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.edu-txt{font-size:12px;color:var(--off);line-height:1.8;}
+.edu-txt p{margin-bottom:9px;}
+.edu-txt p:last-child{margin-bottom:0;}
+.edu-txt strong{color:var(--white);font-weight:500;}
+.btn-onde{background:transparent;border:none;font-family:"Outfit",sans-serif;font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 0;transition:color 0.2s;letter-spacing:0.03em;}
+.btn-onde:hover{color:var(--gold);}
+.onde-bloco{display:none;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-top:6px;font-size:12px;color:var(--off);line-height:1.7;}
+.onde-bloco.vis{display:block;}
+.onde-bloco strong{color:var(--white);font-weight:500;}
+.campo-condicional{display:none;margin-top:12px;}
+.campo-condicional.vis{display:block;}
+/* ESTILOS ARQUITETONICOS */
+.estilos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.estilo-card{background:var(--card);border:1.5px solid var(--border2);border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.25s;user-select:none;}
+.estilo-card:hover{border-color:var(--gold-mid);transform:translateY(-2px);}
+.estilo-card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);}
+.estilo-img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;}
+.estilo-img-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;}
+.estilo-img-placeholder img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.estilo-ph-icon{font-size:36px;opacity:0.4;position:relative;z-index:1;}
+.estilo-ph-label{font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;position:relative;z-index:1;}
+.estilo-body{padding:16px 18px;}
+.estilo-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.estilo-nome{font-size:14px;font-weight:500;color:var(--white);}
+.estilo-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gold);opacity:0;transition:all 0.2s;}
+.estilo-card.sel .estilo-check{opacity:1;background:var(--gold-dim);border-color:var(--gold);}
+.estilo-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;}
+.estilo-historia{font-size:11px;color:var(--off);line-height:1.7;margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border2);}
+.estilo-onde{font-size:11px;color:var(--muted);line-height:1.6;}
+.estilo-onde-label{color:var(--gold);font-weight:500;}
+/* PALETAS */
+.paletas-grid{display:flex;flex-direction:column;gap:10px;}
+.card-paleta{background:var(--card);border:1.5px solid var(--border2);border-radius:13px;padding:16px 18px;cursor:pointer;transition:all 0.2s;user-select:none;display:flex;gap:16px;align-items:center;}
+.card-paleta:hover{border-color:var(--gold-mid);}
+.card-paleta.sel{border-color:var(--gold);background:var(--gold-dim);}
+.paleta-swatches{display:flex;gap:5px;flex-shrink:0;}
+.swatch{width:24px;height:48px;border-radius:7px;}
+.paleta-info{}
+.paleta-nome{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px;}
+.paleta-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+/* FAMILIA */
+.familia-lista{display:flex;flex-direction:column;gap:10px;}
+.membro-card{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:18px;position:relative;}
+.membro-tipo{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.membro-tipo.humano{color:var(--gold);}
+.membro-tipo.pet{color:var(--green);}
+.btn-del-membro{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted2);cursor:pointer;font-size:14px;transition:color 0.2s;padding:2px;}
+.btn-del-membro:hover{color:var(--red);}
+.btn-add-membro{background:transparent;border:1.5px dashed var(--muted2);border-radius:10px;padding:11px 18px;font-family:"Outfit",sans-serif;font-size:12px;color:var(--muted2);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px;width:100%;margin-top:4px;}
+.btn-add-membro:hover{border-color:var(--gold-mid);color:var(--gold);}
+.btn-add-membro.pet-btn:hover{border-color:var(--green-border);color:var(--green);}
+/* UPLOAD */
+.upload-area{background:var(--card);border:1.5px dashed var(--muted2);border-radius:10px;padding:22px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.upload-area:hover{border-color:var(--gold-mid);background:var(--gold-dim);}
+.upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:26px;opacity:0.25;display:block;margin-bottom:8px;}
+.upload-txt{font-size:13px;color:var(--muted);}
+.upload-sub{font-size:11px;color:var(--muted2);margin-top:4px;}
+.upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.upload-thumb{width:68px;height:68px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.upload-thumb img{width:100%;height:100%;object-fit:cover;}
+.upload-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;border-radius:50%;width:16px;height:16px;color:white;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* NAV */
+.nav-btns{display:flex;gap:12px;margin-top:44px;padding-top:28px;border-top:1px solid var(--border2);}
+.btn-anterior{background:transparent;border:1px solid var(--border2);border-radius:10px;padding:13px 26px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.btn-anterior:hover{border-color:var(--muted);color:var(--white);}
+.btn-proximo{background:var(--gold);color:var(--black);border:none;border-radius:10px;padding:13px 34px;font-family:"Outfit",sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.25s;letter-spacing:0.08em;text-transform:uppercase;margin-left:auto;}
+.btn-proximo:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 8px 28px rgba(201,162,39,0.25);}
+/* BV */
+.bv-wrap{min-height:72vh;display:flex;flex-direction:column;justify-content:center;}
+.bv-tag{font-size:10px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.bv-tag::after{content:"";display:block;width:40px;height:1px;background:linear-gradient(to right,var(--gold),transparent);}
+.bv-titulo{font-family:"Cormorant Garamond",serif;font-size:clamp(38px,7vw,70px);font-weight:300;line-height:0.95;color:var(--white);margin-bottom:14px;}
+.bv-titulo em{color:var(--gold);font-style:italic;}
+.bv-sub{font-size:16px;color:var(--muted);margin-bottom:36px;line-height:1.8;max-width:480px;}
+.bv-tempo{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--off);margin-bottom:10px;}
+.bv-tempo strong{color:var(--gold);font-weight:500;}
+.bv-nota{font-size:12px;color:var(--muted2);line-height:1.6;max-width:440px;}
+.btn-comecar{background:var(--gold);color:var(--black);border:none;border-radius:12px;padding:18px 48px;font-family:"Outfit",sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.25s;letter-spacing:0.1em;text-transform:uppercase;margin-top:32px;display:inline-block;}
+.btn-comecar:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,162,39,0.3);}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;color:var(--white);transform:translateY(14px);opacity:0;transition:all 0.3s;max-width:300px;}
+.toast.show{transform:translateY(0);opacity:1;}
+/* REFS LIVRES */
+.refs-wrap{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:22px;}
+.refs-hint{font-size:13px;color:var(--off);line-height:1.75;margin-bottom:16px;font-style:italic;}
+.refs-hint strong{color:var(--gold);font-weight:500;font-style:normal;}
+/* REVISÃO */
+.rev-bloco{background:var(--card);border:1px solid var(--border2);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+.rev-bloco-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid var(--border2);}
+.rev-bloco-titulo{font-size:13px;font-weight:500;color:var(--white);}
+.rev-bloco-body{padding:14px 18px;display:none;}
+.rev-bloco.aberto .rev-bloco-body{display:block;}
+.rev-item{display:flex;gap:12px;margin-bottom:8px;font-size:12px;}
+.rev-key{color:var(--muted);min-width:120px;}
+.rev-val{color:var(--off);}
+@media(max-width:768px){
+  .top-bar,.progress-wrap{padding-left:20px;padding-right:20px;}
+  .main{padding:148px 22px 100px;}
+  .input-row,.input-row.tres{grid-template-columns:1fr;}
+  .estilos-grid{grid-template-columns:1fr;}
+  .nav-btns{flex-wrap:wrap;}
+  .btn-proximo{width:100%;}
+}
+
+
+.cards-grandes{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.card-grande{background:var(--card);border:1.5px solid var(--border2);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;user-select:none;}
+.card-grande:hover{border-color:var(--gold-mid);}
+.card-grande.sel{border-color:var(--gold);background:var(--gold-dim);}
+.cg-icon{font-size:26px;margin-bottom:10px;display:block;}
+.cg-titulo{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px;}
+.cg-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+.rev-bloco{background:var(--card);border:1px solid var(--border2);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.rev-bloco-header{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.rev-bloco-titulo{font-size:13px;font-weight:500;color:var(--white);}
+.rev-bloco-body{padding:14px 18px;display:none;border-top:1px solid var(--border2);}
+.rev-bloco.aberto .rev-bloco-body{display:block;}
+.rev-item{display:flex;gap:12px;margin-bottom:7px;font-size:12px;}
+.rev-key{color:var(--muted);min-width:140px;flex-shrink:0;}
+.rev-val{color:var(--off);}
+@media(max-width:768px){.cards-grandes{grid-template-columns:1fr;}}
+
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="sidebar"></div>
+<div class="top-bar">
+  <span class="top-logo">Guide</span>
+  <div class="top-right">
+    <span class="top-etapa-label" id="top-label">Briefing do Projeto</span>
+    <span class="top-salvo" id="top-salvo">✓ Salvo</span>
+  </div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-blocos" id="progress-blocos"></div>
+</div>
+<main class="main" id="main">
+<div class="etapa-tela ativa" id="tela-0">
+<div class="bv-wrap">
+  <div class="bv-tag">G Project · Guide Arquitetura · Briefing</div>
+  <h1 class="bv-titulo">Olá, <em id="bv-nome">seja bem-vindo</em>.<br>Vamos conhecer<br>o seu futuro lar.</h1>
+  <p class="bv-sub">Este é o início de tudo. Quanto mais você nos contar, mais o resultado final vai parecer exatamente com o que você sempre imaginou — mas ainda não sabia como pedir.</p>
+  <div class="bv-tempo">⏱ Cerca de <strong>15 a 20 minutos</strong> — e você pode pausar e retomar quando quiser</div>
+  <p class="bv-nota">Começamos pelo mais gostoso: estilo, cores e como você quer se sentir no seu lar. As partes técnicas ficam para o final.</p>
+  <button class="btn-comecar" onclick="irParaEtapa(1)">Começar →</button>
+</div>
+</div><div class="etapa-tela" id="tela-1">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 1 de 16</div>
+<h2 class="etapa-titulo">Como você quer<br><em>se sentir?</em></h2>
+<p class="etapa-lead">Quando você abrir a porta do seu apartamento depois de um dia longo, qual deve ser a sensação imediata? Não existe resposta certa — existe a sua. Escolha até 3.</p>
+<div class="campo">
+<div class="cards-grandes" data-grupo="sensacao" data-max="3">
+  <div class="card-grande" data-val="acolhido"><span class="cg-icon">🤗</span><div class="cg-titulo">Acolhido</div><div class="cg-desc">Calor, conforto, cheiro de casa. Um lugar onde você respira fundo e relaxa de verdade.</div></div>
+  <div class="card-grande" data-val="revigorado"><span class="cg-icon">⚡</span><div class="cg-titulo">Revigorado</div><div class="cg-desc">Energia, leveza, clareza mental. Um espaço que renova as forças para o que vem a seguir.</div></div>
+  <div class="card-grande" data-val="em-paz"><span class="cg-icon">🌿</span><div class="cg-titulo">Em paz</div><div class="cg-desc">Silêncio, natureza, equilíbrio. Tudo no seu lugar, nada em excesso.</div></div>
+  <div class="card-grande" data-val="inspirado"><span class="cg-icon">✨</span><div class="cg-titulo">Inspirado</div><div class="cg-desc">Criatividade, beleza, referências. Um espaço que desperta o melhor de você.</div></div>
+  <div class="card-grande" data-val="orgulhoso"><span class="cg-icon">🏆</span><div class="cg-titulo">Orgulhoso</div><div class="cg-desc">Elegância, personalidade, sofisticação. Um lar que representa quem você é.</div></div>
+  <div class="card-grande" data-val="livre"><span class="cg-icon">🕊</span><div class="cg-titulo">Livre</div><div class="cg-desc">Espaço, fluidez, sem excessos. Respirar com amplitude dentro de casa.</div></div>
+  <div class="card-grande" data-val="vivo"><span class="cg-icon">🔥</span><div class="cg-titulo">Vivo</div><div class="cg-desc">Cor, movimento, presença forte. Um lar com personalidade inconfundível.</div></div>
+  <div class="card-grande" data-val="aconchegante"><span class="cg-icon">🕯</span><div class="cg-titulo">Aconchegante</div><div class="cg-desc">Quente, íntimo, seguro. O tipo de lugar que abraça quem entra.</div></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-proximo" onclick="irParaEtapa(2)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-2">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 2 de 16</div>
+<h2 class="etapa-titulo">Você já sabe<br><em>o que quer?</em></h2>
+<p class="etapa-lead">Esta pergunta muda como o arquiteto vai trabalhar com você. Não existe resposta certa — existe a sua resposta honesta.</p>
+<div class="campo">
+<div class="radio-group" data-grupo="consciencia-estilo" data-max="1">
+  <div class="radio-item" data-val="ja-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Já sei exatamente o que quero</div><div class="radio-sub">Tenho referências claras, pastas de inspiração, imagens salvas. É só executar com qualidade.</div></div></div>
+  <div class="radio-item" data-val="tenho-ideia"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Tenho uma ideia — mas preciso ver para confirmar</div><div class="radio-sub">Sei mais ou menos o que gosto, mas preciso de opções concretas para tomar as decisões certas.</div></div></div>
+  <div class="radio-item" data-val="descobrindo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estou descobrindo agora — preciso de orientação</div><div class="radio-sub">Nunca parei para pensar muito nisso. Preciso que o arquiteto me guie com opções e explicações.</div></div></div>
+  <div class="radio-item" data-val="confio-arquiteto"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Confio totalmente no arquiteto — quero ser surpreendido</div><div class="radio-sub">Tenho poucas restrições. Quero ver o que o profissional propõe para o meu espaço.</div></div></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(1)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(3)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-3">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 3 de 16</div>
+<h2 class="etapa-titulo">Qual estilo<br><em>fala com você?</em></h2>
+<p class="etapa-lead">Cada estilo tem uma história, uma origem, um mundo de referências por trás. Explore com calma — e selecione até 2 que mais ressoam com o que você imagina para o seu lar.</p>
+<div class="campo">
+<div class="estilos-grid"><div class="estilo-card" data-val="minimalista">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#e8e8e422,#e8e8e444);">
+              <span class="estilo-ph-icon">⬜</span>
+              <span class="estilo-ph-label">Imagem Moderno Minimalista</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Moderno Minimalista</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Linhas retas, poucos elementos, muito branco e madeira clara. Menos é mais.</div>
+            <div class="estilo-historia">Nasceu na Europa no início do século XX como reação ao excesso ornamental. Influenciado pelo Bauhaus alemão e pelo design japonês, chegou aos apartamentos urbanos como sinônimo de sofisticação tranquila.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Revistas como Wallpaper e Dezeen. Cidades como Copenhagen, Tóquio e Zurique. Marcas de referência: Muuto, HAY, Menu.</div>
+          </div>
+        </div><div class="estilo-card" data-val="contemporaneo">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#c8c8c022,#c8c8c044);">
+              <span class="estilo-ph-icon">🏙</span>
+              <span class="estilo-ph-label">Imagem Contemporâneo</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Contemporâneo</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Equilíbrio entre funcional e elegante. Neutros com toques de cor e personalidade.</div>
+            <div class="estilo-historia">Não é um estilo com origem definida — é o resultado do mundo globalizado. Pega o que há de melhor em cada tendência e cria ambientes que funcionam para a vida real sem abrir mão da estética.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Qualquer grande cidade do mundo. Pinterest, Instagram de arquitetos brasileiros. O estilo mais versátil e adaptável ao gosto pessoal.</div>
+          </div>
+        </div><div class="estilo-card" data-val="escandinavo">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#f0ebe022,#f0ebe044);">
+              <span class="estilo-ph-icon">🌿</span>
+              <span class="estilo-ph-label">Imagem Escandinavo</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Escandinavo</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Leveza, madeira clara, muito branco, plantas e aconchego. Funcional e bonito.</div>
+            <div class="estilo-historia">Nasceu nos países nórdicos como resposta ao inverno longo e à pouca luz solar. A solução foi trazer luz, calor e natureza para dentro de casa — sem excessos, com materiais honestos.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Dinamarca, Suécia, Noruega e Finlândia. Marcas: IKEA, Muuto, HAY, Ferm Living. Pinterest com #scandinavianinterior.</div>
+          </div>
+        </div><div class="estilo-card" data-val="industrial">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#88888022,#88888044);">
+              <span class="estilo-ph-icon">🏗</span>
+              <span class="estilo-ph-label">Imagem Industrial</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Industrial</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Concreto, metal, tijolos aparentes e tons escuros. Personalidade e contraste.</div>
+            <div class="estilo-historia">Surgiu nos anos 1990 em Nova York quando artistas transformaram fábricas e armazéns abandonados em lofts. O que era improvisado virou estilo — e hoje está em apartamentos do mundo inteiro.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Nova York, Londres, Berlim e São Paulo. Bairros como Pinheiros, Vila Madalena e Lapa. Inspiração: lofts neoyorkinos, Soho londrino.</div>
+          </div>
+        </div><div class="estilo-card" data-val="boho">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#c8a87822,#c8a87844);">
+              <span class="estilo-ph-icon">🌙</span>
+              <span class="estilo-ph-label">Imagem Boho / Orgânico</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Boho / Orgânico</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Texturas, palha, plantas, camadas e alma viajante. Eclético e muito pessoal.</div>
+            <div class="estilo-historia">Vem da cultura boêmia europeia do século XIX — artistas, viajantes e intelectuais que misturavam influências de vários países. Hoje é o estilo que mais resiste a regras e que mais espaço dá para a personalidade.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Bali, Marrocos, Portugal. Feiras de antiguidades, lojas de artesanato, viagens. Pinterest com #bohemianinterior e #earthytones.</div>
+          </div>
+        </div><div class="estilo-card" data-val="classico-moderno">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#d4c8b022,#d4c8b044);">
+              <span class="estilo-ph-icon">🏛</span>
+              <span class="estilo-ph-label">Imagem Clássico Moderno</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Clássico Moderno</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Molduras, espelhos, dourados com toque atual. Elegância que não envelhece.</div>
+            <div class="estilo-historia">Releitura contemporânea do classicismo europeu — o estilo que dominou os palácios e casarões do século XVIII e XIX. Hoje aparece em apartamentos com sancas, molduras de gesso e móveis com pés trabalhados, mas com paleta e proporções atuais.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Paris, Milão, Lisboa. Inspiração: hotéis boutique europeus, apartamentos haussmannianos parisienses.</div>
+          </div>
+        </div><div class="estilo-card" data-val="japandi">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#d0ccc022,#d0ccc044);">
+              <span class="estilo-ph-icon">🎋</span>
+              <span class="estilo-ph-label">Imagem Japandi</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Japandi</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Minimalismo japonês com aconchego escandinavo. Paz, equilíbrio e pouquíssimo excesso.</div>
+            <div class="estilo-historia">Fusão que nasceu nos anos 2010 unindo dois filosofias de design: o wabi-sabi japonês (beleza na imperfeição e na natureza) e o hygge escandinavo (aconchego e bem-estar). O resultado é um estilo de serenidade raramente alcançado.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Japão e países nórdicos. Kyoto para referência de proporção e materialidade. Marcas: Karimoku, Menu, Ferm Living.</div>
+          </div>
+        </div><div class="estilo-card" data-val="descobrir">
+          <div class="estilo-img-wrap">
+            <div class="estilo-img-placeholder" style="background:linear-gradient(135deg,#40404022,#40404044);">
+              <span class="estilo-ph-icon">🔍</span>
+              <span class="estilo-ph-label">Imagem Ainda não sei — me ajude a descobrir</span>
+            </div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Ainda não sei — me ajude a descobrir</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">O arquiteto vai apresentar opções, mostrar exemplos e guiar a escolha junto com você.</div>
+            
+            
+          </div>
+        </div></div>
+</div>
+<div class="campo">
+<label class="campo-label" style="font-size:12px;color:var(--muted);">Quer acrescentar algo sobre o estilo que imagina?</label>
+<textarea class="input" rows="2" placeholder="Ex: gosto de industrial mas não quero escuro demais. Ou quero minimalista com um toque de calor..." data-campo="estilo-obs" style="margin-top:6px;min-height:70px;resize:vertical;"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(2)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(4)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-4">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 4 de 16</div>
+<h2 class="etapa-titulo">Sua paleta<br><em>de vida.</em></h2>
+<p class="etapa-lead">Cores não são só estética — são emoção. Cada paleta abaixo cria uma atmosfera diferente. Escolha até 2 que mais se aproximam do que você quer sentir nos seus ambientes.</p>
+<div class="campo">
+<div class="paletas-grid"><div class="card-paleta" data-grupo="paleta" data-val="neblina">
+          <div class="paleta-swatches"><div class="swatch" style="background:#f5f4f0;"></div><div class="swatch" style="background:#e8e8e8;"></div><div class="swatch" style="background:#c8d0d8;"></div><div class="swatch" style="background:#b0bcc8;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">☁️ Neblina</div>
+            <div class="paleta-desc">Branco, off-white, cinza claro, azul gelo. Leveza e clareza.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="areia">
+          <div class="paleta-swatches"><div class="swatch" style="background:#f0e8d8;"></div><div class="swatch" style="background:#e0d0b8;"></div><div class="swatch" style="background:#c8b090;"></div><div class="swatch" style="background:#b09070;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🏜 Areia e vento</div>
+            <div class="paleta-desc">Bege, areia, cru, caramelo claro. Calor sem peso.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="floresta">
+          <div class="paleta-swatches"><div class="swatch" style="background:#708060;"></div><div class="swatch" style="background:#506840;"></div><div class="swatch" style="background:#383828;"></div><div class="swatch" style="background:#202818;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌿 Floresta urbana</div>
+            <div class="paleta-desc">Verde musgo, madeira escura, preto, verde folha.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="terra">
+          <div class="paleta-swatches"><div class="swatch" style="background:#c87850;"></div><div class="swatch" style="background:#b06040;"></div><div class="swatch" style="background:#d09060;"></div><div class="swatch" style="background:#e8d8c0;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🔥 Terra quente</div>
+            <div class="paleta-desc">Terracota, caramelo, laranja queimado, cru.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="mar">
+          <div class="paleta-swatches"><div class="swatch" style="background:#1a2a4a;"></div><div class="swatch" style="background:#2a4060;"></div><div class="swatch" style="background:#4a8090;"></div><div class="swatch" style="background:#c8a840;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌊 Mar profundo</div>
+            <div class="paleta-desc">Azul-marinho, verde-azulado, branco, dourado.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="noite">
+          <div class="paleta-swatches"><div class="swatch" style="background:#181818;"></div><div class="swatch" style="background:#303030;"></div><div class="swatch" style="background:#c8a227;"></div><div class="swatch" style="background:#f0ece0;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🖤 Noite clara</div>
+            <div class="paleta-desc">Preto, antracite, dourado, off-white.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="flor">
+          <div class="paleta-swatches"><div class="swatch" style="background:#e0c0b8;"></div><div class="swatch" style="background:#b0c0a8;"></div><div class="swatch" style="background:#d8c0b0;"></div><div class="swatch" style="background:#f8f0e8;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌸 Flor de inverno</div>
+            <div class="paleta-desc">Rosa pó, sálvia, bege rosado, branco.</div>
+          </div>
+        </div></div>
+</div>
+<div class="campo" style="margin-top:16px;">
+<label class="campo-label" style="font-size:12px;color:var(--muted);">Tem alguma cor que definitivamente não quer no seu apartamento?</label>
+<input class="input" type="text" placeholder="Ex: laranja forte, roxo, verde limão..." data-campo="cor-nao-quer" style="margin-top:6px;">
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(3)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(5)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-5">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 5 de 16</div>
+<h2 class="etapa-titulo">O que você <em>nunca mais</em><br>quer no seu lar?</h2>
+<p class="etapa-lead">Uma das perguntas mais valiosas de um briefing — e que quase ninguém faz. Saber o que você não quer é tão poderoso quanto saber o que você quer. Selecione quantos quiser.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="nao-quer" data-max="20">
+  <div class="card-sel" data-val="bagunca-visivel"><span class="cs-icon">😩</span><span class="cs-label">Bagunça visível — tudo aparecendo</span></div>
+  <div class="card-sel" data-val="pouco-armario"><span class="cs-icon">📦</span><span class="cs-label">Falta de espaço de armazenamento</span></div>
+  <div class="card-sel" data-val="sem-personalidade"><span class="cs-icon">😐</span><span class="cs-label">Ambiente sem personalidade</span></div>
+  <div class="card-sel" data-val="muito-neutro"><span class="cs-icon">🤍</span><span class="cs-label">Cores neutras demais — parece hospital</span></div>
+  <div class="card-sel" data-val="muito-colorido"><span class="cs-icon">🎨</span><span class="cs-label">Cores fortes demais — enjoativo</span></div>
+  <div class="card-sel" data-val="pouca-luz"><span class="cs-icon">🌑</span><span class="cs-label">Pouca luz natural</span></div>
+  <div class="card-sel" data-val="moveis-descombinados"><span class="cs-icon">🪑</span><span class="cs-label">Móveis que não combinam entre si</span></div>
+  <div class="card-sel" data-val="generico"><span class="cs-icon">🏢</span><span class="cs-label">Apartamento genérico — igual a todos</span></div>
+  <div class="card-sel" data-val="sem-cantinho"><span class="cs-icon">😞</span><span class="cs-label">Falta de um cantinho só meu</span></div>
+  <div class="card-sel" data-val="poluicao-visual"><span class="cs-icon">🤯</span><span class="cs-label">Poluição visual — muita coisa ao mesmo tempo</span></div>
+  <div class="card-sel" data-val="frio"><span class="cs-icon">🥶</span><span class="cs-label">Ambiente frio e sem alma</span></div>
+  <div class="card-sel" data-val="dificil-limpar"><span class="cs-icon">🧹</span><span class="cs-label">Materiais difíceis de limpar</span></div>
+  <div class="card-sel" data-val="sem-privacidade"><span class="cs-icon">👀</span><span class="cs-label">Falta de privacidade</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Existe algum erro que você já viveu e nunca mais quer repetir?</label>
+<div class="campo-hint">Uma porta que bate em outra, armário sem divisão, bancada baixa demais — qualquer detalhe que incomodou.</div>
+<textarea class="input" rows="3" placeholder="Conte aqui — sem filtro..." data-campo="erros-passados"></textarea>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum lugar que você já entrou e pensou <em style="color:var(--gold)">"quero que minha casa se pareça com isso"</em>?</label>
+<div class="campo-hint">Pode ser qualquer lugar — hotel, restaurante, casa de amigo, loja, cena de série, até uma foto que você salvou.</div>
+<textarea class="input" rows="2" placeholder="Ex: o lobby do hotel X em que fiquei, a cozinha da casa da minha avó, aquela cena de Succession..." data-campo="lugar-referencia"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(4)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(6)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-6">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 6 de 16</div>
+<h2 class="etapa-titulo">A família que vai<br><em>viver neste espaço.</em></h2>
+<p class="etapa-lead">O projeto precisa funcionar para as pessoas — e os animais — que realmente vão viver aqui. Adicione cada membro da família abaixo.</p>
+<div class="campo">
+<div class="familia-lista" id="familia-lista"></div>
+<button class="btn-add-membro" onclick="addMembro('humano')"><span>👤</span> Adicionar pessoa</button>
+<button class="btn-add-membro pet-btn" onclick="addMembro('pet')" style="margin-top:6px;"><span>🐾</span> Adicionar pet</button>
+</div>
+<div class="campo">
+<label class="campo-label">Algum morador tem necessidade especial de acessibilidade?</label>
+<div class="cards-sel" data-grupo="acessibilidade" data-max="1" data-trigger="acessibilidade">
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="sim">Sim</div>
+</div>
+<div class="campo-condicional" id="cond-acessibilidade-sim">
+<textarea class="input" rows="2" placeholder="Descreva a necessidade..." data-campo="acessibilidade-desc" style="margin-top:8px;"></textarea>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(5)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(7)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-7">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 7 de 16</div>
+<h2 class="etapa-titulo">A sua vida,<br><em>como ela é de verdade.</em></h2>
+<p class="etapa-lead">Sua casa precisa funcionar para a rotina que você já tem — não para a que você imagina ter um dia. Não existe resposta certa aqui, só a sua.</p>
+<div class="campo">
+<label class="campo-label">Você trabalha fora ou em casa?</label>
+<div class="cards-sel" data-grupo="trabalho" data-max="1" data-trigger="trabalho">
+  <div class="card-sel" data-val="fora-fixo"><span class="cs-icon">🏢</span><span class="cs-label">Fora, horário fixo</span></div>
+  <div class="card-sel" data-val="fora-flex"><span class="cs-icon">🏃</span><span class="cs-label">Fora, horário flexível</span></div>
+  <div class="card-sel" data-val="home-office"><span class="cs-icon">💻</span><span class="cs-label">Home office fixo</span></div>
+  <div class="card-sel" data-val="hibrido"><span class="cs-icon">🔄</span><span class="cs-label">Híbrido</span></div>
+  <div class="card-sel" data-val="nao-trabalha">Não trabalho atualmente</div>
+</div>
+<div class="campo-condicional" id="cond-trabalho-home-office">
+<div class="campo-dica" style="margin-top:10px;">Se você trabalha em casa, é importante reservar um espaço no projeto para isso — mesmo que seja uma bancada num canto. Como prefere?</div>
+<div class="cards-sel" data-grupo="espaco-trabalho" data-max="1" style="margin-top:10px;">
+  <div class="card-sel" data-val="quarto-separado"><span class="cs-icon">🚪</span><span class="cs-label">Quarto ou sala separada</span></div>
+  <div class="card-sel" data-val="bancada"><span class="cs-icon">🖥</span><span class="cs-label">Bancada num ambiente</span></div>
+  <div class="card-sel" data-val="qualquer-lugar">Qualquer lugar serve</div>
+</div>
+</div>
+<div class="campo-condicional" id="cond-trabalho-hibrido">
+<div class="cards-sel" data-grupo="espaco-trabalho" data-max="1" style="margin-top:10px;">
+  <div class="card-sel" data-val="quarto-separado"><span class="cs-icon">🚪</span><span class="cs-label">Espaço dedicado</span></div>
+  <div class="card-sel" data-val="bancada"><span class="cs-icon">🖥</span><span class="cs-label">Bancada em algum ambiente</span></div>
+  <div class="card-sel" data-val="qualquer-lugar">Qualquer lugar serve</div>
+</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Como é o clima da sua casa no dia a dia?</label>
+<div class="radio-group" data-grupo="ritmo-casa" data-max="1">
+  <div class="radio-item" data-val="agitada"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Agitada — sempre tem movimento, gente e vida</div></div></div>
+  <div class="radio-item" data-val="tranquila"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Tranquila — ambiente calmo, poucas pessoas</div></div></div>
+  <div class="radio-item" data-val="variavel"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Variável — depende muito do dia</div></div></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Com que frequência você recebe visitas em casa?</label>
+<div class="cards-sel" data-grupo="visitas" data-max="1">
+  <div class="card-sel" data-val="nunca">Quase nunca</div>
+  <div class="card-sel" data-val="as-vezes">Às vezes, fins de semana</div>
+  <div class="card-sel" data-val="frequente">Frequentemente</div>
+  <div class="card-sel" data-val="jantares"><span class="cs-icon">🍽</span><span class="cs-label">Faço jantares e reuniões regularmente</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Você cozinha?</label>
+<div class="cards-sel" data-grupo="cozinha-habito" data-max="1">
+  <div class="card-sel" data-val="adora"><span class="cs-icon">🍳</span><span class="cs-label">Adoro — a cozinha é o coração da casa</span></div>
+  <div class="card-sel" data-val="basico">Cozinho o básico do dia a dia</div>
+  <div class="card-sel" data-val="raramente">Raramente — prefiro pedir ou comer fora</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Se tiver um quarto que não será usado como dormitório, o que faria com ele?</label>
+<div class="cards-sel" data-grupo="quarto-extra" data-max="3">
+  <div class="card-sel" data-val="nao-tem">Não tenho quarto extra</div>
+  <div class="card-sel" data-val="closet"><span class="cs-icon">👔</span><span class="cs-label">Closet</span></div>
+  <div class="card-sel" data-val="office"><span class="cs-icon">💻</span><span class="cs-label">Home office</span></div>
+  <div class="card-sel" data-val="closet-office"><span class="cs-icon">💼</span><span class="cs-label">Closet + office integrados</span></div>
+  <div class="card-sel" data-val="hospedes"><span class="cs-icon">🛏</span><span class="cs-label">Quarto de hóspedes eventual</span></div>
+  <div class="card-sel" data-val="exercicio"><span class="cs-icon">🏋️</span><span class="cs-label">Espaço de exercício</span></div>
+  <div class="card-sel" data-val="musica"><span class="cs-icon">🎵</span><span class="cs-label">Estúdio / sala de música</span></div>
+  <div class="card-sel" data-val="atelie"><span class="cs-icon">🎨</span><span class="cs-label">Ateliê / espaço criativo</span></div>
+  <div class="card-sel" data-val="integrar"><span class="cs-icon">🔓</span><span class="cs-label">Integrar com outro ambiente, se possível</span></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(6)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(8)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-8">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 8 de 16</div>
+<h2 class="etapa-titulo">O que você<br><em>ama fazer?</em></h2>
+<p class="etapa-lead">Seus hobbies dizem muito sobre como o espaço precisa funcionar — e muitas vezes revelam necessidades que nenhum briefing comum perguntaria. Selecione quantos quiser.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="hobbies" data-max="20">
+  <div class="card-sel" data-val="series-filmes"><span class="cs-icon">📺</span><span class="cs-label">Séries e filmes</span></div>
+  <div class="card-sel" data-val="leitura"><span class="cs-icon">📚</span><span class="cs-label">Leitura</span></div>
+  <div class="card-sel" data-val="games"><span class="cs-icon">🎮</span><span class="cs-label">Games</span></div>
+  <div class="card-sel" data-val="musica-ouvir"><span class="cs-icon">🎵</span><span class="cs-label">Música (ouvir)</span></div>
+  <div class="card-sel" data-val="instrumento"><span class="cs-icon">🎸</span><span class="cs-label">Tocar instrumento</span></div>
+  <div class="card-sel" data-val="cozinhar-hobby"><span class="cs-icon">🍳</span><span class="cs-label">Cozinhar como hobby</span></div>
+  <div class="card-sel" data-val="artesanato"><span class="cs-icon">🧶</span><span class="cs-label">Artesanato / tricô / costura</span></div>
+  <div class="card-sel" data-val="artes-visuais"><span class="cs-icon">🎨</span><span class="cs-label">Artes visuais / pintura</span></div>
+  <div class="card-sel" data-val="meditacao"><span class="cs-icon">🧘</span><span class="cs-label">Meditação / yoga</span></div>
+  <div class="card-sel" data-val="exercicios"><span class="cs-icon">🏋️</span><span class="cs-label">Exercícios em casa</span></div>
+  <div class="card-sel" data-val="plantas"><span class="cs-icon">🪴</span><span class="cs-label">Plantas e jardinagem</span></div>
+  <div class="card-sel" data-val="pets-hobby"><span class="cs-icon">🐾</span><span class="cs-label">Cuidar dos pets</span></div>
+  <div class="card-sel" data-val="viagens"><span class="cs-icon">✈️</span><span class="cs-label">Viagens (estilo de vida)</span></div>
+  <div class="card-sel" data-val="tecnologia"><span class="cs-icon">💻</span><span class="cs-label">Tecnologia / gadgets</span></div>
+  <div class="card-sel" data-val="fotografia"><span class="cs-icon">📷</span><span class="cs-label">Fotografia</span></div>
+  <div class="card-sel" data-val="vinhos"><span class="cs-icon">🍷</span><span class="cs-label">Vinhos / bebidas especiais</span></div>
+  <div class="card-sel" data-val="cafe"><span class="cs-icon">☕</span><span class="cs-label">Café especial</span></div>
+  <div class="card-sel" data-val="colecoes"><span class="cs-icon">🏺</span><span class="cs-label">Coleções / objetos especiais</span></div>
+</div>
+<div class="campo" style="margin-top:14px;">
+<label class="campo-label" style="font-size:11px;color:var(--muted);">Algo que não está na lista?</label>
+<input class="input" type="text" placeholder="Outros hobbies ou interesses..." data-campo="hobbies-outros">
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Algum hobby precisa de um espaço dedicado no apartamento?</label>
+<textarea class="input" rows="2" placeholder="Ex: preciso de um canto para o violão, quero uma estante grande para a minha coleção de livros..." data-campo="hobbies-espaco"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(7)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(9)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-9">
+<div class="etapa-bloco-tag">Necessidades</div>
+<div class="etapa-num">Etapa 9 de 16</div>
+<h2 class="etapa-titulo">O que você<br><em>precisa ter.</em></h2>
+<p class="etapa-lead">Além dos ambientes padrão, algumas necessidades específicas precisam aparecer no projeto desde o início. Selecione o que faz parte da sua vida.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="necessidades" data-max="15">
+  <div class="card-sel" data-val="home-office"><span class="cs-icon">💻</span><span class="cs-label">Home office / estação de trabalho</span></div>
+  <div class="card-sel" data-val="biblioteca"><span class="cs-icon">📚</span><span class="cs-label">Biblioteca ou estante grande</span></div>
+  <div class="card-sel" data-val="instrumento"><span class="cs-icon">🎵</span><span class="cs-label">Espaço para instrumento musical</span></div>
+  <div class="card-sel" data-val="exercicio"><span class="cs-icon">🏋️</span><span class="cs-label">Espaço para exercício em casa</span></div>
+  <div class="card-sel" data-val="meditacao"><span class="cs-icon">🧘</span><span class="cs-label">Cantinho de meditação / yoga</span></div>
+  <div class="card-sel" data-val="hospedes"><span class="cs-icon">🛏</span><span class="cs-label">Quarto de hóspedes eventual</span></div>
+  <div class="card-sel" data-val="pets"><span class="cs-icon">🐾</span><span class="cs-label">Espaço dedicado para pets</span></div>
+  <div class="card-sel" data-val="kids"><span class="cs-icon">👶</span><span class="cs-label">Espaço kids / quarto de criança</span></div>
+  <div class="card-sel" data-val="plantas"><span class="cs-icon">🪴</span><span class="cs-label">Jardim interno / espaço para plantas</span></div>
+  <div class="card-sel" data-val="coffee"><span class="cs-icon">☕</span><span class="cs-label">Coffee station</span></div>
+  <div class="card-sel" data-val="bar"><span class="cs-icon">🍸</span><span class="cs-label">Bar / adega</span></div>
+  <div class="card-sel" data-val="coffee-bar"><span class="cs-icon">☕🍸</span><span class="cs-label">Coffee station + bar integrados</span></div>
+  <div class="card-sel" data-val="atelie"><span class="cs-icon">🎨</span><span class="cs-label">Ateliê / espaço criativo</span></div>
+  <div class="card-sel" data-val="acessibilidade"><span class="cs-icon">♿</span><span class="cs-label">Adaptação para acessibilidade</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Se pudesse dar mais atenção a apenas dois ambientes, quais seriam?</label>
+<div class="campo-hint">Isso ajuda o arquiteto a saber onde concentrar mais energia e detalhe no projeto.</div>
+<div class="cards-sel" data-grupo="ambientes-prioritarios" data-max="2">
+  <div class="card-sel" data-val="sala">🛋 Sala</div>
+  <div class="card-sel" data-val="cozinha">🍳 Cozinha</div>
+  <div class="card-sel" data-val="quarto-principal">🛏 Quarto principal</div>
+  <div class="card-sel" data-val="banheiro">🚿 Banheiro</div>
+  <div class="card-sel" data-val="varanda">🌿 Varanda</div>
+  <div class="card-sel" data-val="area-servico">🫧 Área de serviço</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum objeto, móvel ou peça que você já tem e quer que faça parte do novo apartamento?</label>
+<div class="campo-hint">Algo que não vai embora de jeito nenhum — um sofá, um quadro, uma cama, um aparador.</div>
+<textarea class="input" rows="2" placeholder="Descreva o objeto e, se quiser, diga onde pretende colocá-lo..." data-campo="objetos-coração"></textarea>
+</div>
+<div class="campo">
+<label class="campo-label">Pretende reutilizar algum móvel ou eletrodoméstico da sua residência atual?</label>
+<div class="cards-sel" data-grupo="reutilizar" data-max="1" data-trigger="reutilizar">
+  <div class="card-sel" data-val="sim">Sim</div>
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="talvez">Talvez</div>
+</div>
+<div class="campo-condicional" id="cond-reutilizar-sim">
+<textarea class="input" rows="2" placeholder="O que você pretende trazer? Ex: sofá, geladeira, cama, mesa de jantar..." data-campo="reutilizar-desc" style="margin-top:8px;"></textarea>
+<div class="upload-area" style="margin-top:8px;">
+  <input type="file" accept="image/*" multiple onchange="handleUpload(this,'reutilizar-prev')">
+  <span class="upload-icon">📷</span>
+  <div class="upload-txt">Envie uma foto do item</div>
+  <div class="upload-sub">Ajuda o arquiteto a planejar o espaço em volta · JPG ou PNG</div>
+</div>
+<div class="upload-preview" id="reutilizar-prev"></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Já adquiriu algum móvel, eletrodoméstico ou item decorativo que vai para o novo apartamento?</label>
+<div class="cards-sel" data-grupo="ja-adquiriu" data-max="1" data-trigger="ja-adquiriu">
+  <div class="card-sel" data-val="sim">Sim</div>
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="pesquisando">Estou pesquisando</div>
+</div>
+<div class="campo-condicional" id="cond-ja-adquiriu-sim">
+<div class="campo-dica" style="margin-top:8px;"><strong>Eletrodomésticos embutidos</strong> como forno, geladeira e lava-louças têm medidas que impactam diretamente a marcenaria — informe aqui se já tiver esses itens.</div>
+<textarea class="input" rows="2" placeholder="O que você já comprou? Inclua modelo, marca e tamanho se souber..." data-campo="ja-adquiriu-desc" style="margin-top:8px;"></textarea>
+<div class="upload-area" style="margin-top:8px;">
+  <input type="file" accept="image/*,.pdf" multiple onchange="handleUpload(this,'adquiriu-prev')">
+  <span class="upload-icon">📎</span>
+  <div class="upload-txt">Foto do produto ou nota fiscal com medidas</div>
+  <div class="upload-sub">JPG, PNG ou PDF · até 5 arquivos</div>
+</div>
+<div class="upload-preview" id="adquiriu-prev"></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(8)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(10)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-10">
+<div class="etapa-bloco-tag">Necessidades</div>
+<div class="etapa-num">Etapa 10 de 16</div>
+<h2 class="etapa-titulo">Suas referências<br><em>ao longo do processo.</em></h2>
+<p class="etapa-lead">Este campo é seu. Use para guardar e compartilhar com o arquiteto tudo que for te inspirando — agora e ao longo do projeto. Não precisa estar organizado nem fazer sentido ainda.</p>
+<div class="campo">
+<div class="refs-wrap">
+  <div class="refs-hint"><strong>Não existe referência errada.</strong> Uma foto de viagem, uma cena de série, a cor de uma xícara que você ama, um hotel onde você ficou — tudo isso diz algo sobre o que você quer para o seu lar. Manda.</div>
+  <textarea class="input" rows="4" placeholder="Descreva referências, ideias, palavras que remetem ao que você quer..." data-campo="refs-texto" style="margin-bottom:10px;"></textarea>
+  <div>
+    <label class="campo-label" style="font-size:11px;color:var(--muted);">Cole links de referência (Pinterest, Instagram, lojas...)</label>
+    <input class="input" type="text" placeholder="https://..." data-campo="refs-links" style="margin-top:6px;">
+  </div>
+  <div style="margin-top:12px;">
+    <div class="upload-area">
+      <input type="file" accept="image/*" multiple onchange="handleUpload(this,'refs-prev')">
+      <span class="upload-icon">🖼</span>
+      <div class="upload-txt">Envie imagens de referência</div>
+      <div class="upload-sub">Até 10 imagens · JPG ou PNG</div>
+    </div>
+    <div class="upload-preview" id="refs-prev"></div>
+  </div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(9)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(11)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-11">
+<div class="etapa-bloco-tag">Investimento</div>
+<div class="etapa-num">Etapa 11 de 16</div>
+<h2 class="etapa-titulo">Como você imagina<br><em>a sua reforma?</em></h2>
+<p class="etapa-lead">Reformar é um investimento — e cada perfil tem uma forma diferente de chegar ao resultado. Escolha o que melhor representa o seu momento e o que você imagina para esta reforma.</p>
+<div class="campo">
+<div class="radio-group" data-grupo="perfil-reforma" data-max="1">
+  <div class="radio-item" data-val="self-made">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Self Made — criatividade e resultado com orçamento enxuto</div>
+      <div class="radio-sub">Quero fazer muito com o que tenho. Estou disposto a pintar paredes eu mesmo, fazer algumas peças DIY, priorizar o que realmente importa e deixar o restante para depois. O resultado vai ser bonito — e muito meu.</div>
+    </div>
+  </div>
+  <div class="radio-item" data-val="standard">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Standard — equilíbrio entre custo e resultado</div>
+      <div class="radio-sub">Quero contratar os serviços essenciais e ter um resultado bonito, funcional e com acabamento de qualidade. Sem grandes excessos, mas sem abrir mão do que faz diferença.</div>
+    </div>
+  </div>
+  <div class="radio-item" data-val="signature">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Signature — reforma completa, com impacto</div>
+      <div class="radio-sub">Quero uma reforma de alto impacto — marcenaria de qualidade, troca de revestimentos, materiais especiais, espelhos, iluminação personalizada. Estou disposto a investir no que transforma de verdade.</div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(10)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(12)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-12">
+<div class="etapa-bloco-tag">Investimento</div>
+<div class="etapa-num">Etapa 12 de 16</div>
+<h2 class="etapa-titulo">Quanto você pretende<br><em>investir?</em></h2>
+<p class="etapa-lead">Sem julgamentos — toda faixa de investimento gera um resultado possível e bonito. O arquiteto usa essa informação para dimensionar corretamente o projeto.</p>
+<div class="campo">
+<label class="campo-label">Faixa de investimento para a reforma</label>
+<div class="radio-group" data-grupo="orcamento" data-max="1">
+  <div class="radio-item" data-val="ate-15"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Até R$ 15.000</div></div></div>
+  <div class="radio-item" data-val="15-30"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 15.000 a R$ 30.000</div></div></div>
+  <div class="radio-item" data-val="30-60"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 30.000 a R$ 60.000</div></div></div>
+  <div class="radio-item" data-val="60-100"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 60.000 a R$ 100.000</div></div></div>
+  <div class="radio-item" data-val="acima-100"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Acima de R$ 100.000</div></div></div>
+  <div class="radio-item" data-val="nao-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Ainda não sei — preciso de orientação</div></div></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum item que você quer priorizar no investimento?</label>
+<input class="input" type="text" placeholder="Ex: quero investir mais na marcenaria da cozinha, independente do resto..." data-campo="orcamento-prioridade">
+</div>
+<div class="campo">
+<label class="campo-label">Quando pretende iniciar a reforma?</label>
+<div class="cards-sel" data-grupo="inicio-obra" data-max="1">
+  <div class="card-sel" data-val="imediato">Assim que o projeto estiver pronto</div>
+  <div class="card-sel" data-val="3meses">Em até 3 meses</div>
+  <div class="card-sel" data-val="3-6meses">Em 3 a 6 meses</div>
+  <div class="card-sel" data-val="mais-6meses">Em mais de 6 meses</div>
+  <div class="card-sel" data-val="nao-sei">Ainda não sei</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum prazo fixo para a reforma estar concluída?</label>
+<div class="campo-hint">Mudança planejada, evento especial, data importante.</div>
+<div class="cards-sel" data-grupo="tem-prazo" data-max="1" data-trigger="tem-prazo">
+  <div class="card-sel" data-val="nao">Não, sem prazo fixo</div>
+  <div class="card-sel" data-val="sim">Sim, tenho uma data</div>
+</div>
+<div class="campo-condicional" id="cond-tem-prazo-sim">
+<input class="input" type="date" data-campo="prazo-data" style="margin-top:8px;">
+<input class="input" type="text" placeholder="Contexto (ex: quero estar instalada antes do aniversário de 40 anos...)" data-campo="prazo-motivo" style="margin-top:8px;">
+</div>
+</div>
+<div class="campo" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border2);">
+<label class="campo-label">Tem algo mais que queira dizer ao seu arquiteto antes de avançar para a parte técnica?</label>
+<textarea class="input" rows="3" placeholder="Pode ser qualquer coisa que as perguntas acima não cobriram — um detalhe, uma preocupação, uma ideia..." data-campo="obs-gerais"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(11)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(13)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-13">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 13 de 16</div>
+<h2 class="etapa-titulo">Agora, os dados<br><em>do seu imóvel.</em></h2>
+<p class="etapa-lead">Esta parte é mais técnica — mas igualmente importante. O arquiteto precisa dessas informações para dimensionar o projeto corretamente. Preencha o que souber.</p>
+<div class="campo">
+<label class="campo-label">Nome do empreendimento</label>
+<input class="input" type="text" placeholder="Ex: Residencial Vila Nova, Parque das Árvores..." data-campo="empreendimento">
+</div>
+<div class="campo">
+<label class="campo-label">Construtora</label>
+<input class="input" type="text" placeholder="Nome da construtora" data-campo="construtora">
+</div>
+<div class="input-row campo">
+  <div><label class="campo-label">Cidade</label><input class="input" type="text" placeholder="Ex: São Paulo" data-campo="cidade"></div>
+  <div><label class="campo-label">Bairro</label><input class="input" type="text" placeholder="Ex: Vila Olímpia" data-campo="bairro"></div>
+</div>
+<div class="campo">
+<label class="campo-label">Tipologia do apartamento</label>
+<div class="cards-sel" data-grupo="tipologia" data-max="1">
+  <div class="card-sel" data-val="studio">Studio</div>
+  <div class="card-sel" data-val="1q">1 quarto</div>
+  <div class="card-sel" data-val="2q">2 quartos</div>
+  <div class="card-sel" data-val="3q">3 quartos</div>
+  <div class="card-sel" data-val="duplex">Duplex</div>
+  <div class="card-sel" data-val="outro">Outro</div>
+</div>
+</div>
+<div class="input-row campo">
+  <div><label class="campo-label">Metragem aproximada (m²)</label><input class="input" type="number" placeholder="Ex: 72" data-campo="metragem"></div>
+  <div><label class="campo-label">Andar</label><input class="input" type="number" placeholder="Ex: 8" data-campo="andar"></div>
+</div>
+<div class="input-row campo">
+  <div>
+    <label class="campo-label">Quantos banheiros?</label>
+    <div class="cards-sel" data-grupo="banheiros" data-max="1"><div class="card-sel" data-val="1">1</div><div class="card-sel" data-val="2">2</div><div class="card-sel" data-val="3">3+</div></div>
+  </div>
+  <div>
+    <label class="campo-label">Vaga de garagem?</label>
+    <div class="cards-sel" data-grupo="garagem" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="opcional">Opcional</div></div>
+  </div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem varanda?</label>
+<div class="cards-sel" data-grupo="varanda-tipo" data-max="1">
+  <div class="card-sel" data-val="nao">Não tem varanda</div>
+  <div class="card-sel" data-val="simples">Sim, simples</div>
+  <div class="card-sel" data-val="gourmet">Sim, gourmet</div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(12)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(14)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-14">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 14 de 16</div>
+<h2 class="etapa-titulo">Como o apartamento<br><em>será entregue?</em></h2>
+<p class="etapa-lead">Esses detalhes de entrega são a base técnica do projeto. Para campos que não souber responder, há indicações de onde encontrar cada informação.</p>
+
+<div class="campo">
+<label class="campo-label">Estado de entrega do imóvel</label>
+<div class="radio-group" data-grupo="estado-entrega" data-max="1">
+  <div class="radio-item" data-val="laje"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Na planta — sem acabamento (laje aparente)</div><div class="radio-sub">Estrutura entregue sem piso, sem revestimento — você escolhe tudo.</div></div></div>
+  <div class="radio-item" data-val="com-piso"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com piso entregue</div><div class="radio-sub">A construtora instala um piso padrão. Paredes podem precisar de acabamento.</div></div></div>
+  <div class="radio-item" data-val="completo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com revestimento completo</div><div class="radio-sub">Piso e paredes já com acabamento padrão da construtora.</div></div></div>
+  <div class="radio-item" data-val="reforma-anterior"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Já teve reforma anterior</div></div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos e no material de vendas entregue pela construtora. Se não tiver, solicite direto à construtora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Acabamento do teto entregue pela construtora</label>
+<div class="cards-sel" data-grupo="teto-entrega" data-max="1"><div class="card-sel" data-val="laje-aparente">Laje aparente</div><div class="card-sel" data-val="gesso-liso">Gesso liso</div><div class="card-sel" data-val="gesso-sanca">Gesso com sanca</div><div class="card-sel" data-val="textura">Textura</div><div class="card-sel" data-val="rebaixado">Rebaixado</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos entregue pela construtora no ato da compra.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O piso foi entregue com revestimento?</label>
+<div class="cards-sel" data-grupo="piso-revestimento" data-max="1" data-trigger="piso-revestimento"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-piso-revestimento-sim"><input class="input" type="text" placeholder="Qual material? Ex: porcelanato, cerâmica..." data-campo="piso-material" style="margin-top:8px;"></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou manual do proprietário. Também pode estar no contrato de compra e venda.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O banheiro será entregue com revestimento?</label>
+<div class="cards-sel" data-grupo="banheiro-revestimento" data-max="1" data-trigger="banheiro-revestimento"><div class="card-sel" data-val="sim-completo">Sim, completo</div><div class="card-sel" data-val="sim-parcial">Sim, parcialmente</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-banheiro-revestimento-sim-completo"><input class="input" type="text" placeholder="Qual tipo? Ex: porcelanato, mármore..." data-campo="banheiro-rev-tipo" style="margin-top:8px;"></div>
+<div class="campo-condicional" id="cond-banheiro-revestimento-sim-parcial"><input class="input" type="text" placeholder="O que está incluído? Ex: piso em cerâmica, sem paredes..." data-campo="banheiro-rev-parcial" style="margin-top:8px;"></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou folder de vendas do empreendimento.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O banheiro tem janela ou ventilação natural?</label>
+<div class="cards-sel" data-grupo="banheiro-ventilacao" data-max="1"><div class="card-sel" data-val="janela">🪟 Sim, tem janela</div><div class="card-sel" data-val="ventilacao">Ventilação técnica</div><div class="card-sel" data-val="nao">Sem ventilação natural</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Infraestrutura para ar-condicionado?</label>
+<div class="cards-sel" data-grupo="ar-condicionado" data-max="1" data-trigger="ar-condicionado"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-ar-condicionado-sim"><input class="input" type="number" placeholder="Quantos pontos de infraestrutura?" data-campo="ar-pontos" style="margin-top:8px;"></div>
+<div class="campo-dica">A infraestrutura para ar-condicionado inclui o duto de passagem para o condensador externo e o ponto elétrico. Sem ela, a instalação é mais cara e invasiva.</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento entregues pela construtora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Aquecimento de água</label>
+<div class="cards-sel" data-grupo="aquecimento" data-max="1"><div class="card-sel" data-val="gas-central">🔥 Gás central</div><div class="card-sel" data-val="gas-individual">🔥 Gás individual</div><div class="card-sel" data-val="eletrico">⚡ Chuveiro elétrico</div><div class="card-sel" data-val="solar">☀️ Solar</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Fogão / cooktop</label>
+<div class="cards-sel" data-grupo="fogao" data-max="1"><div class="card-sel" data-val="gas">🔥 Fogão a gás</div><div class="card-sel" data-val="eletrico">⚡ Elétrico</div><div class="card-sel" data-val="cooktop-gas">Cooktop a gás</div><div class="card-sel" data-val="cooktop-eletrico">Cooktop elétrico</div><div class="card-sel" data-val="inducao">Indução</div><div class="card-sel" data-val="decidir">Ainda não decidi</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende instalar forno elétrico embutido?</label>
+<div class="cards-sel" data-grupo="forno-eletrico" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div></div>
+<div class="campo-dica">Fornos elétricos embutidos exigem ponto de energia específico e espaço dedicado na marcenaria. Se já tiver um modelo em mente, informe nas referências — as medidas são essenciais.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Lavanderia — o condomínio terá lavanderia coletiva?</label>
+<div class="cards-sel" data-grupo="lavanderia-coletiva" data-max="1" data-trigger="lavanderia-coletiva"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-lavanderia-coletiva-nao">
+<div class="campo-dica" style="margin-top:8px;">Se não houver lavanderia coletiva, é importante prever espaço para a máquina no projeto.</div>
+<div class="cards-sel" data-grupo="maquina-lavar" data-max="1" style="margin-top:10px;"><div class="card-sel" data-val="convencional">🫧 Máquina convencional</div><div class="card-sel" data-val="lava-seca">🌀 Lava e seca</div><div class="card-sel" data-val="nao">Não usarei máquina em casa</div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Folder de vendas, material do empreendimento ou pergunte direto à construtora ou incorporadora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">A varanda tem tomada grill?</label>
+<div class="cards-sel" data-grupo="tomada-grill" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Especificações técnicas da planta ou manual do proprietário.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Há restrições do condomínio que você já conhece?</label>
+<textarea class="input" rows="2" placeholder="Ex: não permite furar laje, restrição de horário para obra, proibido retirar paredes..." data-campo="restricoes-condominio"></textarea>
+</div>
+
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(13)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(15)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-15">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 15 de 16</div>
+<h2 class="etapa-titulo">O que você pretende<br><em>mudar?</em></h2>
+<p class="etapa-lead">Estas decisões definem o escopo real da reforma. Não precisa ter certeza — "talvez" já nos ajuda muito a dimensionar o projeto corretamente.</p>
+
+<div class="campo">
+<label class="campo-label">Metodologia construtiva do edifício</label>
+<div class="campo-hint">Esta é uma das informações mais críticas do briefing. Define o que pode e o que não pode ser feito na reforma.</div>
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Por que isso importa tanto?</div>
+      <div class="edu-txt"><p><strong>Alvenaria estrutural:</strong> as paredes fazem parte da estrutura — não podem ser derrubadas. A reforma é mais restrita, mas totalmente possível com criatividade.</p><p><strong>Estrutura convencional (pilares e vigas):</strong> as paredes são apenas fechamento — podem ser derrubadas, integradas ou reposicionadas. Muito mais liberdade de projeto.</p><p><strong>Drywall:</strong> paredes internas em gesso acartonado — fáceis de mover, mas com limitações de fixação e isolamento acústico.</p></div>
+    </div>
+<div class="radio-group" data-grupo="metodologia-construtiva" data-max="1" style="margin-top:12px;">
+  <div class="radio-item" data-val="alvenaria-estrutural"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Alvenaria estrutural — paredes não podem ser derrubadas</div></div></div>
+  <div class="radio-item" data-val="estrutura-alvenaria"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estrutura convencional com fechamento em alvenaria</div><div class="radio-sub">Paredes internas podem ser alteradas com aprovação do condomínio</div></div></div>
+  <div class="radio-item" data-val="estrutura-drywall"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estrutura convencional com fechamento em drywall</div></div></div>
+  <div class="radio-item" data-val="misto"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Misto — parte alvenaria, parte drywall</div></div></div>
+  <div class="radio-item" data-val="nao-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Não sei — vou verificar</div></div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Planta do imóvel, memorial descritivo da construtora ou pergunte diretamente à construtora ou incorporadora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende trocar as portas internas?</label>
+<div class="campo-dica">As portas entregues pela construtora são padrão. Trocá-las permite escolher modelos mais altos, com design específico, painéis de madeira, folhas de correr ou pivotantes — um elemento que muda muito a percepção dos ambientes.</div>
+<div class="cards-sel" data-grupo="trocar-portas" data-max="1"><div class="card-sel" data-val="sim-todas">Sim, todas</div><div class="card-sel" data-val="sim-algumas">Sim, algumas</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="talvez">Talvez, depende do orçamento</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende trocar as fechaduras?</label>
+<div class="campo-dica">As fechaduras entregues pela construtora são padrão — cromado simples. A troca permite fechaduras com acabamento dourado, preto fosco, aço escovado, ou ainda fechaduras digitais. Um detalhe que valoriza muito as portas.</div>
+<div class="cards-sel" data-grupo="trocar-fechaduras" data-max="1"><div class="card-sel" data-val="sim-todas">Sim, todas</div><div class="card-sel" data-val="sim-algumas">Sim, algumas</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="ainda-nao">Ainda não pensei nisso</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende integrar a varanda à sala?</label>
+<div class="cards-sel" data-grupo="integrar-varanda" data-max="1" data-trigger="integrar-varanda"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<div class="campo-condicional" id="cond-integrar-varanda-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que muda com a integração da varanda</div>
+      <div class="edu-txt"><p>A integração retira a porta de correr, nivela o piso e une os dois ambientes. A sala fica visualmente muito maior, com mais luz e fluidez.</p><p><strong>Verifique antes:</strong> nem todo condomínio permite — consulte o manual do proprietário ou a administração. Seu arquiteto vai te ajudar nessa verificação.</p></div>
+    </div>
+</div>
+<div class="campo-condicional" id="cond-integrar-varanda-talvez">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Integração de varanda</div>
+      <div class="edu-txt"><p>Antes de decidir, verifique com o condomínio se a obra é permitida. Seu arquiteto pode projetar as duas versões para você comparar.</div>
+    </div>
+</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende envidraçar a varanda?</label>
+<div class="cards-sel" data-grupo="envidracar-varanda" data-max="1" data-trigger="envidracar-varanda"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="ja-tem">Já tem</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<div class="campo-condicional" id="cond-envidracar-varanda-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Envidraçamento de varanda</div>
+      <div class="edu-txt"><p>Transforma a varanda em ambiente semi-fechado, protegendo do vento, chuva e som externo. Existem sistemas retráteis (que abrem completamente) e fixos.</p><p><strong>Atenção:</strong> o condomínio tem a palavra final — muitos restringem modelo, cor de perfil e tipo de vidro para manter a uniformidade da fachada. Verifique antes de contratar.</p></div>
+    </div>
+</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende ter forro rebaixado (sanca / gesso)?</label>
+<div class="cards-sel" data-grupo="forro-rebaixado" data-max="1" data-trigger="forro-rebaixado"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei-o-que-e">Não sei o que é</div></div>
+<div class="campo-condicional" id="cond-forro-rebaixado-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que é forro rebaixado?</div>
+      <div class="edu-txt"><p>Uma estrutura de gesso instalada abaixo do teto original, criando um novo teto em altura menor. Permite iluminação totalmente embutida — spots, rasgos de LED, sancas de luz indireta.</p><p><strong>Impacto visual:</strong> é o que você vê nos projetos de alto padrão. A iluminação fica integrada à arquitetura, sem luminárias aparentes.</p><p><strong>Atenção ao custo:</strong> é um dos itens de maior impacto no orçamento. Verifique com o condomínio se há altura mínima de pé direito exigida.</p></div>
+    </div>
+<div style="margin-top:12px;"><label class="campo-label" style="font-size:11px;color:var(--muted);">Em quais ambientes?</label><div class="cards-sel" data-grupo="forro-ambientes" data-max="10" style="margin-top:6px;"><div class="card-sel" data-val="sala">Sala</div><div class="card-sel" data-val="cozinha">Cozinha</div><div class="card-sel" data-val="quarto-principal">Quarto principal</div><div class="card-sel" data-val="quartos-sec">Quartos secundários</div><div class="card-sel" data-val="banheiro">Banheiro</div><div class="card-sel" data-val="corredor">Corredor</div><div class="card-sel" data-val="varanda">Varanda</div><div class="card-sel" data-val="todos">Todos</div></div></div>
+</div>
+<div class="campo-condicional" id="cond-forro-rebaixado-nao-sei-o-que-e">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que é forro rebaixado?</div>
+      <div class="edu-txt"><p>É uma estrutura de gesso instalada abaixo do teto original. Permite iluminação embutida — spots e LEDs — e dá um acabamento sofisticado ao ambiente, como você vê em projetos de revista.</p><p>Seu arquiteto vai te mostrar exemplos e ajudar a decidir se faz sentido para o seu projeto e orçamento.</p></div>
+    </div>
+</div>
+</div>
+
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(14)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(16)">Revisar e enviar →</button></div>
+</div><div class="etapa-tela" id="tela-16">
+<div class="etapa-bloco-tag">Finalizar</div>
+<div class="etapa-num">Etapa 16 de 16</div>
+<h2 class="etapa-titulo">Seu briefing<br><em>está completo.</em></h2>
+<p class="etapa-lead">Revise abaixo o que você respondeu — e edite qualquer etapa antes de enviar. Quando estiver pronto, confirme o envio.</p>
+<div id="revisao-container"></div>
+<div class="campo" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border2);">
+<label class="campo-label">Uma frase para o seu lar <span style="color:var(--muted);font-weight:300;">(opcional)</span></label>
+<div class="campo-hint">Se o seu apartamento pudesse dizer uma coisa para quem entra pela primeira vez, o que seria?</div>
+<textarea class="input" rows="2" placeholder="Ex: Aqui, o tempo desacelera. / Bem-vindo ao lugar onde eu sou eu." data-campo="frase-lar"></textarea>
+</div>
+<div class="nav-btns" style="margin-top:32px;">
+  <button class="btn-anterior" onclick="irParaEtapa(15)">← Anterior</button>
+  <button class="btn-proximo" onclick="enviarBriefing()" style="background:var(--green);padding:14px 40px;">Enviar briefing ✓</button>
+</div>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+
+// ── BG CANVAS ──
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,t=0;
+  const orbs=[{x:.15,y:.15,r:.4,c:[201,162,39],a:.04},{x:.85,y:.85,r:.35,c:[201,162,39],a:.03},{x:.5,y:.5,r:.28,c:[80,120,200],a:.022}];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;}
+  function draw(){ctx.clearRect(0,0,W,H);t+=.003;orbs.forEach((o,i)=>{const dx=Math.sin(t*.7+i*1.3)*.05,dy=Math.cos(t*.5+i*.9)*.04,x=(o.x+dx)*W,y=(o.y+dy)*H,r=o.r*Math.min(W,H),g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${o.c},${o.a})`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.className='toast show';setTimeout(()=>e.className='toast',2600);}
+
+// ── DADOS GLOBAIS ──
+const dados = {};
+const visitadas = new Set([0]);
+let etapaAtual = 0;
+const TOTAL = 16;
+
+const ETAPAS_CONFIG = [
+  {id:0,bloco:'',label:'Início'},
+  {id:1,bloco:'Como você sente',label:'A sensação'},
+  {id:2,bloco:'Como você sente',label:'Consciência de estilo'},
+  {id:3,bloco:'Como você sente',label:'Estilo arquitetônico'},
+  {id:4,bloco:'Como você sente',label:'Sua paleta'},
+  {id:5,bloco:'Como você sente',label:'O que não quer'},
+  {id:6,bloco:'Quem mora aqui',label:'A família'},
+  {id:7,bloco:'Quem mora aqui',label:'Rotina'},
+  {id:8,bloco:'Quem mora aqui',label:'Hobbies'},
+  {id:9,bloco:'Necessidades',label:'Espaços'},
+  {id:10,bloco:'Necessidades',label:'Referências'},
+  {id:11,bloco:'Investimento',label:'Perfil de reforma'},
+  {id:12,bloco:'Investimento',label:'Orçamento e prazo'},
+  {id:13,bloco:'Técnico',label:'O imóvel'},
+  {id:14,bloco:'Técnico',label:'Entrega e infra'},
+  {id:15,bloco:'Técnico',label:'Intenções'},
+  {id:16,bloco:'Finalizar',label:'Revisão e envio'},
+];
+
+// ── NAVEGAÇÃO ──
+function irParaEtapa(num){
+  salvarAtual();
+  document.querySelectorAll('.etapa-tela').forEach(t=>t.classList.remove('ativa'));
+  const tela=document.getElementById('tela-'+num);
+  if(tela){tela.classList.add('ativa');window.scrollTo({top:0,behavior:'smooth'});}
+  etapaAtual=num; visitadas.add(num);
+  atualizarProgress();
+  atualizarTopLabel();
+  mostrarSalvo();
+  if(num===16) gerarRevisao();
+}
+
+function atualizarTopLabel(){
+  const cfg=ETAPAS_CONFIG.find(e=>e.id===etapaAtual);
+  document.getElementById('top-label').textContent=cfg?(cfg.bloco?cfg.bloco+' — '+cfg.label:'Briefing'):'Briefing';
+}
+
+function mostrarSalvo(){
+  const el=document.getElementById('top-salvo');
+  el.classList.add('vis');
+  setTimeout(()=>el.classList.remove('vis'),2000);
+}
+
+// ── PROGRESS ──
+function buildProgress(){
+  const wrap=document.getElementById('progress-blocos');
+  wrap.innerHTML='';
+  const blocos={};
+  ETAPAS_CONFIG.filter(e=>e.id>0).forEach(e=>{
+    const b=e.bloco||'Outros';
+    if(!blocos[b])blocos[b]=[];
+    blocos[b].push(e);
+  });
+  Object.entries(blocos).forEach(([bloco,etapas])=>{
+    const track=document.createElement('div');track.className='bloco-track';
+    const lbl=document.createElement('span');lbl.className='bloco-label';lbl.textContent=bloco;track.appendChild(lbl);
+    etapas.forEach(e=>{
+      const pip=document.createElement('div');pip.className='etapa-pip';pip.dataset.etapa=e.id;
+      if(e.id===etapaAtual)pip.classList.add('ativa');
+      else if(visitadas.has(e.id))pip.classList.add('visitada');
+      const tip=document.createElement('span');tip.className='etapa-pip-tip';tip.textContent=e.label;pip.appendChild(tip);
+      pip.onclick=()=>irParaEtapa(e.id);
+      track.appendChild(pip);
+    });
+    wrap.appendChild(track);
+  });
+  const pct=document.createElement('span');pct.className='progress-pct';pct.id='progress-pct';
+  pct.textContent=Math.round(etapaAtual/TOTAL*100)+'%';
+  wrap.appendChild(pct);
+}
+
+function atualizarProgress(){
+  document.querySelectorAll('.etapa-pip').forEach(pip=>{
+    const n=parseInt(pip.dataset.etapa);
+    pip.classList.remove('ativa','visitada','concluida');
+    if(n===etapaAtual)pip.classList.add('ativa');
+    else if(visitadas.has(n))pip.classList.add('visitada');
+  });
+  const pct=document.getElementById('progress-pct');
+  if(pct)pct.textContent=Math.round(etapaAtual/TOTAL*100)+'%';
+}
+
+// ── CARDS SEL ──
+function initCards(){
+  document.querySelectorAll('[data-grupo]').forEach(grupo=>{
+    const max=parseInt(grupo.dataset.max)||1;
+    const trigger=grupo.dataset.trigger;
+    grupo.querySelectorAll('.card-sel,.card-grande,.radio-item,.card-paleta').forEach(card=>{
+      if(card.dataset.listenDone)return;
+      card.dataset.listenDone='1';
+      card.addEventListener('click',function(){
+        const val=this.dataset.val||this.closest('[data-val]')?.dataset.val;
+        if(!val)return;
+        if(max===1){
+          grupo.querySelectorAll('.card-sel,.card-grande,.radio-item,.card-paleta').forEach(c=>c.classList.remove('sel'));
+          this.classList.add('sel');
+        } else {
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(grupo.querySelectorAll('.sel').length<max){this.classList.add('sel');}
+          else{toast('Máximo de '+max+' seleções');return;}
+        }
+        if(trigger)atualizarCond(trigger,grupo);
+        salvarGrupo(grupo);
+      });
+    });
+    // estilo-card separado
+    if(grupo.classList.contains('estilos-grid')){
+      grupo.querySelectorAll('.estilo-card').forEach(card=>{
+        if(card.dataset.listenDone)return;
+        card.dataset.listenDone='1';
+        card.addEventListener('click',function(){
+          const max2=2;
+          const sel=grupo.querySelectorAll('.estilo-card.sel');
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(sel.length<max2){this.classList.add('sel');}
+          else{toast('Selecione no máximo 2 estilos');return;}
+          dados['estilo']=[...grupo.querySelectorAll('.estilo-card.sel')].map(c=>c.dataset.val);
+        });
+      });
+    }
+    // paleta separado
+    if(grupo.classList.contains('paletas-grid')){
+      grupo.querySelectorAll('.card-paleta').forEach(card=>{
+        if(card.dataset.listenDone)return;
+        card.dataset.listenDone='1';
+        card.addEventListener('click',function(){
+          const max2=2;
+          const sel=grupo.querySelectorAll('.card-paleta.sel');
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(sel.length<max2){this.classList.add('sel');}
+          else{toast('Selecione no máximo 2 paletas');return;}
+          dados['paleta']=[...grupo.querySelectorAll('.card-paleta.sel')].map(c=>c.dataset.val);
+        });
+      });
+    }
+  });
+}
+
+function atualizarCond(trigger,grupo){
+  document.querySelectorAll('[id^="cond-'+trigger+'-"]').forEach(el=>el.classList.remove('vis'));
+  const sel=grupo.querySelector('.sel,.radio-item.sel');
+  if(sel){
+    const cond=document.getElementById('cond-'+trigger+'-'+sel.dataset.val);
+    if(cond){cond.classList.add('vis');initCards();}
+  }
+}
+
+// ── SALVAR ──
+function salvarAtual(){
+  const tela=document.getElementById('tela-'+etapaAtual);
+  if(!tela)return;
+  tela.querySelectorAll('[data-campo]').forEach(el=>{dados[el.dataset.campo]=el.value;});
+  tela.querySelectorAll('[data-grupo]').forEach(g=>salvarGrupo(g));
+}
+
+function salvarGrupo(g){
+  const key=g.dataset.grupo;if(!key)return;
+  const sels=g.querySelectorAll('.sel');
+  dados[key]=sels.length===1&&parseInt(g.dataset.max)===1?sels[0].dataset.val:[...sels].map(s=>s.dataset.val).filter(Boolean);
+}
+
+// ── FAMÍLIA ──
+let membroCount=0;
+function addMembro(tipo){
+  membroCount++;
+  const lista=document.getElementById('familia-lista');
+  const card=document.createElement('div');card.className='membro-card';card.id='mb-'+membroCount;
+  const isPrimeiro=membroCount===1&&tipo==='humano';
+  const cor=tipo==='humano'?'var(--gold)':'var(--green)';
+  const icon=tipo==='humano'?'👤':'🐾';
+  const label=tipo==='humano'?(isPrimeiro?'Você':'Morador '+membroCount):'Pet '+membroCount;
+  card.innerHTML=`<div class="membro-tipo ${tipo}">${icon} ${label}</div>
+    ${!isPrimeiro?`<button class="btn-del-membro" onclick="document.getElementById('mb-${membroCount}').remove()">✕</button>`:''}
+    <div class="input-row" style="margin-bottom:10px;">
+      ${tipo==='humano'
+        ?`<input class="input" type="text" placeholder="Nome (opcional)" data-campo="mb-${membroCount}-nome">
+           <input class="input" type="number" placeholder="Idade" data-campo="mb-${membroCount}-idade">`
+        :`<input class="input" type="text" placeholder="Nome do pet (opcional)" data-campo="mb-${membroCount}-nome">
+           <input class="input" type="number" placeholder="Idade" data-campo="mb-${membroCount}-idade">`
+      }
+    </div>
+    ${tipo==='humano'&&!isPrimeiro
+      ?`<select class="input" data-campo="mb-${membroCount}-relacao">
+          <option value="">Relação com você...</option>
+          <option>Cônjuge / parceiro(a)</option><option>Filho(a)</option><option>Pai / mãe</option>
+          <option>Irmão / irmã</option><option>Colega / roommate</option><option>Outro</option>
+        </select>`
+      :''
+    }
+    ${tipo==='pet'
+      ?`<div class="input-row" style="margin-top:8px;">
+          <select class="input" data-campo="mb-${membroCount}-especie">
+            <option value="">Espécie...</option><option>Cachorro</option><option>Gato</option><option>Pássaro</option><option>Outro</option>
+          </select>
+          <input class="input" type="text" placeholder="Raça" data-campo="mb-${membroCount}-raca">
+        </div>
+        <div style="margin-top:8px;">
+          <select class="input" data-campo="mb-${membroCount}-porte">
+            <option value="">Porte...</option><option>Pequeno (até 10kg)</option><option>Médio (10–25kg)</option><option>Grande (acima de 25kg)</option>
+          </select>
+        </div>`
+      :''
+    }`;
+  lista.appendChild(card);
+}
+
+// ── UPLOAD PREVIEW ──
+function handleUpload(input, previewId){
+  const preview=document.getElementById(previewId);
+  if(!preview)return;
+  [...input.files].forEach(file=>{
+    if(file.type.startsWith('image/')){
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const thumb=document.createElement('div');thumb.className='upload-thumb';
+        const img=document.createElement('img');img.src=e.target.result;
+        const del=document.createElement('button');del.className='upload-thumb-del';del.textContent='✕';del.onclick=()=>thumb.remove();
+        thumb.appendChild(img);thumb.appendChild(del);preview.appendChild(thumb);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const thumb=document.createElement('div');thumb.className='upload-thumb';thumb.textContent='📄';
+      const del=document.createElement('button');del.className='upload-thumb-del';del.textContent='✕';del.onclick=()=>thumb.remove();
+      thumb.appendChild(del);preview.appendChild(thumb);
+    }
+  });
+}
+
+// ── REVISÃO ──
+const ETAPA_LABELS = {
+  sensacao:'Como quer se sentir','consciencia-estilo':'Consciência de estilo',estilo:'Estilo arquitetônico',
+  paleta:'Paleta de cores','cor-nao-quer':'Cor que não quer','nao-quer':'O que não quer',
+  'lugar-referencia':'Lugar de referência','erros-passados':'Erros do passado',
+  tipologia:'Tipologia',metragem:'Metragem (m²)',andar:'Andar',
+  'perfil-reforma':'Perfil de reforma',orcamento:'Faixa de orçamento',
+  'inicio-obra':'Início da obra','metodologia-construtiva':'Metodologia construtiva',
+  'frase-lar':'Frase para o lar'
+};
+
+function gerarRevisao(){
+  const container=document.getElementById('revisao-container');
+  if(!container)return;
+  salvarAtual();
+  const grupos=[
+    {titulo:'Como você quer se sentir',campos:['sensacao','consciencia-estilo','estilo','paleta','cor-nao-quer']},
+    {titulo:'O que você não quer',campos:['nao-quer','erros-passados','lugar-referencia']},
+    {titulo:'Família e rotina',campos:['trabalho','visitas','cozinha-habito','hobbies','quarto-extra']},
+    {titulo:'Necessidades e referências',campos:['necessidades','ambientes-prioritarios','objetos-coração','reutilizar-desc']},
+    {titulo:'Investimento',campos:['perfil-reforma','orcamento','inicio-obra']},
+    {titulo:'Dados técnicos',campos:['empreendimento','construtora','tipologia','metragem','estado-entrega','metodologia-construtiva','trocar-portas','forro-rebaixado']},
+  ];
+  container.innerHTML=grupos.map(g=>{
+    const itens=g.campos.map(c=>{
+      const val=dados[c];
+      if(!val||(Array.isArray(val)&&!val.length))return'';
+      const label=ETAPA_LABELS[c]||c;
+      const valStr=Array.isArray(val)?val.join(', '):val;
+      return`<div class="rev-item"><span class="rev-key">${label}</span><span class="rev-val">${valStr}</span></div>`;
+    }).join('');
+    if(!itens)return'';
+    return`<div class="rev-bloco"><div class="rev-bloco-header" onclick="this.closest('.rev-bloco').classList.toggle('aberto')"><span class="rev-bloco-titulo">${g.titulo}</span><span style="font-size:10px;color:var(--muted);">▼</span></div><div class="rev-bloco-body">${itens}</div></div>`;
+  }).join('');
+}
+
+// ── ENVIO ──
+function enviarBriefing(){
+  salvarAtual();
+  toast('Briefing enviado! Seu arquiteto vai analisar tudo em breve ✓');
+  document.querySelector('.btn-proximo').textContent='Enviado ✓';
+  document.querySelector('.btn-proximo').style.background='var(--green)';
+  document.querySelector('.btn-proximo').disabled=true;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildProgress();
+  initCards();
+  addMembro('humano');
+});
+
+</script>
+</body>
+</html>
