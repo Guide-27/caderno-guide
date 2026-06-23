@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Arquiteto — Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#06070a;
+  --dark:#0c0e13;
+  --card:#11141b;
+  --card2:#161a23;
+  --gold:#C9A227;
+  --gold-light:#e2b93b;
+  --steel:#4a6fa5;
+  --steel-light:#6b91c9;
+  --steel-dim:rgba(74,111,165,0.12);
+  --steel-mid:rgba(74,111,165,0.28);
+  --white:#f0f2f5;
+  --off:#d4d8de;
+  --muted:#6b7280;
+  --muted2:#3a4250;
+  --border:rgba(74,111,165,0.18);
+  --border2:rgba(255,255,255,0.05);
+  --red:rgba(220,80,80,0.9);
+  --green:#3fb950;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--black);
+  color: var(--off);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* FUNDO TÉCNICO COM GRID */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(74,111,165,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,111,165,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.login-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+}
+
+/* BADGE TÉCNICO NO TOPO */
+.tech-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tech-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(63,185,80,0.6);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.tech-badge-txt {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--steel-light);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* CARD */
+.login-card {
+  background: rgba(17, 20, 27, 0.7);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 44px 34px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 48px rgba(0,0,0,0.55), 0 0 32px rgba(74,111,165,0.05);
+}
+
+/* LOGO */
+.login-logo {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.login-logo-txt {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.02em;
+}
+
+.login-sub {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 34px;
+}
+
+.login-titulo {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.login-titulo-sub {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+
+/* FORM */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--steel-light);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border2);
+  border-radius: 11px;
+  padding: 13px 15px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--white);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--steel-mid);
+  background: rgba(74,111,165,0.06);
+}
+
+.form-input::placeholder {
+  color: var(--muted2);
+}
+
+.form-erro {
+  display: none;
+  font-size: 12px;
+  color: var(--red);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.form-erro.vis { display: block; }
+
+/* BOTÃO */
+.btn-login {
+  background: linear-gradient(135deg, var(--steel), var(--steel-light));
+  border: none;
+  border-radius: 11px;
+  padding: 13px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 14px;
+  width: 100%;
+}
+
+.btn-login:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(74,111,165,0.25);
+}
+
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* FOOTER */
+.login-footer {
+  text-align: center;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border2);
+}
+
+.login-footer-txt {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.login-footer a {
+  color: var(--steel-light);
+  text-decoration: none;
+}
+
+.login-footer a:hover { color: var(--gold); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(17,20,27,0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 13px 22px;
+  font-size: 12px;
+  color: var(--off);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+
+.toast.vis { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+
+<div class="login-wrap">
+  <div class="tech-badge">
+    <span class="tech-badge-dot"></span>
+    <span class="tech-badge-txt">Área Técnica · Arquiteto</span>
+  </div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-txt">Guide</div>
+    </div>
+    <div class="login-sub">Control Center</div>
+
+    <div class="login-titulo">Painel do Arquiteto</div>
+    <div class="login-titulo-sub">Acesse para gerenciar seus projetos</div>
+
+    <form class="login-form" onsubmit="handleLogin(event)">
+      <div class="form-field">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="email-input" placeholder="arquiteto@guide.com" required>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-input" id="senha-input" placeholder="••••••••" required>
+        <div class="form-erro" id="login-erro"></div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-login">Entrar no Painel</button>
+    </form>
+
+    <div class="login-footer">
+      <div class="login-footer-txt">
+        É cliente? <a href="/login">Acesse seu projeto aqui</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────
+
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+
+let sb = null;
+if (window.supabase && window.supabase.createClient) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else {
+  console.error('Biblioteca Supabase não carregou.');
+}
+
+// ─────────────────────────────────────────────────────────────
+// FUNDO ANIMADO (blobs em tom aço)
+// ─────────────────────────────────────────────────────────────
+
+(function(){
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let W, H, t = 0;
+
+  const orbs = [
+    { x: 0.2, y: 0.25, r: 0.4, c: [74, 111, 165], a: 0.05 },
+    { x: 0.8, y: 0.75, r: 0.35, c: [74, 111, 165], a: 0.035 },
+    { x: 0.55, y: 0.5, r: 0.28, c: [201, 162, 39], a: 0.018 },
+  ];
+
+  function resize() { W = c.width = innerWidth; H = c.height = innerHeight; }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.0022;
+    orbs.forEach((o, i) => {
+      const dx = Math.sin(t * 0.7 + i * 1.3) * 0.05;
+      const dy = Math.cos(t * 0.5 + i * 0.9) * 0.04;
+      const x = (o.x + dx) * W;
+      const y = (o.y + dy) * H;
+      const r = o.r * Math.min(W, H);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(${o.c}, ${o.a})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+// ─────────────────────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────────────────────
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const emailInput = document.getElementById('email-input');
+  const senhaInput = document.getElementById('senha-input');
+  const btnLogin = document.getElementById('btn-login');
+  const erroDiv = document.getElementById('login-erro');
+
+  const email = emailInput.value.trim();
+  const senha = senhaInput.value;
+
+  if (!email || !senha) {
+    mostrarErro('Preencha email e senha', erroDiv);
+    return;
+  }
+
+  if (!sb) {
+    mostrarErro('Erro de conexão com o servidor. Recarregue a página.', erroDiv);
+    return;
+  }
+
+  btnLogin.disabled = true;
+  btnLogin.textContent = 'Verificando...';
+
+  try {
+    // 1. Autenticar
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+
+    if (error) {
+      mostrarErro(error.message || 'Email ou senha incorretos', erroDiv);
+      btnLogin.disabled = false;
+      btnLogin.textContent = 'Entrar no Painel';
+      return;
+    }
+
+    // 2. Verificar se é arquiteto
+    const { data: arq, error: erroArq } = await sb
+      .from('arquitetos')
+      .select('nome')
+      .eq('email', email)
+      .single();
+
+    if (erroArq || !arq) {
+      // Logou mas não é arquiteto → desloga e bloqueia
+      await sb.auth.signOut();
+      mostrarErro('Acesso não autorizado. Esta área é exclusiva para arquitetos.', erroDiv);
+      btnLogin.disabled = false;
+      btnLogin.textContent = 'Entrar no Painel';
+      return;
+    }
+
+    // 3. É arquiteto → entra no painel
+    window.location.href = '/admin-projetos';
+
+  } catch (err) {
+    mostrarErro('Erro ao conectar. Tente novamente.', erroDiv);
+    btnLogin.disabled = false;
+    btnLogin.textContent = 'Entrar no Painel';
+  }
+}
+
+function mostrarErro(msg, erroDiv) {
+  erroDiv.textContent = msg;
+  erroDiv.classList.add('vis');
+  setTimeout(() => erroDiv.classList.remove('vis'), 6000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// CHECK SE JÁ ESTÁ LOGADO (e é arquiteto)
+// ─────────────────────────────────────────────────────────────
+
+(async () => {
+  if (!sb) return;
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    const email = data.session.user.email;
+    const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', email).single();
+    if (arq) {
+      window.location.href = '/admin-projetos';
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
