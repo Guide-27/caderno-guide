@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing · Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
+  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);--gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --border:rgba(201,162,39,0.14);--border2:rgba(255,255,255,0.06);
+  --green:#50C878;--green-dim:rgba(80,200,120,0.09);--green-border:rgba(80,200,120,0.28);
+  --blue:rgba(80,140,220,0.9);--blue-dim:rgba(80,140,220,0.09);--blue-border:rgba(80,140,220,0.28);
+  --amber:#E8A020;--amber-dim:rgba(232,160,32,0.09);--amber-border:rgba(232,160,32,0.3);
+  --red:rgba(220,80,80,0.9);--red-dim:rgba(220,80,80,0.08);--red-border:rgba(220,80,80,0.28);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--black);color:var(--off);font-family:"Outfit",sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px;}
+
+.top-bar{position:fixed;top:24px;left:28px;right:28px;height:60px;background:rgba(255,255,255,0.06);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border:1px solid rgba(255,255,255,0.1);border-radius:28px;box-shadow:0 1px 0 rgba(255,255,255,0.07) inset, 0 18px 44px rgba(0,0,0,0.45), 0 0 24px rgba(201,162,39,0.04);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:300;}
+.top-logo{display:flex;align-items:center;gap:9px;}
+.top-logo-img{height:24px;width:auto;object-fit:contain;display:block;}
+.top-logo-txt{color:var(--white);font-size:11.5px;letter-spacing:0.16em;font-weight:600;font-family:"Outfit",sans-serif;}
+.top-right{display:flex;align-items:center;gap:18px;}
+.top-etapa-label{font-size:10px;color:rgba(244,240,232,0.45);letter-spacing:0.05em;text-transform:uppercase;font-family:"Outfit",sans-serif;}
+.top-salvo{font-size:10px;color:var(--green);opacity:0;transition:opacity 0.4s;display:flex;align-items:center;gap:5px;}
+.top-salvo.vis{opacity:1;}
+
+.progress-wrap{position:fixed;top:100px;left:28px;right:28px;z-index:299;background:rgba(255,255,255,0.04);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:0 24px;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.progress-blocos{display:flex;gap:3px;padding:11px 0;overflow-x:auto;scrollbar-width:none;align-items:center;}
+.progress-blocos::-webkit-scrollbar{display:none;}
+.bloco-track{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.bloco-label{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted2);white-space:nowrap;margin-right:4px;margin-left:8px;}
+.bloco-label:first-child{margin-left:0;}
+.etapa-pip{width:24px;height:5px;border-radius:3px;background:rgba(255,255,255,0.08);cursor:pointer;transition:all 0.3s;position:relative;flex-shrink:0;}
+.etapa-pip:hover{background:rgba(255,255,255,0.18);}
+.etapa-pip.visitada{background:rgba(201,162,39,0.3);}
+.etapa-pip.ativa{background:var(--gold);}
+.etapa-pip.concluida{background:rgba(80,200,120,0.5);}
+.etapa-pip.bloqueada{opacity:0.25;cursor:default;}
+.etapa-pip-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(20,20,24,0.95);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--off);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:10;}
+.etapa-pip:hover .etapa-pip-tip{opacity:1;}
+.progress-pct{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap;padding:10px 0 10px 12px;flex-shrink:0;}
+
+.main{max-width:740px;margin:0 auto;padding:188px 40px 120px;position:relative;z-index:2;}
+.etapa-tela{display:none;animation:fadeUp 0.45s cubic-bezier(0.16,1,0.3,1);}
+.etapa-tela.ativa{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+.etapa-bloco-tag{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:12px;font-family:"Outfit",sans-serif;}
+.etapa-bloco-tag::before{content:"";display:block;width:18px;height:1px;background:var(--gold);opacity:0.6;}
+.etapa-num{font-size:10px;color:var(--muted2);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;font-family:"Outfit",sans-serif;}
+.etapa-titulo{font-family:"Quicksand",sans-serif;font-size:clamp(28px,4.6vw,46px);font-weight:700;line-height:1.02;color:var(--white);margin-bottom:14px;letter-spacing:-0.01em;}
+.etapa-titulo em{color:var(--gold);font-style:normal;font-weight:800;}
+.etapa-lead{font-size:15px;color:var(--off);line-height:1.85;margin-bottom:32px;max-width:580px;}
+
+.campo{margin-bottom:26px;}
+.campo-label{font-size:12px;font-weight:500;color:var(--white);margin-bottom:6px;display:block;letter-spacing:0.03em;}
+.campo-hint{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;}
+.campo-dica{font-size:11px;color:var(--off);background:rgba(255,255,255,0.03);border-left:2px solid var(--gold);border-radius:0 10px 10px 0;padding:10px 14px;margin-top:8px;line-height:1.6;}
+.campo-dica strong{color:var(--gold);font-weight:500;}
+.input{width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:14px;padding:13px 16px;font-family:"Outfit",sans-serif;font-size:14px;font-weight:300;color:var(--white);outline:none;transition:border-color 0.2s,background 0.2s;}
+.input:focus{border-color:var(--gold-mid);background:rgba(255,255,255,0.05);}
+.input::placeholder{color:var(--muted2);font-style:italic;}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.input-row.tres{grid-template-columns:1fr 1fr 1fr;}
+
+.cards-sel{display:flex;flex-wrap:wrap;gap:9px;}
+.card-sel{background:rgba(255,255,255,0.035);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:100px;padding:11px 16px;cursor:pointer;transition:all 0.22s;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--off);user-select:none;}
+.card-sel:hover{border-color:var(--gold-mid);background:var(--gold-dim);color:var(--white);}
+.card-sel.sel{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.16),rgba(201,162,39,0.06));color:var(--white);font-weight:500;box-shadow:0 4px 16px rgba(201,162,39,0.12);}
+.cs-icon{font-size:17px;flex-shrink:0;line-height:1;}
+.cs-label{font-size:13px;line-height:1.3;}
+.cs-sub{font-size:11px;color:var(--muted);margin-top:2px;display:block;}
+
+.radio-group{display:flex;flex-direction:column;gap:8px;}
+.radio-item{background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:16px;padding:14px 16px;cursor:pointer;transition:all 0.22s;display:flex;align-items:flex-start;gap:13px;user-select:none;}
+.radio-item:hover{border-color:var(--gold-mid);background:rgba(255,255,255,0.05);}
+.radio-item.sel{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.1),rgba(201,162,39,0.03));}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--muted2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.radio-item.sel .radio-dot{border-color:var(--gold);background:var(--gold);}
+.radio-dot-inner{width:7px;height:7px;border-radius:50%;background:var(--black);opacity:0;}
+.radio-item.sel .radio-dot-inner{opacity:1;}
+.radio-txt{flex:1;}
+.radio-titulo{font-size:13px;color:var(--white);font-weight:400;line-height:1.35;}
+.radio-sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+.edu-bloco{background:rgba(201,162,39,0.05);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin:12px 0;display:none;}
+.edu-bloco.vis{display:block;}
+.edu-titulo{font-size:11px;font-weight:600;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:8px;letter-spacing:0.04em;}
+.edu-txt{font-size:12px;color:var(--off);line-height:1.8;}
+.edu-txt p{margin-bottom:9px;}
+.edu-txt p:last-child{margin-bottom:0;}
+.edu-txt strong{color:var(--white);font-weight:500;}
+
+.btn-onde{background:transparent;border:none;font-family:"Outfit",sans-serif;font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 0;transition:color 0.2s;letter-spacing:0.03em;}
+.btn-onde:hover{color:var(--gold);}
+.onde-bloco{display:none;background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-top:6px;font-size:12px;color:var(--off);line-height:1.7;}
+.onde-bloco.vis{display:block;}
+.onde-bloco strong{color:var(--white);font-weight:500;}
+.campo-condicional{display:none;margin-top:12px;}
+.campo-condicional.vis{display:block;}
+
+.estilos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.estilo-card{background:rgba(255,255,255,0.035);border:1.5px solid var(--border2);border-radius:20px;overflow:hidden;cursor:pointer;transition:all 0.25s;user-select:none;}
+.estilo-card:hover{border-color:var(--gold-mid);transform:translateY(-3px);box-shadow:0 16px 32px rgba(0,0,0,0.35);}
+.estilo-card.sel{border-color:var(--gold);box-shadow:0 0 0 1.5px var(--gold), 0 16px 32px rgba(201,162,39,0.15);}
+.estilo-img-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;}
+.estilo-img-wrap img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;display:block;}
+.estilo-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(8,8,10,0.88) 100%);}
+.estilo-img-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;}
+.estilo-img-placeholder img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.estilo-ph-icon{font-size:22px;opacity:0.4;position:relative;z-index:1;}
+.estilo-ph-label{font-size:10px;color:var(--muted);opacity:0.6;position:relative;z-index:1;text-align:center;padding:0 12px;}
+.estilo-body{padding:14px 15px 15px;}
+.estilo-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
+.estilo-nome{font-size:14px;color:var(--white);font-weight:700;font-family:"Quicksand",sans-serif;}
+.estilo-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;flex-shrink:0;transition:all 0.2s;}
+.estilo-card.sel .estilo-check{color:var(--black);background:var(--gold);border-color:var(--gold);}
+.estilo-desc{font-size:11px;color:var(--muted);line-height:1.55;}
+.estilo-hover-tag{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:rgba(201,162,39,0.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;z-index:2;}
+.estilo-card.sel .estilo-hover-tag{opacity:1;}
+
+.cards-grandes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.card-grande{position:relative;border-radius:20px;overflow:hidden;cursor:pointer;transition:all 0.25s;user-select:none;border:1px solid var(--border2);aspect-ratio:4/3;}
+.card-grande:hover{border-color:var(--gold-mid);transform:translateY(-3px);box-shadow:0 16px 32px rgba(0,0,0,0.3);}
+.card-grande.sel{border-color:var(--gold);box-shadow:0 0 0 1.5px var(--gold),0 16px 32px rgba(201,162,39,0.15);}
+.cg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.cg-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(8,8,10,0.9) 100%);}
+.cg-check{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.2s;z-index:2;}
+.card-grande.sel .cg-check{color:var(--black);background:var(--gold);border-color:var(--gold);}
+.cg-texto{position:absolute;bottom:0;left:0;right:0;padding:14px;z-index:1;}
+.cg-titulo{font-size:14px;color:var(--white);font-weight:700;margin-bottom:3px;font-family:"Quicksand",sans-serif;}
+.cg-desc{font-size:11px;color:rgba(255,255,255,0.62);line-height:1.5;}
+.cg-icon{display:none;}
+
+.paletas-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.card-paleta{background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:16px;padding:13px;cursor:pointer;transition:all 0.22s;user-select:none;display:flex;flex-direction:column;gap:10px;}
+.card-paleta:hover{border-color:var(--gold-mid);}
+.card-paleta.sel{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.08),rgba(201,162,39,0.02));}
+.paleta-swatches{display:flex;border-radius:10px;overflow:hidden;height:36px;}
+.swatch{flex:1;}
+.paleta-info{display:flex;flex-direction:column;gap:3px;}
+.paleta-nome{font-size:12.5px;color:var(--white);font-weight:500;}
+.paleta-desc{font-size:10.5px;color:var(--muted);line-height:1.4;}
+
+.bv-wrap{text-align:center;padding:40px 0 20px;}
+.bv-logo-hero{display:flex;justify-content:center;margin-bottom:28px;}
+.bv-logo-hero img{height:64px;width:auto;}
+.bv-tag{font-size:10px;letter-spacing:0.32em;color:var(--gold);text-transform:uppercase;margin-bottom:32px;display:flex;align-items:center;justify-content:center;gap:16px;font-weight:600;font-family:"Outfit",sans-serif;}
+.bv-tag::before,.bv-tag::after{content:"";display:block;width:24px;height:1px;background:var(--gold);opacity:0.5;}
+.bv-titulo{font-family:"Quicksand",sans-serif;font-size:clamp(38px,7.2vw,68px);font-weight:700;line-height:0.98;color:var(--white);margin-bottom:22px;letter-spacing:-0.015em;}
+.bv-titulo em{color:var(--gold);font-style:normal;font-weight:800;}
+.bv-sub{font-size:15px;color:var(--off);line-height:1.85;max-width:520px;margin:0 auto 26px;}
+.bv-tempo{font-size:12px;color:var(--muted);background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:100px;padding:9px 20px;display:inline-flex;align-items:center;gap:8px;margin-bottom:24px;}
+.bv-tempo strong{color:var(--white);font-weight:500;}
+.bv-nota{font-size:13px;color:var(--muted);max-width:440px;margin:0 auto 36px;line-height:1.7;}
+.btn-comecar{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--black);border:none;border-radius:100px;padding:16px 38px;font-family:"Quicksand",sans-serif;font-size:14px;font-weight:700;letter-spacing:0.01em;cursor:pointer;transition:all 0.25s;box-shadow:0 12px 32px rgba(201,162,39,0.25);}
+.btn-comecar:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(201,162,39,0.35);}
+
+.acoes-tela{display:flex;align-items:center;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--border2);}
+.btn-voltar{background:transparent;border:1px solid var(--border2);border-radius:100px;padding:12px 22px;color:var(--off);font-family:"Outfit",sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-voltar:hover{border-color:var(--muted);color:var(--white);}
+.btn-avancar{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--black);border:none;border-radius:100px;padding:13px 28px;font-family:"Quicksand",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.22s;box-shadow:0 10px 24px rgba(201,162,39,0.2);}
+.btn-avancar:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(201,162,39,0.3);}
+.btn-avancar:disabled{opacity:0.35;cursor:not-allowed;box-shadow:none;transform:none;}
+
+.familia-lista{display:flex;flex-direction:column;gap:10px;}
+.membro-card{background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:18px;padding:18px;position:relative;}
+.membro-tipo{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.membro-tipo.humano,.humano{color:var(--gold);}
+.membro-tipo.pet,.pet{color:var(--green);}
+.btn-del-membro{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted2);cursor:pointer;font-size:14px;transition:color 0.2s;padding:2px;}
+.btn-del-membro:hover{color:var(--red);}
+.btn-add-membro{background:transparent;border:1.5px dashed rgba(255,255,255,0.15);border-radius:14px;padding:12px 18px;font-family:"Outfit",sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:4px;}
+.btn-add-membro:hover{border-color:var(--gold-mid);color:var(--gold);}
+
+.upload-area{background:rgba(255,255,255,0.03);border:1.5px dashed rgba(255,255,255,0.14);border-radius:16px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.upload-area:hover{border-color:var(--gold-mid);background:rgba(201,162,39,0.04);}
+.upload-icon{font-size:26px;opacity:0.3;display:block;margin-bottom:8px;}
+.upload-txt{font-size:13px;color:var(--muted);}
+.upload-sub{font-size:11px;color:var(--muted2);margin-top:4px;}
+.upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.upload-thumb{width:68px;height:68px;border-radius:12px;background:var(--card2);border:1px solid var(--border2);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.upload-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;border-radius:50%;width:16px;height:16px;color:white;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+.refs-hint{font-size:13px;color:var(--off);line-height:1.75;margin-bottom:16px;font-style:italic;}
+.refs-wrap{background:rgba(255,255,255,0.035);border:1px solid var(--border2);border-radius:18px;padding:22px;}
+
+.rev-bloco{background:rgba(255,255,255,0.035);backdrop-filter:blur(12px);border:1px solid var(--border2);border-radius:18px;margin-bottom:12px;overflow:hidden;}
+.rev-bloco-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid var(--border2);}
+.rev-bloco-titulo{font-size:13px;font-weight:500;color:var(--white);}
+.rev-bloco-body{padding:14px 18px;display:none;}
+.rev-bloco-body.show,.rev-bloco-body.vis{display:block;}
+.rev-item{display:flex;gap:12px;margin-bottom:8px;font-size:12px;}
+.rev-key{color:var(--muted);min-width:140px;flex-shrink:0;}
+.rev-val{color:var(--off);}
+
+.nav-btns{display:flex;gap:12px;margin-top:44px;padding-top:28px;border-top:1px solid var(--border2);flex-wrap:wrap;}
+.btn-anterior{background:transparent;border:1px solid var(--border2);border-radius:100px;padding:13px 26px;font-family:"Outfit",sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.btn-anterior:hover{border-color:var(--muted);color:var(--white);}
+.btn-proximo{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--black);border:none;border-radius:100px;padding:13px 34px;font-family:"Quicksand",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.22s;letter-spacing:0.02em;margin-left:auto;box-shadow:0 10px 24px rgba(201,162,39,0.2);}
+.btn-proximo:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(201,162,39,0.3);}
+
+.estilo-historia{font-size:11px;color:var(--off);line-height:1.7;margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border2);}
+.estilo-onde{font-size:11px;color:var(--muted);line-height:1.6;}
+.estilo-onde-label{color:var(--gold);font-weight:500;}
+
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:rgba(20,20,24,0.92);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:16px;padding:12px 18px;font-size:13px;color:var(--white);transform:translateY(14px);opacity:0;transition:all 0.3s;max-width:300px;box-shadow:0 16px 40px rgba(0,0,0,0.4);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media (max-width:640px){
+  .top-bar{left:12px;right:12px;padding:0 16px;}
+  .progress-wrap{left:12px;right:12px;}
+  .main{padding:172px 20px 100px;}
+  .estilos-grid,.cards-grandes{grid-template-columns:1fr;}
+  .input-row,.input-row.tres{grid-template-columns:1fr;}
+  .paletas-grid{grid-template-columns:1fr;}
+}
+
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="top-bar">
+  <div class="top-logo"><img src="data:image/png;base64,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" alt="Guide" class="top-logo-img"></div>
+  <div class="top-right">
+    <a href="/meu-projeto" class="btn-voltar" title="Voltar ao projeto">← Meu Projeto</a>
+    <span class="top-etapa-label" id="top-label">Briefing</span>
+    <span class="top-salvo" id="top-salvo">✓ Salvo</span>
+  </div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-blocos" id="progress-blocos"></div>
+</div>
+<main class="main" id="main">
+<div class="etapa-tela ativa" id="tela-0">
+<div class="bv-wrap">
+  <div class="bv-logo-hero"><img src="data:image/png;base64,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" alt="Guide"></div>
+  <div class="bv-tag">Briefing</div>
+  <h1 class="bv-titulo">Olá, <em id="bv-nome">seja bem-vindo</em>.<br>Vamos conhecer<br>o seu futuro lar.</h1>
+  <p class="bv-sub">Este é o início de tudo. Quanto mais você nos contar, mais o resultado final vai parecer exatamente com o que você sempre imaginou — mas ainda não sabia como pedir.</p>
+  <div class="bv-tempo">⏱ Cerca de <strong>15 a 20 minutos</strong> — e você pode pausar e retomar quando quiser</div>
+  <p class="bv-nota">Começamos pelo mais gostoso: estilo, cores e como você quer se sentir no seu lar. As partes técnicas ficam para o final.</p>
+  <button class="btn-comecar" onclick="irParaEtapa(1)">Começar →</button>
+</div>
+</div><div class="etapa-tela" id="tela-1">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 1 de 16</div>
+<h2 class="etapa-titulo">Como você quer<br><em>se sentir?</em></h2>
+<p class="etapa-lead">Quando você abrir a porta do seu apartamento depois de um dia longo, qual deve ser a sensação imediata? Não existe resposta certa — existe a sua. Escolha até 3.</p>
+<div class="campo">
+<div class="cards-grandes" data-grupo="sensacao" data-max="3">
+  <div class="card-grande" data-val="acolhido"><img class="cg-img" src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Acolhido</div><div class="cg-desc">Calor, conforto, cheiro de casa. Um lugar onde você respira fundo e relaxa.</div></div></div>
+  <div class="card-grande" data-val="revigorado"><img class="cg-img" src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Revigorado</div><div class="cg-desc">Energia, leveza, clareza mental. Um espaço que renova as forças.</div></div></div>
+  <div class="card-grande" data-val="em-paz"><img class="cg-img" src="https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Em paz</div><div class="cg-desc">Silêncio, natureza, equilíbrio. Tudo no seu lugar, nada em excesso.</div></div></div>
+  <div class="card-grande" data-val="inspirado"><img class="cg-img" src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Inspirado</div><div class="cg-desc">Criatividade, beleza, referências. Um espaço que desperta o melhor de você.</div></div></div>
+  <div class="card-grande" data-val="orgulhoso"><img class="cg-img" src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Orgulhoso</div><div class="cg-desc">Elegância, personalidade, sofisticação. Um lar que representa quem você é.</div></div></div>
+  <div class="card-grande" data-val="livre"><img class="cg-img" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Livre</div><div class="cg-desc">Espaço, fluidez, sem excessos. Respirar com amplitude dentro de casa.</div></div></div>
+  <div class="card-grande" data-val="vivo"><img class="cg-img" src="https://images.unsplash.com/photo-1615873968403-89e068629265?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Vivo</div><div class="cg-desc">Cor, movimento, presença forte. Um lar com personalidade inconfundível.</div></div></div>
+  <div class="card-grande" data-val="aconchegante"><img class="cg-img" src="https://images.unsplash.com/photo-1521783988139-89397d761dce?w=500&q=80" alt=""><div class="cg-overlay"></div><div class="cg-check">✓</div><div class="cg-texto"><div class="cg-titulo">Aconchegante</div><div class="cg-desc">Quente, íntimo, seguro. O tipo de lugar que abraça quem entra.</div></div></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-proximo" onclick="irParaEtapa(2)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-2">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 2 de 16</div>
+<h2 class="etapa-titulo">Você já sabe<br><em>o que quer?</em></h2>
+<p class="etapa-lead">Esta pergunta muda como o arquiteto vai trabalhar com você. Não existe resposta certa — existe a sua resposta honesta.</p>
+<div class="campo">
+<div class="radio-group" data-grupo="consciencia-estilo" data-max="1">
+  <div class="radio-item" data-val="ja-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Já sei exatamente o que quero</div><div class="radio-sub">Tenho referências claras, pastas de inspiração, imagens salvas. É só executar com qualidade.</div></div></div>
+  <div class="radio-item" data-val="tenho-ideia"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Tenho uma ideia — mas preciso ver para confirmar</div><div class="radio-sub">Sei mais ou menos o que gosto, mas preciso de opções concretas para tomar as decisões certas.</div></div></div>
+  <div class="radio-item" data-val="descobrindo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estou descobrindo agora — preciso de orientação</div><div class="radio-sub">Nunca parei para pensar muito nisso. Preciso que o arquiteto me guie com opções e explicações.</div></div></div>
+  <div class="radio-item" data-val="confio-arquiteto"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Confio totalmente no arquiteto — quero ser surpreendido</div><div class="radio-sub">Tenho poucas restrições. Quero ver o que o profissional propõe para o meu espaço.</div></div></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(1)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(3)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-3">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 3 de 16</div>
+<h2 class="etapa-titulo">Qual estilo<br><em>fala com você?</em></h2>
+<p class="etapa-lead">Cada estilo tem uma história, uma origem, um mundo de referências por trás. Explore com calma — e selecione até 2 que mais ressoam com o que você imagina para o seu lar.</p>
+<div class="campo">
+<div class="estilos-grid"><div class="estilo-card" data-val="minimalista">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1615529182904-14819c35db37?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Moderno Minimalista</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Linhas retas, poucos elementos, muito branco e madeira clara. Menos é mais.</div>
+            <div class="estilo-historia">Nasceu na Europa no início do século XX como reação ao excesso ornamental. Influenciado pelo Bauhaus alemão e pelo design japonês, chegou aos apartamentos urbanos como sinônimo de sofisticação tranquila.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Revistas como Wallpaper e Dezeen. Cidades como Copenhagen, Tóquio e Zurique. Marcas de referência: Muuto, HAY, Menu.</div>
+          </div>
+        </div><div class="estilo-card" data-val="contemporaneo">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1618219740975-d40978bb7378?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Contemporâneo</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Equilíbrio entre funcional e elegante. Neutros com toques de cor e personalidade.</div>
+            <div class="estilo-historia">Não é um estilo com origem definida — é o resultado do mundo globalizado. Pega o que há de melhor em cada tendência e cria ambientes que funcionam para a vida real sem abrir mão da estética.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Qualquer grande cidade do mundo. Pinterest, Instagram de arquitetos brasileiros. O estilo mais versátil e adaptável ao gosto pessoal.</div>
+          </div>
+        </div><div class="estilo-card" data-val="escandinavo">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Escandinavo</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Leveza, madeira clara, muito branco, plantas e aconchego. Funcional e bonito.</div>
+            <div class="estilo-historia">Nasceu nos países nórdicos como resposta ao inverno longo e à pouca luz solar. A solução foi trazer luz, calor e natureza para dentro de casa — sem excessos, com materiais honestos.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Dinamarca, Suécia, Noruega e Finlândia. Marcas: IKEA, Muuto, HAY, Ferm Living. Pinterest com #scandinavianinterior.</div>
+          </div>
+        </div><div class="estilo-card" data-val="industrial">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Industrial</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Concreto, metal, tijolos aparentes e tons escuros. Personalidade e contraste.</div>
+            <div class="estilo-historia">Surgiu nos anos 1990 em Nova York quando artistas transformaram fábricas e armazéns abandonados em lofts. O que era improvisado virou estilo — e hoje está em apartamentos do mundo inteiro.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Nova York, Londres, Berlim e São Paulo. Bairros como Pinheiros, Vila Madalena e Lapa. Inspiração: lofts neoyorkinos, Soho londrino.</div>
+          </div>
+        </div><div class="estilo-card" data-val="boho">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1522444195799-478538b28823?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Boho / Orgânico</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Texturas, palha, plantas, camadas e alma viajante. Eclético e muito pessoal.</div>
+            <div class="estilo-historia">Vem da cultura boêmia europeia do século XIX — artistas, viajantes e intelectuais que misturavam influências de vários países. Hoje é o estilo que mais resiste a regras e que mais espaço dá para a personalidade.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Bali, Marrocos, Portugal. Feiras de antiguidades, lojas de artesanato, viagens. Pinterest com #bohemianinterior e #earthytones.</div>
+          </div>
+        </div><div class="estilo-card" data-val="classico-moderno">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1618221469555-7f3ad97540d6?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Clássico Moderno</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Molduras, espelhos, dourados com toque atual. Elegância que não envelhece.</div>
+            <div class="estilo-historia">Releitura contemporânea do classicismo europeu — o estilo que dominou os palácios e casarões do século XVIII e XIX. Hoje aparece em apartamentos com sancas, molduras de gesso e móveis com pés trabalhados, mas com paleta e proporções atuais.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Paris, Milão, Lisboa. Inspiração: hotéis boutique europeus, apartamentos haussmannianos parisienses.</div>
+          </div>
+        </div><div class="estilo-card" data-val="japandi">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1617104551722-3b2d51366400?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Japandi</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">Minimalismo japonês com aconchego escandinavo. Paz, equilíbrio e pouquíssimo excesso.</div>
+            <div class="estilo-historia">Fusão que nasceu nos anos 2010 unindo dois filosofias de design: o wabi-sabi japonês (beleza na imperfeição e na natureza) e o hygge escandinavo (aconchego e bem-estar). O resultado é um estilo de serenidade raramente alcançado.</div>
+            <div class="estilo-onde"><span class="estilo-onde-label">📍 Onde encontrar referências:</span> Japão e países nórdicos. Kyoto para referência de proporção e materialidade. Marcas: Karimoku, Menu, Ferm Living.</div>
+          </div>
+        </div><div class="estilo-card" data-val="descobrir">
+          <div class="estilo-img-wrap">
+            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80" alt=""><div class="estilo-img-overlay"></div><div class="estilo-hover-tag">✓</div>
+          </div>
+          <div class="estilo-body">
+            <div class="estilo-topo">
+              <div class="estilo-nome">Ainda não sei — me ajude a descobrir</div>
+              <div class="estilo-check">✓</div>
+            </div>
+            <div class="estilo-desc">O arquiteto vai apresentar opções, mostrar exemplos e guiar a escolha junto com você.</div>
+            
+            
+          </div>
+        </div></div>
+</div>
+<div class="campo">
+<label class="campo-label" style="font-size:12px;color:var(--muted);">Quer acrescentar algo sobre o estilo que imagina?</label>
+<textarea class="input" rows="2" placeholder="Ex: gosto de industrial mas não quero escuro demais. Ou quero minimalista com um toque de calor..." data-campo="estilo-obs" style="margin-top:6px;min-height:70px;resize:vertical;"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(2)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(4)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-4">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 4 de 16</div>
+<h2 class="etapa-titulo">Sua paleta<br><em>de vida.</em></h2>
+<p class="etapa-lead">Cores não são só estética — são emoção. Cada paleta abaixo cria uma atmosfera diferente. Escolha até 2 que mais se aproximam do que você quer sentir nos seus ambientes.</p>
+<div class="campo">
+<div class="paletas-grid"><div class="card-paleta" data-grupo="paleta" data-val="neblina">
+          <div class="paleta-swatches"><div class="swatch" style="background:#f5f4f0;"></div><div class="swatch" style="background:#e8e8e8;"></div><div class="swatch" style="background:#c8d0d8;"></div><div class="swatch" style="background:#b0bcc8;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">☁️ Neblina</div>
+            <div class="paleta-desc">Branco, off-white, cinza claro, azul gelo. Leveza e clareza.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="areia">
+          <div class="paleta-swatches"><div class="swatch" style="background:#f0e8d8;"></div><div class="swatch" style="background:#e0d0b8;"></div><div class="swatch" style="background:#c8b090;"></div><div class="swatch" style="background:#b09070;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🏜 Areia e vento</div>
+            <div class="paleta-desc">Bege, areia, cru, caramelo claro. Calor sem peso.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="floresta">
+          <div class="paleta-swatches"><div class="swatch" style="background:#708060;"></div><div class="swatch" style="background:#506840;"></div><div class="swatch" style="background:#383828;"></div><div class="swatch" style="background:#202818;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌿 Floresta urbana</div>
+            <div class="paleta-desc">Verde musgo, madeira escura, preto, verde folha.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="terra">
+          <div class="paleta-swatches"><div class="swatch" style="background:#c87850;"></div><div class="swatch" style="background:#b06040;"></div><div class="swatch" style="background:#d09060;"></div><div class="swatch" style="background:#e8d8c0;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🔥 Terra quente</div>
+            <div class="paleta-desc">Terracota, caramelo, laranja queimado, cru.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="mar">
+          <div class="paleta-swatches"><div class="swatch" style="background:#1a2a4a;"></div><div class="swatch" style="background:#2a4060;"></div><div class="swatch" style="background:#4a8090;"></div><div class="swatch" style="background:#c8a840;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌊 Mar profundo</div>
+            <div class="paleta-desc">Azul-marinho, verde-azulado, branco, dourado.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="noite">
+          <div class="paleta-swatches"><div class="swatch" style="background:#181818;"></div><div class="swatch" style="background:#303030;"></div><div class="swatch" style="background:#c8a227;"></div><div class="swatch" style="background:#f0ece0;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🖤 Noite clara</div>
+            <div class="paleta-desc">Preto, antracite, dourado, off-white.</div>
+          </div>
+        </div><div class="card-paleta" data-grupo="paleta" data-val="flor">
+          <div class="paleta-swatches"><div class="swatch" style="background:#e0c0b8;"></div><div class="swatch" style="background:#b0c0a8;"></div><div class="swatch" style="background:#d8c0b0;"></div><div class="swatch" style="background:#f8f0e8;"></div></div>
+          <div class="paleta-info">
+            <div class="paleta-nome">🌸 Flor de inverno</div>
+            <div class="paleta-desc">Rosa pó, sálvia, bege rosado, branco.</div>
+          </div>
+        </div></div>
+</div>
+<div class="campo" style="margin-top:16px;">
+<label class="campo-label" style="font-size:12px;color:var(--muted);">Tem alguma cor que definitivamente não quer no seu apartamento?</label>
+<input class="input" type="text" placeholder="Ex: laranja forte, roxo, verde limão..." data-campo="cor-nao-quer" style="margin-top:6px;">
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(3)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(5)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-5">
+<div class="etapa-bloco-tag">Como você sente</div>
+<div class="etapa-num">Etapa 5 de 16</div>
+<h2 class="etapa-titulo">O que você <em>nunca mais</em><br>quer no seu lar?</h2>
+<p class="etapa-lead">Uma das perguntas mais valiosas de um briefing — e que quase ninguém faz. Saber o que você não quer é tão poderoso quanto saber o que você quer. Selecione quantos quiser.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="nao-quer" data-max="20">
+  <div class="card-sel" data-val="bagunca-visivel"><span class="cs-icon">😩</span><span class="cs-label">Bagunça visível — tudo aparecendo</span></div>
+  <div class="card-sel" data-val="pouco-armario"><span class="cs-icon">📦</span><span class="cs-label">Falta de espaço de armazenamento</span></div>
+  <div class="card-sel" data-val="sem-personalidade"><span class="cs-icon">😐</span><span class="cs-label">Ambiente sem personalidade</span></div>
+  <div class="card-sel" data-val="muito-neutro"><span class="cs-icon">🤍</span><span class="cs-label">Cores neutras demais — parece hospital</span></div>
+  <div class="card-sel" data-val="muito-colorido"><span class="cs-icon">🎨</span><span class="cs-label">Cores fortes demais — enjoativo</span></div>
+  <div class="card-sel" data-val="pouca-luz"><span class="cs-icon">🌑</span><span class="cs-label">Pouca luz natural</span></div>
+  <div class="card-sel" data-val="moveis-descombinados"><span class="cs-icon">🪑</span><span class="cs-label">Móveis que não combinam entre si</span></div>
+  <div class="card-sel" data-val="generico"><span class="cs-icon">🏢</span><span class="cs-label">Apartamento genérico — igual a todos</span></div>
+  <div class="card-sel" data-val="sem-cantinho"><span class="cs-icon">😞</span><span class="cs-label">Falta de um cantinho só meu</span></div>
+  <div class="card-sel" data-val="poluicao-visual"><span class="cs-icon">🤯</span><span class="cs-label">Poluição visual — muita coisa ao mesmo tempo</span></div>
+  <div class="card-sel" data-val="frio"><span class="cs-icon">🥶</span><span class="cs-label">Ambiente frio e sem alma</span></div>
+  <div class="card-sel" data-val="dificil-limpar"><span class="cs-icon">🧹</span><span class="cs-label">Materiais difíceis de limpar</span></div>
+  <div class="card-sel" data-val="sem-privacidade"><span class="cs-icon">👀</span><span class="cs-label">Falta de privacidade</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Existe algum erro que você já viveu e nunca mais quer repetir?</label>
+<div class="campo-hint">Uma porta que bate em outra, armário sem divisão, bancada baixa demais — qualquer detalhe que incomodou.</div>
+<textarea class="input" rows="3" placeholder="Conte aqui — sem filtro..." data-campo="erros-passados"></textarea>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum lugar que você já entrou e pensou <em style="color:var(--gold)">"quero que minha casa se pareça com isso"</em>?</label>
+<div class="campo-hint">Pode ser qualquer lugar — hotel, restaurante, casa de amigo, loja, cena de série, até uma foto que você salvou.</div>
+<textarea class="input" rows="2" placeholder="Ex: o lobby do hotel X em que fiquei, a cozinha da casa da minha avó, aquela cena de Succession..." data-campo="lugar-referencia"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(4)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(6)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-6">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 6 de 16</div>
+<h2 class="etapa-titulo">A família que vai<br><em>viver neste espaço.</em></h2>
+<p class="etapa-lead">O projeto precisa funcionar para as pessoas — e os animais — que realmente vão viver aqui. Adicione cada membro da família abaixo.</p>
+<div class="campo">
+<div class="familia-lista" id="familia-lista"></div>
+<button class="btn-add-membro" onclick="addMembro('humano')"><span>👤</span> Adicionar pessoa</button>
+<button class="btn-add-membro pet-btn" onclick="addMembro('pet')" style="margin-top:6px;"><span>🐾</span> Adicionar pet</button>
+</div>
+<div class="campo">
+<label class="campo-label">Algum morador tem necessidade especial de acessibilidade?</label>
+<div class="cards-sel" data-grupo="acessibilidade" data-max="1" data-trigger="acessibilidade">
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="sim">Sim</div>
+</div>
+<div class="campo-condicional" id="cond-acessibilidade-sim">
+<textarea class="input" rows="2" placeholder="Descreva a necessidade..." data-campo="acessibilidade-desc" style="margin-top:8px;"></textarea>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(5)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(7)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-7">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 7 de 16</div>
+<h2 class="etapa-titulo">A sua vida,<br><em>como ela é de verdade.</em></h2>
+<p class="etapa-lead">Sua casa precisa funcionar para a rotina que você já tem — não para a que você imagina ter um dia. Não existe resposta certa aqui, só a sua.</p>
+<div class="campo">
+<label class="campo-label">Você trabalha fora ou em casa?</label>
+<div class="cards-sel" data-grupo="trabalho" data-max="1" data-trigger="trabalho">
+  <div class="card-sel" data-val="fora-fixo"><span class="cs-icon">🏢</span><span class="cs-label">Fora, horário fixo</span></div>
+  <div class="card-sel" data-val="fora-flex"><span class="cs-icon">🏃</span><span class="cs-label">Fora, horário flexível</span></div>
+  <div class="card-sel" data-val="home-office"><span class="cs-icon">💻</span><span class="cs-label">Home office fixo</span></div>
+  <div class="card-sel" data-val="hibrido"><span class="cs-icon">🔄</span><span class="cs-label">Híbrido</span></div>
+  <div class="card-sel" data-val="nao-trabalha">Não trabalho atualmente</div>
+</div>
+<div class="campo-condicional" id="cond-trabalho-home-office">
+<div class="campo-dica" style="margin-top:10px;">Se você trabalha em casa, é importante reservar um espaço no projeto para isso — mesmo que seja uma bancada num canto. Como prefere?</div>
+<div class="cards-sel" data-grupo="espaco-trabalho" data-max="1" style="margin-top:10px;">
+  <div class="card-sel" data-val="quarto-separado"><span class="cs-icon">🚪</span><span class="cs-label">Quarto ou sala separada</span></div>
+  <div class="card-sel" data-val="bancada"><span class="cs-icon">🖥</span><span class="cs-label">Bancada num ambiente</span></div>
+  <div class="card-sel" data-val="qualquer-lugar">Qualquer lugar serve</div>
+</div>
+</div>
+<div class="campo-condicional" id="cond-trabalho-hibrido">
+<div class="cards-sel" data-grupo="espaco-trabalho" data-max="1" style="margin-top:10px;">
+  <div class="card-sel" data-val="quarto-separado"><span class="cs-icon">🚪</span><span class="cs-label">Espaço dedicado</span></div>
+  <div class="card-sel" data-val="bancada"><span class="cs-icon">🖥</span><span class="cs-label">Bancada em algum ambiente</span></div>
+  <div class="card-sel" data-val="qualquer-lugar">Qualquer lugar serve</div>
+</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Como é o clima da sua casa no dia a dia?</label>
+<div class="radio-group" data-grupo="ritmo-casa" data-max="1">
+  <div class="radio-item" data-val="agitada"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Agitada — sempre tem movimento, gente e vida</div></div></div>
+  <div class="radio-item" data-val="tranquila"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Tranquila — ambiente calmo, poucas pessoas</div></div></div>
+  <div class="radio-item" data-val="variavel"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Variável — depende muito do dia</div></div></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Com que frequência você recebe visitas em casa?</label>
+<div class="cards-sel" data-grupo="visitas" data-max="1">
+  <div class="card-sel" data-val="nunca">Quase nunca</div>
+  <div class="card-sel" data-val="as-vezes">Às vezes, fins de semana</div>
+  <div class="card-sel" data-val="frequente">Frequentemente</div>
+  <div class="card-sel" data-val="jantares"><span class="cs-icon">🍽</span><span class="cs-label">Faço jantares e reuniões regularmente</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Você cozinha?</label>
+<div class="cards-sel" data-grupo="cozinha-habito" data-max="1">
+  <div class="card-sel" data-val="adora"><span class="cs-icon">🍳</span><span class="cs-label">Adoro — a cozinha é o coração da casa</span></div>
+  <div class="card-sel" data-val="basico">Cozinho o básico do dia a dia</div>
+  <div class="card-sel" data-val="raramente">Raramente — prefiro pedir ou comer fora</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Se tiver um quarto que não será usado como dormitório, o que faria com ele?</label>
+<div class="cards-sel" data-grupo="quarto-extra" data-max="3">
+  <div class="card-sel" data-val="nao-tem">Não tenho quarto extra</div>
+  <div class="card-sel" data-val="closet"><span class="cs-icon">👔</span><span class="cs-label">Closet</span></div>
+  <div class="card-sel" data-val="office"><span class="cs-icon">💻</span><span class="cs-label">Home office</span></div>
+  <div class="card-sel" data-val="closet-office"><span class="cs-icon">💼</span><span class="cs-label">Closet + office integrados</span></div>
+  <div class="card-sel" data-val="hospedes"><span class="cs-icon">🛏</span><span class="cs-label">Quarto de hóspedes eventual</span></div>
+  <div class="card-sel" data-val="exercicio"><span class="cs-icon">🏋️</span><span class="cs-label">Espaço de exercício</span></div>
+  <div class="card-sel" data-val="musica"><span class="cs-icon">🎵</span><span class="cs-label">Estúdio / sala de música</span></div>
+  <div class="card-sel" data-val="atelie"><span class="cs-icon">🎨</span><span class="cs-label">Ateliê / espaço criativo</span></div>
+  <div class="card-sel" data-val="integrar"><span class="cs-icon">🔓</span><span class="cs-label">Integrar com outro ambiente, se possível</span></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(6)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(8)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-8">
+<div class="etapa-bloco-tag">Quem mora aqui</div>
+<div class="etapa-num">Etapa 8 de 16</div>
+<h2 class="etapa-titulo">O que você<br><em>ama fazer?</em></h2>
+<p class="etapa-lead">Seus hobbies dizem muito sobre como o espaço precisa funcionar — e muitas vezes revelam necessidades que nenhum briefing comum perguntaria. Selecione quantos quiser.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="hobbies" data-max="20">
+  <div class="card-sel" data-val="series-filmes"><span class="cs-icon">📺</span><span class="cs-label">Séries e filmes</span></div>
+  <div class="card-sel" data-val="leitura"><span class="cs-icon">📚</span><span class="cs-label">Leitura</span></div>
+  <div class="card-sel" data-val="games"><span class="cs-icon">🎮</span><span class="cs-label">Games</span></div>
+  <div class="card-sel" data-val="musica-ouvir"><span class="cs-icon">🎵</span><span class="cs-label">Música (ouvir)</span></div>
+  <div class="card-sel" data-val="instrumento"><span class="cs-icon">🎸</span><span class="cs-label">Tocar instrumento</span></div>
+  <div class="card-sel" data-val="cozinhar-hobby"><span class="cs-icon">🍳</span><span class="cs-label">Cozinhar como hobby</span></div>
+  <div class="card-sel" data-val="artesanato"><span class="cs-icon">🧶</span><span class="cs-label">Artesanato / tricô / costura</span></div>
+  <div class="card-sel" data-val="artes-visuais"><span class="cs-icon">🎨</span><span class="cs-label">Artes visuais / pintura</span></div>
+  <div class="card-sel" data-val="meditacao"><span class="cs-icon">🧘</span><span class="cs-label">Meditação / yoga</span></div>
+  <div class="card-sel" data-val="exercicios"><span class="cs-icon">🏋️</span><span class="cs-label">Exercícios em casa</span></div>
+  <div class="card-sel" data-val="plantas"><span class="cs-icon">🪴</span><span class="cs-label">Plantas e jardinagem</span></div>
+  <div class="card-sel" data-val="pets-hobby"><span class="cs-icon">🐾</span><span class="cs-label">Cuidar dos pets</span></div>
+  <div class="card-sel" data-val="viagens"><span class="cs-icon">✈️</span><span class="cs-label">Viagens (estilo de vida)</span></div>
+  <div class="card-sel" data-val="tecnologia"><span class="cs-icon">💻</span><span class="cs-label">Tecnologia / gadgets</span></div>
+  <div class="card-sel" data-val="fotografia"><span class="cs-icon">📷</span><span class="cs-label">Fotografia</span></div>
+  <div class="card-sel" data-val="vinhos"><span class="cs-icon">🍷</span><span class="cs-label">Vinhos / bebidas especiais</span></div>
+  <div class="card-sel" data-val="cafe"><span class="cs-icon">☕</span><span class="cs-label">Café especial</span></div>
+  <div class="card-sel" data-val="colecoes"><span class="cs-icon">🏺</span><span class="cs-label">Coleções / objetos especiais</span></div>
+</div>
+<div class="campo" style="margin-top:14px;">
+<label class="campo-label" style="font-size:11px;color:var(--muted);">Algo que não está na lista?</label>
+<input class="input" type="text" placeholder="Outros hobbies ou interesses..." data-campo="hobbies-outros">
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Algum hobby precisa de um espaço dedicado no apartamento?</label>
+<textarea class="input" rows="2" placeholder="Ex: preciso de um canto para o violão, quero uma estante grande para a minha coleção de livros..." data-campo="hobbies-espaco"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(7)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(9)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-9">
+<div class="etapa-bloco-tag">Necessidades</div>
+<div class="etapa-num">Etapa 9 de 16</div>
+<h2 class="etapa-titulo">O que você<br><em>precisa ter.</em></h2>
+<p class="etapa-lead">Além dos ambientes padrão, algumas necessidades específicas precisam aparecer no projeto desde o início. Selecione o que faz parte da sua vida.</p>
+<div class="campo">
+<div class="cards-sel" data-grupo="necessidades" data-max="15">
+  <div class="card-sel" data-val="home-office"><span class="cs-icon">💻</span><span class="cs-label">Home office / estação de trabalho</span></div>
+  <div class="card-sel" data-val="biblioteca"><span class="cs-icon">📚</span><span class="cs-label">Biblioteca ou estante grande</span></div>
+  <div class="card-sel" data-val="instrumento"><span class="cs-icon">🎵</span><span class="cs-label">Espaço para instrumento musical</span></div>
+  <div class="card-sel" data-val="exercicio"><span class="cs-icon">🏋️</span><span class="cs-label">Espaço para exercício em casa</span></div>
+  <div class="card-sel" data-val="meditacao"><span class="cs-icon">🧘</span><span class="cs-label">Cantinho de meditação / yoga</span></div>
+  <div class="card-sel" data-val="hospedes"><span class="cs-icon">🛏</span><span class="cs-label">Quarto de hóspedes eventual</span></div>
+  <div class="card-sel" data-val="pets"><span class="cs-icon">🐾</span><span class="cs-label">Espaço dedicado para pets</span></div>
+  <div class="card-sel" data-val="kids"><span class="cs-icon">👶</span><span class="cs-label">Espaço kids / quarto de criança</span></div>
+  <div class="card-sel" data-val="plantas"><span class="cs-icon">🪴</span><span class="cs-label">Jardim interno / espaço para plantas</span></div>
+  <div class="card-sel" data-val="coffee"><span class="cs-icon">☕</span><span class="cs-label">Coffee station</span></div>
+  <div class="card-sel" data-val="bar"><span class="cs-icon">🍸</span><span class="cs-label">Bar / adega</span></div>
+  <div class="card-sel" data-val="coffee-bar"><span class="cs-icon">☕🍸</span><span class="cs-label">Coffee station + bar integrados</span></div>
+  <div class="card-sel" data-val="atelie"><span class="cs-icon">🎨</span><span class="cs-label">Ateliê / espaço criativo</span></div>
+  <div class="card-sel" data-val="acessibilidade"><span class="cs-icon">♿</span><span class="cs-label">Adaptação para acessibilidade</span></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Se pudesse dar mais atenção a apenas dois ambientes, quais seriam?</label>
+<div class="campo-hint">Isso ajuda o arquiteto a saber onde concentrar mais energia e detalhe no projeto.</div>
+<div class="cards-sel" data-grupo="ambientes-prioritarios" data-max="2">
+  <div class="card-sel" data-val="sala">🛋 Sala</div>
+  <div class="card-sel" data-val="cozinha">🍳 Cozinha</div>
+  <div class="card-sel" data-val="quarto-principal">🛏 Quarto principal</div>
+  <div class="card-sel" data-val="banheiro">🚿 Banheiro</div>
+  <div class="card-sel" data-val="varanda">🌿 Varanda</div>
+  <div class="card-sel" data-val="area-servico">🫧 Área de serviço</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum objeto, móvel ou peça que você já tem e quer que faça parte do novo apartamento?</label>
+<div class="campo-hint">Algo que não vai embora de jeito nenhum — um sofá, um quadro, uma cama, um aparador.</div>
+<textarea class="input" rows="2" placeholder="Descreva o objeto e, se quiser, diga onde pretende colocá-lo..." data-campo="objetos-coração"></textarea>
+</div>
+<div class="campo">
+<label class="campo-label">Pretende reutilizar algum móvel ou eletrodoméstico da sua residência atual?</label>
+<div class="cards-sel" data-grupo="reutilizar" data-max="1" data-trigger="reutilizar">
+  <div class="card-sel" data-val="sim">Sim</div>
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="talvez">Talvez</div>
+</div>
+<div class="campo-condicional" id="cond-reutilizar-sim">
+<textarea class="input" rows="2" placeholder="O que você pretende trazer? Ex: sofá, geladeira, cama, mesa de jantar..." data-campo="reutilizar-desc" style="margin-top:8px;"></textarea>
+<div class="upload-area" style="margin-top:8px;">
+  <input type="file" accept="image/*" multiple onchange="handleUpload(this,'reutilizar-prev')">
+  <span class="upload-icon">📷</span>
+  <div class="upload-txt">Envie uma foto do item</div>
+  <div class="upload-sub">Ajuda o arquiteto a planejar o espaço em volta · JPG ou PNG</div>
+</div>
+<div class="upload-preview" id="reutilizar-prev"></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Já adquiriu algum móvel, eletrodoméstico ou item decorativo que vai para o novo apartamento?</label>
+<div class="cards-sel" data-grupo="ja-adquiriu" data-max="1" data-trigger="ja-adquiriu">
+  <div class="card-sel" data-val="sim">Sim</div>
+  <div class="card-sel" data-val="nao">Não</div>
+  <div class="card-sel" data-val="pesquisando">Estou pesquisando</div>
+</div>
+<div class="campo-condicional" id="cond-ja-adquiriu-sim">
+<div class="campo-dica" style="margin-top:8px;"><strong>Eletrodomésticos embutidos</strong> como forno, geladeira e lava-louças têm medidas que impactam diretamente a marcenaria — informe aqui se já tiver esses itens.</div>
+<textarea class="input" rows="2" placeholder="O que você já comprou? Inclua modelo, marca e tamanho se souber..." data-campo="ja-adquiriu-desc" style="margin-top:8px;"></textarea>
+<div class="upload-area" style="margin-top:8px;">
+  <input type="file" accept="image/*,.pdf" multiple onchange="handleUpload(this,'adquiriu-prev')">
+  <span class="upload-icon">📎</span>
+  <div class="upload-txt">Foto do produto ou nota fiscal com medidas</div>
+  <div class="upload-sub">JPG, PNG ou PDF · até 5 arquivos</div>
+</div>
+<div class="upload-preview" id="adquiriu-prev"></div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(8)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(10)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-10">
+<div class="etapa-bloco-tag">Necessidades</div>
+<div class="etapa-num">Etapa 10 de 16</div>
+<h2 class="etapa-titulo">Suas referências<br><em>ao longo do processo.</em></h2>
+<p class="etapa-lead">Este campo é seu. Use para guardar e compartilhar com o arquiteto tudo que for te inspirando — agora e ao longo do projeto. Não precisa estar organizado nem fazer sentido ainda.</p>
+<div class="campo">
+<div class="refs-wrap">
+  <div class="refs-hint"><strong>Não existe referência errada.</strong> Uma foto de viagem, uma cena de série, a cor de uma xícara que você ama, um hotel onde você ficou — tudo isso diz algo sobre o que você quer para o seu lar. Manda.</div>
+  <textarea class="input" rows="4" placeholder="Descreva referências, ideias, palavras que remetem ao que você quer..." data-campo="refs-texto" style="margin-bottom:10px;"></textarea>
+  <div>
+    <label class="campo-label" style="font-size:11px;color:var(--muted);">Cole links de referência (Pinterest, Instagram, lojas...)</label>
+    <input class="input" type="text" placeholder="https://..." data-campo="refs-links" style="margin-top:6px;">
+  </div>
+  <div style="margin-top:12px;">
+    <div class="upload-area">
+      <input type="file" accept="image/*" multiple onchange="handleUpload(this,'refs-prev')">
+      <span class="upload-icon">🖼</span>
+      <div class="upload-txt">Envie imagens de referência</div>
+      <div class="upload-sub">Até 10 imagens · JPG ou PNG</div>
+    </div>
+    <div class="upload-preview" id="refs-prev"></div>
+  </div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(9)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(11)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-11">
+<div class="etapa-bloco-tag">Investimento</div>
+<div class="etapa-num">Etapa 11 de 16</div>
+<h2 class="etapa-titulo">Como você imagina<br><em>a sua reforma?</em></h2>
+<p class="etapa-lead">Reformar é um investimento — e cada perfil tem uma forma diferente de chegar ao resultado. Escolha o que melhor representa o seu momento e o que você imagina para esta reforma.</p>
+<div class="campo">
+<div class="radio-group" data-grupo="perfil-reforma" data-max="1">
+  <div class="radio-item" data-val="self-made">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Self Made — criatividade e resultado com orçamento enxuto</div>
+      <div class="radio-sub">Quero fazer muito com o que tenho. Estou disposto a pintar paredes eu mesmo, fazer algumas peças DIY, priorizar o que realmente importa e deixar o restante para depois. O resultado vai ser bonito — e muito meu.</div>
+    </div>
+  </div>
+  <div class="radio-item" data-val="standard">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Standard — equilíbrio entre custo e resultado</div>
+      <div class="radio-sub">Quero contratar os serviços essenciais e ter um resultado bonito, funcional e com acabamento de qualidade. Sem grandes excessos, mas sem abrir mão do que faz diferença.</div>
+    </div>
+  </div>
+  <div class="radio-item" data-val="signature">
+    <div class="radio-dot"><div class="radio-dot-inner"></div></div>
+    <div class="radio-txt">
+      <div class="radio-titulo">✦ Signature — reforma completa, com impacto</div>
+      <div class="radio-sub">Quero uma reforma de alto impacto — marcenaria de qualidade, troca de revestimentos, materiais especiais, espelhos, iluminação personalizada. Estou disposto a investir no que transforma de verdade.</div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(10)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(12)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-12">
+<div class="etapa-bloco-tag">Investimento</div>
+<div class="etapa-num">Etapa 12 de 16</div>
+<h2 class="etapa-titulo">Quanto você pretende<br><em>investir?</em></h2>
+<p class="etapa-lead">Sem julgamentos — toda faixa de investimento gera um resultado possível e bonito. O arquiteto usa essa informação para dimensionar corretamente o projeto.</p>
+<div class="campo">
+<label class="campo-label">Faixa de investimento para a reforma</label>
+<div class="radio-group" data-grupo="orcamento" data-max="1">
+  <div class="radio-item" data-val="ate-15"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Até R$ 15.000</div></div></div>
+  <div class="radio-item" data-val="15-30"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 15.000 a R$ 30.000</div></div></div>
+  <div class="radio-item" data-val="30-60"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 30.000 a R$ 60.000</div></div></div>
+  <div class="radio-item" data-val="60-100"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">R$ 60.000 a R$ 100.000</div></div></div>
+  <div class="radio-item" data-val="acima-100"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Acima de R$ 100.000</div></div></div>
+  <div class="radio-item" data-val="nao-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Ainda não sei — preciso de orientação</div></div></div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum item que você quer priorizar no investimento?</label>
+<input class="input" type="text" placeholder="Ex: quero investir mais na marcenaria da cozinha, independente do resto..." data-campo="orcamento-prioridade">
+</div>
+<div class="campo">
+<label class="campo-label">Quando pretende iniciar a reforma?</label>
+<div class="cards-sel" data-grupo="inicio-obra" data-max="1">
+  <div class="card-sel" data-val="imediato">Assim que o projeto estiver pronto</div>
+  <div class="card-sel" data-val="3meses">Em até 3 meses</div>
+  <div class="card-sel" data-val="3-6meses">Em 3 a 6 meses</div>
+  <div class="card-sel" data-val="mais-6meses">Em mais de 6 meses</div>
+  <div class="card-sel" data-val="nao-sei">Ainda não sei</div>
+</div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem algum prazo fixo para a reforma estar concluída?</label>
+<div class="campo-hint">Mudança planejada, evento especial, data importante.</div>
+<div class="cards-sel" data-grupo="tem-prazo" data-max="1" data-trigger="tem-prazo">
+  <div class="card-sel" data-val="nao">Não, sem prazo fixo</div>
+  <div class="card-sel" data-val="sim">Sim, tenho uma data</div>
+</div>
+<div class="campo-condicional" id="cond-tem-prazo-sim">
+<input class="input" type="date" data-campo="prazo-data" style="margin-top:8px;">
+<input class="input" type="text" placeholder="Contexto (ex: quero estar instalada antes do aniversário de 40 anos...)" data-campo="prazo-motivo" style="margin-top:8px;">
+</div>
+</div>
+<div class="campo" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border2);">
+<label class="campo-label">Tem algo mais que queira dizer ao seu arquiteto antes de avançar para a parte técnica?</label>
+<textarea class="input" rows="3" placeholder="Pode ser qualquer coisa que as perguntas acima não cobriram — um detalhe, uma preocupação, uma ideia..." data-campo="obs-gerais"></textarea>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(11)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(13)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-13">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 13 de 16</div>
+<h2 class="etapa-titulo">Agora, os dados<br><em>do seu imóvel.</em></h2>
+<p class="etapa-lead">Esta parte é mais técnica — mas igualmente importante. O arquiteto precisa dessas informações para dimensionar o projeto corretamente. Preencha o que souber.</p>
+<div class="campo">
+<label class="campo-label">Nome do empreendimento</label>
+<input class="input" type="text" placeholder="Ex: Residencial Vila Nova, Parque das Árvores..." data-campo="empreendimento">
+</div>
+<div class="campo">
+<label class="campo-label">Construtora</label>
+<input class="input" type="text" placeholder="Nome da construtora" data-campo="construtora">
+</div>
+<div class="input-row campo">
+  <div><label class="campo-label">Cidade</label><input class="input" type="text" placeholder="Ex: São Paulo" data-campo="cidade"></div>
+  <div><label class="campo-label">Bairro</label><input class="input" type="text" placeholder="Ex: Vila Olímpia" data-campo="bairro"></div>
+</div>
+<div class="campo">
+<label class="campo-label">Tipologia do apartamento</label>
+<div class="cards-sel" data-grupo="tipologia" data-max="1">
+  <div class="card-sel" data-val="studio">Studio</div>
+  <div class="card-sel" data-val="1q">1 quarto</div>
+  <div class="card-sel" data-val="2q">2 quartos</div>
+  <div class="card-sel" data-val="3q">3 quartos</div>
+  <div class="card-sel" data-val="duplex">Duplex</div>
+  <div class="card-sel" data-val="outro">Outro</div>
+</div>
+</div>
+<div class="input-row campo">
+  <div><label class="campo-label">Metragem aproximada (m²)</label><input class="input" type="number" placeholder="Ex: 72" data-campo="metragem"></div>
+  <div><label class="campo-label">Andar</label><input class="input" type="number" placeholder="Ex: 8" data-campo="andar"></div>
+</div>
+<div class="input-row campo">
+  <div>
+    <label class="campo-label">Quantos banheiros?</label>
+    <div class="cards-sel" data-grupo="banheiros" data-max="1"><div class="card-sel" data-val="1">1</div><div class="card-sel" data-val="2">2</div><div class="card-sel" data-val="3">3+</div></div>
+  </div>
+  <div>
+    <label class="campo-label">Vaga de garagem?</label>
+    <div class="cards-sel" data-grupo="garagem" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="opcional">Opcional</div></div>
+  </div>
+</div>
+<div class="campo">
+<label class="campo-label">Tem varanda?</label>
+<div class="cards-sel" data-grupo="varanda-tipo" data-max="1">
+  <div class="card-sel" data-val="nao">Não tem varanda</div>
+  <div class="card-sel" data-val="simples">Sim, simples</div>
+  <div class="card-sel" data-val="gourmet">Sim, gourmet</div>
+</div>
+</div>
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(12)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(14)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-14">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 14 de 16</div>
+<h2 class="etapa-titulo">Como o apartamento<br><em>será entregue?</em></h2>
+<p class="etapa-lead">Esses detalhes de entrega são a base técnica do projeto. Para campos que não souber responder, há indicações de onde encontrar cada informação.</p>
+
+<div class="campo">
+<label class="campo-label">Estado de entrega do imóvel</label>
+<div class="radio-group" data-grupo="estado-entrega" data-max="1">
+  <div class="radio-item" data-val="laje"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Na planta — sem acabamento (laje aparente)</div><div class="radio-sub">Estrutura entregue sem piso, sem revestimento — você escolhe tudo.</div></div></div>
+  <div class="radio-item" data-val="com-piso"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com piso entregue</div><div class="radio-sub">A construtora instala um piso padrão. Paredes podem precisar de acabamento.</div></div></div>
+  <div class="radio-item" data-val="completo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com revestimento completo</div><div class="radio-sub">Piso e paredes já com acabamento padrão da construtora.</div></div></div>
+  <div class="radio-item" data-val="reforma-anterior"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Já teve reforma anterior</div></div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos e no material de vendas entregue pela construtora. Se não tiver, solicite direto à construtora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Acabamento do teto entregue pela construtora</label>
+<div class="cards-sel" data-grupo="teto-entrega" data-max="1"><div class="card-sel" data-val="laje-aparente">Laje aparente</div><div class="card-sel" data-val="gesso-liso">Gesso liso</div><div class="card-sel" data-val="gesso-sanca">Gesso com sanca</div><div class="card-sel" data-val="textura">Textura</div><div class="card-sel" data-val="rebaixado">Rebaixado</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos entregue pela construtora no ato da compra.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O piso foi entregue com revestimento?</label>
+<div class="cards-sel" data-grupo="piso-revestimento" data-max="1" data-trigger="piso-revestimento"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-piso-revestimento-sim"><input class="input" type="text" placeholder="Qual material? Ex: porcelanato, cerâmica..." data-campo="piso-material" style="margin-top:8px;"></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou manual do proprietário. Também pode estar no contrato de compra e venda.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O banheiro será entregue com revestimento?</label>
+<div class="cards-sel" data-grupo="banheiro-revestimento" data-max="1" data-trigger="banheiro-revestimento"><div class="card-sel" data-val="sim-completo">Sim, completo</div><div class="card-sel" data-val="sim-parcial">Sim, parcialmente</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-banheiro-revestimento-sim-completo"><input class="input" type="text" placeholder="Qual tipo? Ex: porcelanato, mármore..." data-campo="banheiro-rev-tipo" style="margin-top:8px;"></div>
+<div class="campo-condicional" id="cond-banheiro-revestimento-sim-parcial"><input class="input" type="text" placeholder="O que está incluído? Ex: piso em cerâmica, sem paredes..." data-campo="banheiro-rev-parcial" style="margin-top:8px;"></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou folder de vendas do empreendimento.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">O banheiro tem janela ou ventilação natural?</label>
+<div class="cards-sel" data-grupo="banheiro-ventilacao" data-max="1"><div class="card-sel" data-val="janela">🪟 Sim, tem janela</div><div class="card-sel" data-val="ventilacao">Ventilação técnica</div><div class="card-sel" data-val="nao">Sem ventilação natural</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Infraestrutura para ar-condicionado?</label>
+<div class="cards-sel" data-grupo="ar-condicionado" data-max="1" data-trigger="ar-condicionado"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-ar-condicionado-sim"><input class="input" type="number" placeholder="Quantos pontos de infraestrutura?" data-campo="ar-pontos" style="margin-top:8px;"></div>
+<div class="campo-dica">A infraestrutura para ar-condicionado inclui o duto de passagem para o condensador externo e o ponto elétrico. Sem ela, a instalação é mais cara e invasiva.</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento entregues pela construtora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Aquecimento de água</label>
+<div class="cards-sel" data-grupo="aquecimento" data-max="1"><div class="card-sel" data-val="gas-central">🔥 Gás central</div><div class="card-sel" data-val="gas-individual">🔥 Gás individual</div><div class="card-sel" data-val="eletrico">⚡ Chuveiro elétrico</div><div class="card-sel" data-val="solar">☀️ Solar</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Fogão / cooktop</label>
+<div class="cards-sel" data-grupo="fogao" data-max="1"><div class="card-sel" data-val="gas">🔥 Fogão a gás</div><div class="card-sel" data-val="eletrico">⚡ Elétrico</div><div class="card-sel" data-val="cooktop-gas">Cooktop a gás</div><div class="card-sel" data-val="cooktop-eletrico">Cooktop elétrico</div><div class="card-sel" data-val="inducao">Indução</div><div class="card-sel" data-val="decidir">Ainda não decidi</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende instalar forno elétrico embutido?</label>
+<div class="cards-sel" data-grupo="forno-eletrico" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div></div>
+<div class="campo-dica">Fornos elétricos embutidos exigem ponto de energia específico e espaço dedicado na marcenaria. Se já tiver um modelo em mente, informe nas referências — as medidas são essenciais.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Lavanderia — o condomínio terá lavanderia coletiva?</label>
+<div class="cards-sel" data-grupo="lavanderia-coletiva" data-max="1" data-trigger="lavanderia-coletiva"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-lavanderia-coletiva-nao">
+<div class="campo-dica" style="margin-top:8px;">Se não houver lavanderia coletiva, é importante prever espaço para a máquina no projeto.</div>
+<div class="cards-sel" data-grupo="maquina-lavar" data-max="1" style="margin-top:10px;"><div class="card-sel" data-val="convencional">🫧 Máquina convencional</div><div class="card-sel" data-val="lava-seca">🌀 Lava e seca</div><div class="card-sel" data-val="nao">Não usarei máquina em casa</div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Folder de vendas, material do empreendimento ou pergunte direto à construtora ou incorporadora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">A varanda tem tomada grill?</label>
+<div class="cards-sel" data-grupo="tomada-grill" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Especificações técnicas da planta ou manual do proprietário.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Há restrições do condomínio que você já conhece?</label>
+<textarea class="input" rows="2" placeholder="Ex: não permite furar laje, restrição de horário para obra, proibido retirar paredes..." data-campo="restricoes-condominio"></textarea>
+</div>
+
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(13)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(15)">Próximo →</button></div>
+</div><div class="etapa-tela" id="tela-15">
+<div class="etapa-bloco-tag">Dados técnicos</div>
+<div class="etapa-num">Etapa 15 de 16</div>
+<h2 class="etapa-titulo">O que você pretende<br><em>mudar?</em></h2>
+<p class="etapa-lead">Estas decisões definem o escopo real da reforma. Não precisa ter certeza — "talvez" já nos ajuda muito a dimensionar o projeto corretamente.</p>
+
+<div class="campo">
+<label class="campo-label">Metodologia construtiva do edifício</label>
+<div class="campo-hint">Esta é uma das informações mais críticas do briefing. Define o que pode e o que não pode ser feito na reforma.</div>
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Por que isso importa tanto?</div>
+      <div class="edu-txt"><p><strong>Alvenaria estrutural:</strong> as paredes fazem parte da estrutura — não podem ser derrubadas. A reforma é mais restrita, mas totalmente possível com criatividade.</p><p><strong>Estrutura convencional (pilares e vigas):</strong> as paredes são apenas fechamento — podem ser derrubadas, integradas ou reposicionadas. Muito mais liberdade de projeto.</p><p><strong>Drywall:</strong> paredes internas em gesso acartonado — fáceis de mover, mas com limitações de fixação e isolamento acústico.</p></div>
+    </div>
+<div class="radio-group" data-grupo="metodologia-construtiva" data-max="1" style="margin-top:12px;">
+  <div class="radio-item" data-val="alvenaria-estrutural"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Alvenaria estrutural — paredes não podem ser derrubadas</div></div></div>
+  <div class="radio-item" data-val="estrutura-alvenaria"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estrutura convencional com fechamento em alvenaria</div><div class="radio-sub">Paredes internas podem ser alteradas com aprovação do condomínio</div></div></div>
+  <div class="radio-item" data-val="estrutura-drywall"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Estrutura convencional com fechamento em drywall</div></div></div>
+  <div class="radio-item" data-val="misto"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Misto — parte alvenaria, parte drywall</div></div></div>
+  <div class="radio-item" data-val="nao-sei"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Não sei — vou verificar</div></div></div>
+</div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Planta do imóvel, memorial descritivo da construtora ou pergunte diretamente à construtora ou incorporadora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende trocar as portas internas?</label>
+<div class="campo-dica">As portas entregues pela construtora são padrão. Trocá-las permite escolher modelos mais altos, com design específico, painéis de madeira, folhas de correr ou pivotantes — um elemento que muda muito a percepção dos ambientes.</div>
+<div class="cards-sel" data-grupo="trocar-portas" data-max="1"><div class="card-sel" data-val="sim-todas">Sim, todas</div><div class="card-sel" data-val="sim-algumas">Sim, algumas</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="talvez">Talvez, depende do orçamento</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende trocar as fechaduras?</label>
+<div class="campo-dica">As fechaduras entregues pela construtora são padrão — cromado simples. A troca permite fechaduras com acabamento dourado, preto fosco, aço escovado, ou ainda fechaduras digitais. Um detalhe que valoriza muito as portas.</div>
+<div class="cards-sel" data-grupo="trocar-fechaduras" data-max="1"><div class="card-sel" data-val="sim-todas">Sim, todas</div><div class="card-sel" data-val="sim-algumas">Sim, algumas</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="ainda-nao">Ainda não pensei nisso</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende integrar a varanda à sala?</label>
+<div class="cards-sel" data-grupo="integrar-varanda" data-max="1" data-trigger="integrar-varanda"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<div class="campo-condicional" id="cond-integrar-varanda-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que muda com a integração da varanda</div>
+      <div class="edu-txt"><p>A integração retira a porta de correr, nivela o piso e une os dois ambientes. A sala fica visualmente muito maior, com mais luz e fluidez.</p><p><strong>Verifique antes:</strong> nem todo condomínio permite — consulte o manual do proprietário ou a administração. Seu arquiteto vai te ajudar nessa verificação.</p></div>
+    </div>
+</div>
+<div class="campo-condicional" id="cond-integrar-varanda-talvez">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Integração de varanda</div>
+      <div class="edu-txt"><p>Antes de decidir, verifique com o condomínio se a obra é permitida. Seu arquiteto pode projetar as duas versões para você comparar.</div>
+    </div>
+</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende envidraçar a varanda?</label>
+<div class="cards-sel" data-grupo="envidracar-varanda" data-max="1" data-trigger="envidracar-varanda"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="ja-tem">Já tem</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<div class="campo-condicional" id="cond-envidracar-varanda-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">Envidraçamento de varanda</div>
+      <div class="edu-txt"><p>Transforma a varanda em ambiente semi-fechado, protegendo do vento, chuva e som externo. Existem sistemas retráteis (que abrem completamente) e fixos.</p><p><strong>Atenção:</strong> o condomínio tem a palavra final — muitos restringem modelo, cor de perfil e tipo de vidro para manter a uniformidade da fachada. Verifique antes de contratar.</p></div>
+    </div>
+</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Pretende ter forro rebaixado (sanca / gesso)?</label>
+<div class="cards-sel" data-grupo="forro-rebaixado" data-max="1" data-trigger="forro-rebaixado"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="talvez">Talvez</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei-o-que-e">Não sei o que é</div></div>
+<div class="campo-condicional" id="cond-forro-rebaixado-sim">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que é forro rebaixado?</div>
+      <div class="edu-txt"><p>Uma estrutura de gesso instalada abaixo do teto original, criando um novo teto em altura menor. Permite iluminação totalmente embutida — spots, rasgos de LED, sancas de luz indireta.</p><p><strong>Impacto visual:</strong> é o que você vê nos projetos de alto padrão. A iluminação fica integrada à arquitetura, sem luminárias aparentes.</p><p><strong>Atenção ao custo:</strong> é um dos itens de maior impacto no orçamento. Verifique com o condomínio se há altura mínima de pé direito exigida.</p></div>
+    </div>
+<div style="margin-top:12px;"><label class="campo-label" style="font-size:11px;color:var(--muted);">Em quais ambientes?</label><div class="cards-sel" data-grupo="forro-ambientes" data-max="10" style="margin-top:6px;"><div class="card-sel" data-val="sala">Sala</div><div class="card-sel" data-val="cozinha">Cozinha</div><div class="card-sel" data-val="quarto-principal">Quarto principal</div><div class="card-sel" data-val="quartos-sec">Quartos secundários</div><div class="card-sel" data-val="banheiro">Banheiro</div><div class="card-sel" data-val="corredor">Corredor</div><div class="card-sel" data-val="varanda">Varanda</div><div class="card-sel" data-val="todos">Todos</div></div></div>
+</div>
+<div class="campo-condicional" id="cond-forro-rebaixado-nao-sei-o-que-e">
+<div class="edu-bloco vis">
+      <div class="edu-titulo">O que é forro rebaixado?</div>
+      <div class="edu-txt"><p>É uma estrutura de gesso instalada abaixo do teto original. Permite iluminação embutida — spots e LEDs — e dá um acabamento sofisticado ao ambiente, como você vê em projetos de revista.</p><p>Seu arquiteto vai te mostrar exemplos e ajudar a decidir se faz sentido para o seu projeto e orçamento.</p></div>
+    </div>
+</div>
+</div>
+
+<div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(14)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(16)">Revisar e enviar →</button></div>
+</div><div class="etapa-tela" id="tela-16">
+<div class="etapa-bloco-tag">Finalizar</div>
+<div class="etapa-num">Etapa 16 de 16</div>
+<h2 class="etapa-titulo">Seu briefing<br><em>está completo.</em></h2>
+<p class="etapa-lead">Revise abaixo o que você respondeu — e edite qualquer etapa antes de enviar. Quando estiver pronto, confirme o envio.</p>
+<div id="revisao-container"></div>
+<div class="campo" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border2);">
+<label class="campo-label">Uma frase para o seu lar <span style="color:var(--muted);font-weight:300;">(opcional)</span></label>
+<div class="campo-hint">Se o seu apartamento pudesse dizer uma coisa para quem entra pela primeira vez, o que seria?</div>
+<textarea class="input" rows="2" placeholder="Ex: Aqui, o tempo desacelera. / Bem-vindo ao lugar onde eu sou eu." data-campo="frase-lar"></textarea>
+</div>
+<div class="nav-btns" style="margin-top:32px;">
+  <button class="btn-anterior" onclick="irParaEtapa(15)">← Anterior</button>
+  <button class="btn-proximo" onclick="enviarBriefing()" style="background:var(--green);padding:14px 40px;">Enviar briefing ✓</button>
+</div>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+
+// ── BG CANVAS — Aurora multi-cor org\u00e2nica ──
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,t=0;
+
+  // Cada blob tem cor própria (dourado, roxo, azul-acinzentado) e movimento independente
+  const blobs=[
+    {x:.18,y:.32,rx:.62,ry:.5,c:[201,162,39],a:.18,phase:0,speed:.55},
+    {x:.82,y:.7,rx:.58,ry:.66,c:[139,90,158],a:.15,phase:2.4,speed:.42},
+    {x:.55,y:.85,rx:.5,ry:.42,c:[74,107,138],a:.14,phase:1.1,speed:.5},
+    {x:.3,y:.6,rx:.36,ry:.3,c:[201,162,39],a:.11,phase:3.6,speed:.6},
+  ];
+
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;}
+
+  function drawBlob(cx,cy,rx,ry,color,alpha){
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry));
+    g.addColorStop(0,`rgba(${color},${alpha})`);
+    g.addColorStop(0.55,`rgba(${color},${alpha*0.35})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.scale(rx/Math.max(rx,ry),ry/Math.max(rx,ry));
+    ctx.beginPath();
+    ctx.arc(0,0,Math.max(rx,ry),0,Math.PI*2);
+    ctx.fillStyle=g;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    t+=.035;
+    blobs.forEach((b)=>{
+      const sp=b.speed;
+      const wobbleX=Math.sin(t*sp+b.phase)*.09+Math.cos(t*sp*0.7+b.phase*1.3)*.04;
+      const wobbleY=Math.cos(t*sp*0.85+b.phase*0.7)*.08+Math.sin(t*sp*1.15+b.phase*2)*.035;
+      const rx=b.rx*W*(0.9+Math.sin(t*sp*0.8+b.phase)*0.14);
+      const ry=b.ry*H*(0.9+Math.cos(t*sp*1.2+b.phase*1.5)*0.12);
+      drawBlob((b.x+wobbleX)*W,(b.y+wobbleY)*H,rx,ry,b.c,b.a);
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.className='toast show';setTimeout(()=>e.className='toast',2600);}
+
+// ── DADOS GLOBAIS ──
+const dados = {};
+const visitadas = new Set([0]);
+let etapaAtual = 0;
+const TOTAL = 16;
+
+const ETAPAS_CONFIG = [
+  {id:0,bloco:'',label:'Início'},
+  {id:1,bloco:'Como você sente',label:'A sensação'},
+  {id:2,bloco:'Como você sente',label:'Consciência de estilo'},
+  {id:3,bloco:'Como você sente',label:'Estilo arquitetônico'},
+  {id:4,bloco:'Como você sente',label:'Sua paleta'},
+  {id:5,bloco:'Como você sente',label:'O que não quer'},
+  {id:6,bloco:'Quem mora aqui',label:'A família'},
+  {id:7,bloco:'Quem mora aqui',label:'Rotina'},
+  {id:8,bloco:'Quem mora aqui',label:'Hobbies'},
+  {id:9,bloco:'Necessidades',label:'Espaços'},
+  {id:10,bloco:'Necessidades',label:'Referências'},
+  {id:11,bloco:'Investimento',label:'Perfil de reforma'},
+  {id:12,bloco:'Investimento',label:'Orçamento e prazo'},
+  {id:13,bloco:'Técnico',label:'O imóvel'},
+  {id:14,bloco:'Técnico',label:'Entrega e infra'},
+  {id:15,bloco:'Técnico',label:'Intenções'},
+  {id:16,bloco:'Finalizar',label:'Revisão e envio'},
+];
+
+// ── NAVEGAÇÃO ──
+function irParaEtapa(num){
+  salvarAtual();
+  document.querySelectorAll('.etapa-tela').forEach(t=>t.classList.remove('ativa'));
+  const tela=document.getElementById('tela-'+num);
+  if(tela){tela.classList.add('ativa');window.scrollTo({top:0,behavior:'smooth'});}
+  etapaAtual=num; visitadas.add(num);
+  atualizarProgress();
+  atualizarTopLabel();
+  mostrarSalvo();
+  if(num===16) gerarRevisao();
+}
+
+function atualizarTopLabel(){
+  const cfg=ETAPAS_CONFIG.find(e=>e.id===etapaAtual);
+  document.getElementById('top-label').textContent=cfg?(cfg.bloco?cfg.bloco+' — '+cfg.label:'Briefing'):'Briefing';
+}
+
+function mostrarSalvo(){
+  const el=document.getElementById('top-salvo');
+  el.classList.add('vis');
+  setTimeout(()=>el.classList.remove('vis'),2000);
+}
+
+// ── PROGRESS ──
+function buildProgress(){
+  const wrap=document.getElementById('progress-blocos');
+  wrap.innerHTML='';
+  const blocos={};
+  ETAPAS_CONFIG.filter(e=>e.id>0).forEach(e=>{
+    const b=e.bloco||'Outros';
+    if(!blocos[b])blocos[b]=[];
+    blocos[b].push(e);
+  });
+  Object.entries(blocos).forEach(([bloco,etapas])=>{
+    const track=document.createElement('div');track.className='bloco-track';
+    const lbl=document.createElement('span');lbl.className='bloco-label';lbl.textContent=bloco;track.appendChild(lbl);
+    etapas.forEach(e=>{
+      const pip=document.createElement('div');pip.className='etapa-pip';pip.dataset.etapa=e.id;
+      if(e.id===etapaAtual)pip.classList.add('ativa');
+      else if(visitadas.has(e.id))pip.classList.add('visitada');
+      const tip=document.createElement('span');tip.className='etapa-pip-tip';tip.textContent=e.label;pip.appendChild(tip);
+      pip.onclick=()=>irParaEtapa(e.id);
+      track.appendChild(pip);
+    });
+    wrap.appendChild(track);
+  });
+  const pct=document.createElement('span');pct.className='progress-pct';pct.id='progress-pct';
+  pct.textContent=Math.round(etapaAtual/TOTAL*100)+'%';
+  wrap.appendChild(pct);
+}
+
+function atualizarProgress(){
+  document.querySelectorAll('.etapa-pip').forEach(pip=>{
+    const n=parseInt(pip.dataset.etapa);
+    pip.classList.remove('ativa','visitada','concluida');
+    if(n===etapaAtual)pip.classList.add('ativa');
+    else if(visitadas.has(n))pip.classList.add('visitada');
+  });
+  const pct=document.getElementById('progress-pct');
+  if(pct)pct.textContent=Math.round(etapaAtual/TOTAL*100)+'%';
+}
+
+// ── CARDS SEL ──
+function initCards(){
+  document.querySelectorAll('[data-grupo]').forEach(grupo=>{
+    const max=parseInt(grupo.dataset.max)||1;
+    const trigger=grupo.dataset.trigger;
+    grupo.querySelectorAll('.card-sel,.card-grande,.radio-item,.card-paleta').forEach(card=>{
+      if(card.dataset.listenDone)return;
+      card.dataset.listenDone='1';
+      card.addEventListener('click',function(){
+        const val=this.dataset.val||this.closest('[data-val]')?.dataset.val;
+        if(!val)return;
+        if(max===1){
+          grupo.querySelectorAll('.card-sel,.card-grande,.radio-item,.card-paleta').forEach(c=>c.classList.remove('sel'));
+          this.classList.add('sel');
+        } else {
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(grupo.querySelectorAll('.sel').length<max){this.classList.add('sel');}
+          else{toast('Máximo de '+max+' seleções');return;}
+        }
+        if(trigger)atualizarCond(trigger,grupo);
+        salvarGrupo(grupo);
+      });
+    });
+    // estilo-card separado
+    if(grupo.classList.contains('estilos-grid')){
+      grupo.querySelectorAll('.estilo-card').forEach(card=>{
+        if(card.dataset.listenDone)return;
+        card.dataset.listenDone='1';
+        card.addEventListener('click',function(){
+          const max2=2;
+          const sel=grupo.querySelectorAll('.estilo-card.sel');
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(sel.length<max2){this.classList.add('sel');}
+          else{toast('Selecione no máximo 2 estilos');return;}
+          dados['estilo']=[...grupo.querySelectorAll('.estilo-card.sel')].map(c=>c.dataset.val);
+        });
+      });
+    }
+    // paleta separado
+    if(grupo.classList.contains('paletas-grid')){
+      grupo.querySelectorAll('.card-paleta').forEach(card=>{
+        if(card.dataset.listenDone)return;
+        card.dataset.listenDone='1';
+        card.addEventListener('click',function(){
+          const max2=2;
+          const sel=grupo.querySelectorAll('.card-paleta.sel');
+          if(this.classList.contains('sel')){this.classList.remove('sel');}
+          else if(sel.length<max2){this.classList.add('sel');}
+          else{toast('Selecione no máximo 2 paletas');return;}
+          dados['paleta']=[...grupo.querySelectorAll('.card-paleta.sel')].map(c=>c.dataset.val);
+        });
+      });
+    }
+  });
+}
+
+function atualizarCond(trigger,grupo){
+  document.querySelectorAll('[id^="cond-'+trigger+'-"]').forEach(el=>el.classList.remove('vis'));
+  const sel=grupo.querySelector('.sel,.radio-item.sel');
+  if(sel){
+    const cond=document.getElementById('cond-'+trigger+'-'+sel.dataset.val);
+    if(cond){cond.classList.add('vis');initCards();}
+  }
+}
+
+// ── SALVAR ──
+function salvarAtual(){
+  const tela=document.getElementById('tela-'+etapaAtual);
+  if(!tela)return;
+  tela.querySelectorAll('[data-campo]').forEach(el=>{dados[el.dataset.campo]=el.value;});
+  tela.querySelectorAll('[data-grupo]').forEach(g=>salvarGrupo(g));
+}
+
+function salvarGrupo(g){
+  const key=g.dataset.grupo;if(!key)return;
+  const sels=g.querySelectorAll('.sel');
+  dados[key]=sels.length===1&&parseInt(g.dataset.max)===1?sels[0].dataset.val:[...sels].map(s=>s.dataset.val).filter(Boolean);
+}
+
+// ── FAMÍLIA ──
+let membroCount=0;
+function addMembro(tipo){
+  membroCount++;
+  const lista=document.getElementById('familia-lista');
+  const card=document.createElement('div');card.className='membro-card';card.id='mb-'+membroCount;
+  const isPrimeiro=membroCount===1&&tipo==='humano';
+  const cor=tipo==='humano'?'var(--gold)':'var(--green)';
+  const icon=tipo==='humano'?'👤':'🐾';
+  const label=tipo==='humano'?(isPrimeiro?'Você':'Morador '+membroCount):'Pet '+membroCount;
+  card.innerHTML=`<div class="membro-tipo ${tipo}">${icon} ${label}</div>
+    ${!isPrimeiro?`<button class="btn-del-membro" onclick="document.getElementById('mb-${membroCount}').remove()">✕</button>`:''}
+    <div class="input-row" style="margin-bottom:10px;">
+      ${tipo==='humano'
+        ?`<input class="input" type="text" placeholder="Nome (opcional)" data-campo="mb-${membroCount}-nome">
+           <input class="input" type="number" placeholder="Idade" data-campo="mb-${membroCount}-idade">`
+        :`<input class="input" type="text" placeholder="Nome do pet (opcional)" data-campo="mb-${membroCount}-nome">
+           <input class="input" type="number" placeholder="Idade" data-campo="mb-${membroCount}-idade">`
+      }
+    </div>
+    ${tipo==='humano'&&!isPrimeiro
+      ?`<select class="input" data-campo="mb-${membroCount}-relacao">
+          <option value="">Relação com você...</option>
+          <option>Cônjuge / parceiro(a)</option><option>Filho(a)</option><option>Pai / mãe</option>
+          <option>Irmão / irmã</option><option>Colega / roommate</option><option>Outro</option>
+        </select>`
+      :''
+    }
+    ${tipo==='pet'
+      ?`<div class="input-row" style="margin-top:8px;">
+          <select class="input" data-campo="mb-${membroCount}-especie">
+            <option value="">Espécie...</option><option>Cachorro</option><option>Gato</option><option>Pássaro</option><option>Outro</option>
+          </select>
+          <input class="input" type="text" placeholder="Raça" data-campo="mb-${membroCount}-raca">
+        </div>
+        <div style="margin-top:8px;">
+          <select class="input" data-campo="mb-${membroCount}-porte">
+            <option value="">Porte...</option><option>Pequeno (até 10kg)</option><option>Médio (10–25kg)</option><option>Grande (acima de 25kg)</option>
+          </select>
+        </div>`
+      :''
+    }`;
+  lista.appendChild(card);
+}
+
+// ── UPLOAD PREVIEW ──
+function handleUpload(input, previewId){
+  const preview=document.getElementById(previewId);
+  if(!preview)return;
+  [...input.files].forEach(file=>{
+    if(file.type.startsWith('image/')){
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const thumb=document.createElement('div');thumb.className='upload-thumb';
+        const img=document.createElement('img');img.src=e.target.result;
+        const del=document.createElement('button');del.className='upload-thumb-del';del.textContent='✕';del.onclick=()=>thumb.remove();
+        thumb.appendChild(img);thumb.appendChild(del);preview.appendChild(thumb);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const thumb=document.createElement('div');thumb.className='upload-thumb';thumb.textContent='📄';
+      const del=document.createElement('button');del.className='upload-thumb-del';del.textContent='✕';del.onclick=()=>thumb.remove();
+      thumb.appendChild(del);preview.appendChild(thumb);
+    }
+  });
+}
+
+// ── REVISÃO ──
+const ETAPA_LABELS = {
+  sensacao:'Como quer se sentir','consciencia-estilo':'Consciência de estilo',estilo:'Estilo arquitetônico',
+  paleta:'Paleta de cores','cor-nao-quer':'Cor que não quer','nao-quer':'O que não quer',
+  'lugar-referencia':'Lugar de referência','erros-passados':'Erros do passado',
+  tipologia:'Tipologia',metragem:'Metragem (m²)',andar:'Andar',
+  'perfil-reforma':'Perfil de reforma',orcamento:'Faixa de orçamento',
+  'inicio-obra':'Início da obra','metodologia-construtiva':'Metodologia construtiva',
+  'frase-lar':'Frase para o lar'
+};
+
+function gerarRevisao(){
+  const container=document.getElementById('revisao-container');
+  if(!container)return;
+  salvarAtual();
+  const grupos=[
+    {titulo:'Como você quer se sentir',campos:['sensacao','consciencia-estilo','estilo','paleta','cor-nao-quer']},
+    {titulo:'O que você não quer',campos:['nao-quer','erros-passados','lugar-referencia']},
+    {titulo:'Família e rotina',campos:['trabalho','visitas','cozinha-habito','hobbies','quarto-extra']},
+    {titulo:'Necessidades e referências',campos:['necessidades','ambientes-prioritarios','objetos-coração','reutilizar-desc']},
+    {titulo:'Investimento',campos:['perfil-reforma','orcamento','inicio-obra']},
+    {titulo:'Dados técnicos',campos:['empreendimento','construtora','tipologia','metragem','estado-entrega','metodologia-construtiva','trocar-portas','forro-rebaixado']},
+  ];
+  container.innerHTML=grupos.map(g=>{
+    const itens=g.campos.map(c=>{
+      const val=dados[c];
+      if(!val||(Array.isArray(val)&&!val.length))return'';
+      const label=ETAPA_LABELS[c]||c;
+      const valStr=Array.isArray(val)?val.join(', '):val;
+      return`<div class="rev-item"><span class="rev-key">${label}</span><span class="rev-val">${valStr}</span></div>`;
+    }).join('');
+    if(!itens)return'';
+    return`<div class="rev-bloco"><div class="rev-bloco-header" onclick="this.closest('.rev-bloco').classList.toggle('aberto')"><span class="rev-bloco-titulo">${g.titulo}</span><span style="font-size:10px;color:var(--muted);">▼</span></div><div class="rev-bloco-body">${itens}</div></div>`;
+  }).join('');
+}
+
+// ── ENVIO ──
+function enviarBriefing(){
+  salvarAtual();
+  toast('Briefing enviado! Seu arquiteto vai analisar tudo em breve ✓');
+  document.querySelector('.btn-proximo').textContent='Enviado ✓';
+  document.querySelector('.btn-proximo').style.background='var(--green)';
+  document.querySelector('.btn-proximo').disabled=true;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildProgress();
+  initCards();
+  addMembro('humano');
+});
+
+</script>
+</body>
+</html>
