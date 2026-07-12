@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G Project — Imagens do Projeto · Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
+  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);
+  --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --border:rgba(201,162,39,0.14);--border2:rgba(201,162,39,0.07);
+  --green:rgba(80,200,120,0.9);--green-dim:rgba(80,200,120,0.08);--green-border:rgba(80,200,120,0.28);
+  --red:rgba(220,80,80,0.9);--red-dim:rgba(220,80,80,0.08);--red-border:rgba(220,80,80,0.28);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7;}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px 200px;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent 0%,var(--gold) 20%,var(--gold) 80%,transparent 100%);z-index:100;opacity:0.35;}
+
+/* TOP BAR */
+.btn-voltar{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-voltar:hover{color:var(--gold);border-color:var(--border);}
+.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,0.93);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:200;}
+.top-logo{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--gold);font-weight:600;letter-spacing:0.06em;}
+.top-center{display:flex;align-items:center;gap:20px;}
+.top-label{font-size:10px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+
+/* CONTADOR DE REVISÕES */
+.rev-counter{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;}
+.rev-label{font-size:9px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+.rev-dots{display:flex;gap:5px;}
+.rev-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);border:1px solid var(--gold);transition:all 0.4s;}
+.rev-dot.used{background:transparent;border-color:var(--muted2);}
+
+/* PROGRESSO */
+.progress-bar-wrap{position:fixed;top:58px;left:0;right:0;height:2px;background:var(--border2);z-index:199;}
+.progress-bar{height:100%;background:var(--gold);transition:width 0.5s ease;width:0%;}
+.progress-label{position:fixed;top:64px;right:48px;font-size:9px;color:var(--muted2);letter-spacing:0.12em;text-transform:uppercase;z-index:199;}
+
+/* DOC */
+.doc{max-width:980px;margin:0 auto;padding:100px 56px 120px;position:relative;z-index:2;}
+
+/* CAPA */
+.capa{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 0;border-bottom:1px solid var(--border);margin-bottom:80px;}
+.capa-tag{font-size:10px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:28px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.capa-tag::after{content:'';display:block;width:40px;height:1px;background:linear-gradient(to right,var(--gold),transparent);}
+.capa-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(58px,9vw,104px);font-weight:300;line-height:0.92;letter-spacing:-0.02em;color:var(--white);margin-bottom:10px;}
+.capa-titulo em{color:var(--gold);font-style:italic;}
+.capa-sub{font-size:16px;font-weight:300;color:var(--muted);margin-bottom:56px;letter-spacing:0.1em;text-transform:uppercase;}
+.capa-meta{display:flex;gap:44px;padding-top:36px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.meta-item{display:flex;flex-direction:column;gap:5px;}
+.meta-label{font-size:8px;letter-spacing:0.2em;color:var(--muted2);text-transform:uppercase;font-weight:500;}
+.meta-val{font-size:14px;font-weight:400;color:var(--white);}
+
+/* BOAS VINDAS */
+.bv-box{background:linear-gradient(135deg,rgba(201,162,39,0.06) 0%,rgba(80,100,200,0.04) 100%);border:1px solid var(--border);border-radius:20px;padding:48px;margin-bottom:48px;position:relative;overflow:hidden;}
+.bv-box::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(201,162,39,0.08) 0%,transparent 70%);pointer-events:none;}
+.bv-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,40px);font-weight:300;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.bv-titulo em{color:var(--gold);font-style:italic;}
+.bv-texto{font-size:15px;color:var(--off);line-height:1.85;max-width:600px;}
+.bv-texto+.bv-texto{margin-top:14px;}
+
+/* ETAPAS */
+.etapas-nav{margin-bottom:80px;}
+.etapas-label{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.etapas-label::before{content:'';display:block;width:18px;height:1px;background:var(--gold);}
+.etapas-track{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.etapa-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;position:relative;transition:all 0.3s;}
+.etapa-card.ativa{border-color:var(--gold);background:linear-gradient(135deg,rgba(201,162,39,0.08) 0%,var(--card) 100%);}
+.etapa-card.concluida{border-color:var(--green-border);opacity:0.7;}
+.etapa-card.bloqueada{opacity:0.4;}
+.etapa-num-badge{font-size:10px;font-weight:500;color:var(--gold);letter-spacing:0.12em;margin-bottom:10px;}
+.etapa-card.concluida .etapa-num-badge{color:var(--green);}
+.etapa-card.bloqueada .etapa-num-badge{color:var(--muted);}
+.etapa-nome-card{font-size:13px;color:var(--white);font-weight:400;line-height:1.4;}
+.etapa-card.bloqueada .etapa-nome-card{color:var(--muted);}
+.etapa-status{font-size:10px;color:var(--muted2);margin-top:8px;}
+.etapa-card.ativa .etapa-status{color:var(--gold);}
+.etapa-card.concluida .etapa-status{color:var(--green);}
+
+.divisor{height:1px;background:linear-gradient(to right,transparent,var(--border) 20%,var(--border) 80%,transparent);margin:72px 0;}
+
+/* EDUCATIVO */
+.edu-box{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:36px;margin-bottom:56px;}
+.edu-tag{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;}
+.edu-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3vw,30px);font-weight:300;color:var(--white);margin-bottom:20px;line-height:1.3;}
+.edu-titulo em{color:var(--gold);font-style:italic;}
+.edu-itens{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px;}
+.edu-item{display:flex;gap:14px;align-items:flex-start;}
+.edu-icon{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--border);color:var(--gold);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.edu-item-texto{font-size:13px;color:var(--off);line-height:1.65;}
+.edu-item-titulo{font-size:12px;font-weight:500;color:var(--white);margin-bottom:3px;}
+
+/* AVISO REVISÕES */
+.rev-aviso{background:rgba(201,162,39,0.06);border:1px solid var(--border);border-radius:14px;padding:28px 32px;margin-bottom:72px;}
+.rev-aviso-titulo{font-size:13px;font-weight:500;color:var(--white);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.rev-aviso-titulo::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--gold);}
+.rev-aviso-texto{font-size:13px;color:var(--off);line-height:1.75;max-width:580px;}
+.rev-slots{display:flex;gap:10px;margin-top:16px;}
+.rev-slot{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--gold);letter-spacing:0.06em;display:flex;align-items:center;gap:8px;}
+.rev-slot.usado{color:var(--muted2);border-color:var(--border2);text-decoration:line-through;opacity:0.5;}
+.rev-slot-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+.rev-slot.usado .rev-slot-dot{background:var(--muted2);}
+
+/* SECTION */
+.sec-header{margin-bottom:48px;}
+.sec-tag{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:14px;font-weight:500;}
+.sec-tag::before{content:'';display:block;width:18px;height:1px;background:var(--gold);}
+.sec-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,5vw,52px);font-weight:300;line-height:1.1;color:var(--white);margin-bottom:14px;}
+.sec-titulo em{color:var(--gold);font-style:italic;}
+.sec-lead{font-size:15px;color:var(--muted);line-height:1.75;max-width:540px;}
+
+/* AMBIENTE HEADER */
+.ambiente-bloco{margin-bottom:80px;}
+.ambiente-header{display:flex;align-items:center;gap:20px;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--border2);}
+.ambiente-num{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--gold);opacity:0.35;line-height:1;min-width:64px;}
+.ambiente-info{flex:1;}
+.ambiente-titulo{font-size:20px;font-weight:400;color:var(--white);}
+.ambiente-instrucao{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;max-width:520px;}
+.amb-status-badge{padding:5px 14px;border-radius:20px;font-size:10px;letter-spacing:0.08em;border:1px solid var(--border2);color:var(--muted2);background:var(--card2);flex-shrink:0;}
+.amb-status-badge.aprovado{border-color:var(--green-border);color:var(--green);background:var(--green-dim);}
+.amb-status-badge.revisao{border-color:var(--red-border);color:var(--red);background:var(--red-dim);}
+
+/* RENDER IA */
+.render-bloco{margin-bottom:40px;}
+.bloco-label{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.bloco-label::before{content:'';width:14px;height:1px;background:var(--gold);display:block;}
+.render-aviso{background:rgba(201,162,39,0.06);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--off);line-height:1.65;}
+.render-aviso strong{color:var(--gold);font-weight:500;}
+.img-placeholder{background:var(--card2);border:1px dashed var(--border);border-radius:12px;min-height:360px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--muted);margin-bottom:16px;position:relative;overflow:hidden;}
+.img-placeholder img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
+.img-placeholder-inner{text-align:center;padding:40px;}
+.img-placeholder-icon{font-size:40px;opacity:0.1;display:block;margin-bottom:12px;}
+.img-placeholder-title{font-size:14px;color:var(--off);margin-bottom:6px;}
+.img-placeholder-sub{font-size:11px;color:var(--muted2);line-height:1.6;}
+
+/* PLANTA HUMANIZADA */
+.planta-bloco{margin-bottom:40px;}
+.planta-hum{background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;}
+.planta-hum-img{background:var(--card2);border-bottom:1px solid var(--border2);min-height:260px;display:flex;align-items:center;justify-content:center;}
+.planta-hum-img img{width:100%;object-fit:contain;max-height:260px;}
+.planta-hum-info{padding:18px 20px;}
+.planta-hum-nota{font-size:11px;color:var(--muted);font-style:italic;line-height:1.6;}
+
+/* PERSPECTIVAS SKETCHUP */
+.persp-bloco{margin-bottom:40px;}
+.persp-accordion{border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:8px;background:var(--card);}
+.persp-header{padding:18px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.2s;}
+.persp-header:hover{background:rgba(201,162,39,0.04);}
+.persp-header-left{display:flex;align-items:center;gap:12px;}
+.persp-num{font-size:10px;letter-spacing:0.12em;color:var(--gold);font-weight:500;text-transform:uppercase;}
+.persp-nome{font-size:14px;color:var(--white);font-weight:400;}
+.persp-chevron{font-size:10px;color:var(--muted);transition:transform 0.3s;}
+.persp-accordion.open .persp-chevron{transform:rotate(180deg);}
+.persp-body{display:none;padding:0 22px 22px;border-top:1px solid var(--border2);}
+.persp-accordion.open .persp-body{display:block;}
+.persp-img{background:var(--card2);border:1px solid var(--border2);border-radius:10px;min-height:280px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;margin-top:16px;overflow:hidden;}
+.persp-img img{width:100%;object-fit:contain;max-height:320px;}
+.persp-img-inner{text-align:center;padding:40px 24px;}
+.persp-img-icon{font-size:36px;opacity:0.08;display:block;margin-bottom:12px;}
+.persp-img-title{font-size:13px;color:var(--off);margin-bottom:4px;}
+.persp-img-sub{font-size:11px;color:var(--muted2);line-height:1.6;}
+
+/* CHECKLIST */
+.checklist-label{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted2);font-weight:500;margin-bottom:10px;}
+.checklist{background:rgba(201,162,39,0.04);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:16px;}
+.check-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:6px;font-size:12px;color:var(--off);line-height:1.5;}
+.check-item:last-child{margin-bottom:0;}
+.check-item::before{content:'→';color:var(--gold);opacity:0.6;flex-shrink:0;font-size:11px;margin-top:1px;}
+
+/* REAÇÃO */
+.reacao-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.reacao-label{font-size:11px;color:var(--muted2);letter-spacing:0.06em;}
+.rbtn{background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;font-size:13px;cursor:pointer;transition:all 0.2s;line-height:1;font-family:inherit;}
+.rbtn:hover{transform:scale(1.15);border-color:var(--gold-mid);}
+.rbtn.ativo{border-color:var(--gold-mid);background:var(--gold-dim);}
+
+/* COMENTÁRIO */
+.com-instrucao{font-size:12px;color:var(--off);background:rgba(201,162,39,0.06);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;line-height:1.65;}
+.com-instrucao strong{color:var(--gold);font-weight:500;}
+.com-area{width:100%;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;line-height:1.65;resize:vertical;min-height:80px;outline:none;transition:border-color 0.2s;}
+.com-area::placeholder{color:var(--muted2);font-style:italic;}
+.com-area:focus{border-color:var(--gold-mid);}
+.com-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.btn-salvar-com{background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 16px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em;}
+.btn-salvar-com:hover{border-color:var(--gold);color:var(--gold);}
+.com-saved{font-size:11px;color:var(--green);display:none;align-items:center;gap:5px;}
+
+/* ÁUDIO */
+.audio-wrap{margin-top:10px;}
+.audio-label{font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+.audio-row{display:flex;align-items:center;gap:10px;}
+.btn-audio{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;letter-spacing:0.05em;}
+.btn-audio:hover{border-color:var(--gold-mid);color:var(--off);}
+.btn-audio.gravando{border-color:var(--red-border);color:var(--red);background:var(--red-dim);}
+.audio-player{display:none;flex:1;}
+.audio-player audio{width:100%;height:32px;}
+.audio-timer{font-size:10px;color:var(--muted2);}
+
+/* STATUS AMBIENTE */
+.status-amb{margin-top:32px;padding:24px;background:var(--card);border:1px solid var(--border2);border-radius:14px;}
+.status-amb-titulo{font-size:13px;font-weight:500;color:var(--white);margin-bottom:6px;}
+.status-amb-sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.65;max-width:520px;}
+.status-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.sbtn{background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all 0.25s;letter-spacing:0.04em;display:flex;align-items:center;gap:8px;}
+.sbtn:hover{border-color:var(--gold-mid);color:var(--off);}
+.sbtn.aprovado{border-color:var(--green-border);background:var(--green-dim);color:var(--green);}
+.sbtn.revisao{border-color:var(--red-border);background:var(--red-dim);color:var(--red);}
+.rev-box{margin-top:16px;display:none;padding-top:16px;border-top:1px solid var(--border2);}
+.rev-box.vis{display:block;}
+.rev-aviso-inline{font-size:12px;color:rgba(220,80,80,0.8);background:var(--red-dim);border:1px solid var(--red-border);border-radius:8px;padding:10px 14px;margin-bottom:10px;line-height:1.6;}
+.amb-ok{display:none;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--green);padding:10px 16px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;}
+.amb-ok.vis{display:flex;}
+
+/* AÇÃO FINAL */
+.acao-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:44px;text-align:center;margin-bottom:80px;}
+.acao-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,3.5vw,38px);font-weight:300;color:var(--white);margin-bottom:14px;line-height:1.3;}
+.acao-titulo em{color:var(--gold);font-style:italic;}
+.acao-texto{font-size:14px;color:var(--muted);line-height:1.8;max-width:480px;margin:0 auto 28px;}
+.acao-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-width:560px;margin:0 auto 28px;text-align:left;}
+.acao-status-item{background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:all 0.3s;}
+.acao-status-item.ok{border-color:var(--green-border);color:var(--green);}
+.acao-status-item.rev{border-color:var(--red-border);color:var(--red);}
+.acao-status-item .asi-nome{flex:1;color:var(--off);font-size:12px;}
+.acao-status-item.ok .asi-nome{color:var(--white);}
+.btn-aprovar{background:var(--gold);color:var(--black);border:none;border-radius:12px;padding:18px 48px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;}
+.btn-aprovar:hover:not(:disabled){background:var(--gold-light);transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,162,39,0.25);}
+.btn-aprovar:disabled{opacity:0.35;cursor:not-allowed;}
+.acao-pendente{font-size:12px;color:var(--muted);margin-top:12px;}
+
+/* RETORNO */
+.retorno-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:20px;margin-bottom:72px;}
+.btn-retorno{background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;text-align:left;width:100%;}
+.btn-retorno:hover{border-color:var(--gold);color:var(--gold);}
+.btn-retorno span{display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;letter-spacing:0.1em;text-transform:uppercase;}
+.btn-retorno.ok{border-color:var(--green-border);}
+.btn-retorno.ok span{color:var(--green);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(8,8,10,0.9);backdrop-filter:blur(12px);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px;max-width:580px;width:100%;transform:translateY(20px);transition:transform 0.3s;max-height:88vh;overflow-y:auto;}
+.modal-overlay.show .modal-box{transform:translateY(0);}
+.modal-tag{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:16px;}
+.modal-titulo{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--white);margin-bottom:16px;line-height:1.2;}
+.modal-titulo em{color:var(--gold);font-style:italic;}
+.modal-texto{font-size:14px;color:var(--off);line-height:1.8;margin-bottom:20px;}
+.modal-resumo{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+.modal-resumo-titulo{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;font-weight:500;}
+.modal-ri{font-size:13px;color:var(--off);padding:7px 0;border-bottom:1px solid var(--border2);line-height:1.5;}
+.modal-ri:last-child{border-bottom:none;}
+.modal-ri strong{color:var(--white);font-weight:500;}
+.modal-aviso{background:rgba(201,162,39,0.07);border:1px solid var(--border);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--off);line-height:1.7;margin-bottom:24px;}
+.modal-aviso strong{color:var(--white);font-weight:500;}
+.modal-aviso-rev{background:var(--red-dim);border-color:var(--red-border);margin-top:10px;}
+.modal-obs-label{font-size:12px;color:var(--off);margin-bottom:8px;}
+.modal-obs{width:100%;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;resize:vertical;min-height:80px;outline:none;margin-bottom:20px;transition:border-color 0.2s;}
+.modal-obs::placeholder{color:var(--muted2);font-style:italic;}
+.modal-obs:focus{border-color:var(--gold-mid);}
+.modal-acoes{display:flex;gap:12px;justify-content:flex-end;}
+.btn-cancelar{background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px 24px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-cancelar:hover{color:var(--white);border-color:var(--muted);}
+.btn-confirmar{background:var(--gold);color:var(--black);border:none;border-radius:10px;padding:12px 28px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;letter-spacing:0.08em;text-transform:uppercase;}
+.btn-confirmar:hover{background:var(--gold-light);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px;font-size:13px;color:var(--white);transform:translateY(16px);opacity:0;transition:all 0.3s;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.rodape-logo{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);font-weight:600;letter-spacing:0.05em;}
+.rodape-tag{font-size:10px;color:var(--muted2);letter-spacing:0.14em;text-transform:uppercase;}
+
+@media(max-width:768px){
+  .doc{padding:80px 22px 80px;}
+  .top-bar{padding:0 22px;}
+  .etapas-track{grid-template-columns:repeat(2,1fr);}
+  .edu-itens{grid-template-columns:1fr;}
+  .capa-meta{gap:24px;}
+  .modal-box{padding:32px 20px;}
+  .progress-label{display:none;}
+  .top-center{display:none;}
+}
+/* ── ADIÇÕES: conteúdo dinâmico e rodadas ── */
+.carregando-caderno{padding:120px 20px;text-align:center;color:var(--muted);font-size:14px;}
+.spinner-c{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;margin:0 auto 16px;animation:girarC .8s linear infinite;}
+@keyframes girarC{to{transform:rotate(360deg);}}
+.aviso-vazio{padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border2);border-radius:14px;line-height:1.7;}
+.rev-counter{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;margin-bottom:28px;}
+.rev-counter-dots{display:flex;gap:6px;}
+.rev-counter-txt{font-size:12px;color:var(--muted);line-height:1.5;}
+.rev-counter-txt strong{color:var(--off);font-weight:500;}
+.rev-counter.esgotado{border-color:var(--red-border);}
+.rev-counter.esgotado .rev-counter-txt strong{color:var(--red);}
+.rev-counter .rev-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);opacity:.85;}
+.rev-counter .rev-dot.usada{background:var(--muted2);opacity:1;}
+/* imagens reais */
+.img-placeholder img,.planta-hum-img img,.persp-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-placeholder,.planta-hum-img,.persp-img{overflow:hidden;}
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="sidebar"></div>
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+<div class="progress-label" id="progress-label">0/3 ambientes revisados</div>
+
+<div class="top-bar">
+  <span style="display:inline-flex;align-items:center;gap:14px;"><span class="top-logo">Guide</span><a href="/meu-projeto" class="btn-voltar" title="Voltar ao projeto">← Meu Projeto</a></span>
+  <div class="top-center">
+    <span class="top-label">G Project · Mariana Souza · Etapa 03</span>
+    <div class="rev-counter">
+      <span class="rev-label">Revisões</span>
+      <div class="rev-dots">
+        <div class="rev-dot" id="dot-1"></div>
+        <div class="rev-dot" id="dot-2"></div>
+      </div>
+    </div>
+  </div>
+  <span class="top-label" style="display:none;"></span>
+</div>
+
+<main class="doc">
+
+<!-- CAPA -->
+<section class="capa">
+  <div class="capa-tag">G Project · Guide Arquitetura · Etapa 03</div>
+  <h1 class="capa-titulo">Imagens do<br><em>Projeto</em></h1>
+  <p class="capa-sub">Do conceito ao espaço — visualize cada detalhe</p>
+  <div class="capa-meta">
+    <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val">Mariana Souza</span></div>
+    <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val">Ap. 72m² — Vila Olímpia</span></div>
+    <div class="meta-item"><span class="meta-label">Arquiteto</span><span class="meta-val">Guide Arquitetura</span></div>
+    <div class="meta-item"><span class="meta-label">Etapa</span><span class="meta-val">03 de 04</span></div>
+  </div>
+</section>
+
+<!-- BOAS VINDAS -->
+<div class="bv-box">
+  <div class="bv-titulo">Mariana, agora você vai ver seu projeto <em>ganhar volume.</em></div>
+  <p class="bv-texto">Até aqui, você tomou decisões importantes com base nas plantas. Agora damos um passo que muda tudo: o projeto sai do 2D e você passa a visualizar cada ambiente como ele vai ser de verdade — paredes preenchidas, marcenaria definida, revestimentos escolhidos.</p>
+  <p class="bv-texto">Leia com atenção as orientações abaixo antes de começar. Elas vão te ajudar a entender o que cada imagem mostra e como aproveitar ao máximo essa etapa.</p>
+</div>
+
+<!-- ETAPAS -->
+<div class="etapas-nav">
+  <div class="etapas-label">Seu processo</div>
+  <div class="etapas-track">
+    <div class="etapa-card concluida"><div class="etapa-num-badge">Etapa 01</div><div class="etapa-nome-card">Estudo de Layout</div><div class="etapa-status">✓ Concluída</div></div>
+    <div class="etapa-card concluida"><div class="etapa-num-badge">Etapa 02</div><div class="etapa-nome-card">Definição de Conceito</div><div class="etapa-status">✓ Concluída</div></div>
+    <div class="etapa-card ativa"><div class="etapa-num-badge">Etapa 03</div><div class="etapa-nome-card">Imagens do Projeto</div><div class="etapa-status">Em andamento</div></div>
+    <div class="etapa-card bloqueada"><div class="etapa-num-badge">Etapa 04</div><div class="etapa-nome-card">Guia Executivo</div><div class="etapa-status">Em desenvolvimento</div></div>
+  </div>
+</div>
+
+<div class="divisor"></div>
+
+<!-- EDUCATIVO -->
+<div class="edu-box">
+  <div class="edu-tag">Antes de começar</div>
+  <div class="edu-titulo">Tudo o que você vê aqui foi construído <em>com base nas suas escolhas.</em></div>
+  <p style="font-size:14px;color:var(--off);line-height:1.8;margin-bottom:16px;">Este projeto foi desenvolvido a partir das referências que você confirmou e encaminhou — desde o briefing inicial até a definição de conceito. Se quiser relembrar o que você nos orientou antes de analisar as imagens, <a href="#" style="color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(201,162,39,0.35);">acesse a aba Meu Conceito na plataforma</a>. Lá você encontra o registro completo das suas escolhas — e pode comparar o que foi construído com o que você nos pediu.</p>
+  <p style="font-size:14px;color:var(--off);line-height:1.8;margin-bottom:20px;">Nesta etapa você vai encontrar dois tipos de imagem por ambiente. Entender o papel de cada uma vai te ajudar a analisar com o olhar certo — e a dar um feedback mais preciso.</p>
+  <div class="edu-itens">
+    <div class="edu-item"><div class="edu-icon">🎨</div><div><div class="edu-item-titulo">Imagem realista gerada por inteligência artificial — atmosfera e conceito</div><div class="edu-item-texto">Uma imagem por ambiente, criada por um sistema de inteligência artificial a partir das diretrizes do projeto. Ela representa o clima, as cores e a sensação do espaço — mas <strong style="color:var(--gold)">não reproduz com fidelidade todos os detalhes técnicos.</strong> Espessuras, texturas, puxadores e acabamentos podem aparecer de forma aproximada. Use essa imagem para avaliar a identidade visual e emocional do ambiente.</div></div></div>
+    <div class="edu-item"><div class="edu-icon">📐</div><div><div class="edu-item-titulo">Imagens técnicas do programa de projeto — a referência real</div><div class="edu-item-texto">São imagens geradas diretamente do software de arquitetura utilizado no projeto — um programa específico para dimensionamento e especificação técnica. Elas mostram com precisão a marcenaria, as portas do guarda-roupa, espelhos, prateleiras, altura dos painéis e a disposição exata de cada elemento. <strong style="color:var(--white)">O que você vê aqui é o que será executado.</strong></div></div></div>
+    <div class="edu-item"><div class="edu-icon">🗺️</div><div><div class="edu-item-titulo">Planta humanizada — visão geral do espaço</div><div class="edu-item-texto">A planta do ambiente com mobiliário ilustrado. Serve para contextualizar o espaço como um todo antes de mergulhar nos detalhes técnicos de cada parede.</div></div></div>
+    <div class="edu-item"><div class="edu-icon">💡</div><div><div class="edu-item-titulo">Por que apresentamos o projeto desta forma?</div><div class="edu-item-texto">Essa metodologia nos permite apresentar seu projeto com clareza e precisão — sem que o custo do processo de visualização impacte o valor do seu projeto. Dessa forma, você tem acesso a imagens de qualidade em todas as etapas, com um investimento mais acessível no resultado final.</div></div></div>
+  </div>
+</div>
+
+<!-- AVISO REVISÕES -->
+<div class="rev-aviso">
+  <div class="rev-aviso-titulo">Sobre as revisões desta etapa</div>
+  <p class="rev-aviso-texto">Seu projeto inclui <strong style="color:var(--gold)">2 rodadas de revisão</strong> nesta etapa. Cada rodada pode cobrir ajustes em múltiplos ambientes ao mesmo tempo — ou seja, você pode comentar sobre todos os ambientes que precisam mudar e isso conta como uma única revisão usada.</p>
+  <p class="rev-aviso-texto" style="margin-top:10px;">Use-as com cuidado. Quanto mais preciso for o seu feedback agora, mais o resultado final vai parecer exatamente com o que você imaginou.</p>
+  <div class="rev-slots">
+    <div class="rev-slot" id="slot-rev-1"><div class="rev-slot-dot"></div>Revisão 1 — disponível</div>
+    <div class="rev-slot" id="slot-rev-2"><div class="rev-slot-dot"></div>Revisão 2 — disponível</div>
+  </div>
+</div>
+
+<!-- ===================== AMBIENTES ===================== -->
+<section>
+  <div class="sec-header">
+    <div class="sec-tag">Seu projeto em imagens</div>
+    <h2 class="sec-titulo">Explore cada <em>ambiente</em></h2>
+    <p class="sec-lead">Para cada ambiente, você encontra a imagem de atmosfera gerada por IA, a planta humanizada e as imagens técnicas do programa de projeto. Analise com calma, use os checklists como guia e registre seu feedback.</p>
+  </div>
+
+  <div id="rev-counter-wrap"></div>
+  <div id="ambientes-container">
+    <div class="carregando-caderno"><div class="spinner-c"></div>Carregando seu caderno...</div>
+  </div>
+
+</section>
+
+<div class="divisor"></div>
+
+<!-- RETORNO -->
+<div>
+  <div class="sec-tag" style="margin-bottom:12px;">Revisar</div>
+  <h3 style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--white);margin-bottom:6px;">Voltar a um ambiente</h3>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:0;">Quer revisitar algum ambiente antes de enviar?</p>
+  <div class="retorno-grid" id="retorno-grid"></div>
+</div>
+
+<!-- AÇÃO FINAL -->
+<div class="acao-box">
+  <h2 class="acao-titulo">Pronto para <em>enviar?</em></h2>
+  <p class="acao-texto">Quando todos os ambientes tiverem sido avaliados, o botão será liberado. Ao confirmar, seu feedback completo vai para sua arquiteta.</p>
+      <div class="acao-status-grid" id="acao-status-grid"></div>
+
+  <!-- CONTADOR DE REVISÕES INLINE -->
+  <div style="max-width:420px;margin:0 auto 28px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:20px 24px;text-align:left;">
+    <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:12px;">Suas rodadas de ajuste</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+      <div style="display:flex;gap:6px;">
+        <div class="rev-dot" id="dot-acao-1" style="width:10px;height:10px;"></div>
+        <div class="rev-dot" id="dot-acao-2" style="width:10px;height:10px;"></div>
+      </div>
+      <span id="rev-acao-texto" style="font-size:13px;color:var(--off);">2 rodadas disponíveis após o envio</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.65;">Se solicitar revisão em algum ambiente, sua arquiteta receberá o feedback, fará os ajustes e apresentará novamente antes de avançar para o Guia Executivo.</p>
+  </div>
+
+  <button class="btn-aprovar" id="btn-aprovar" onclick="abrirModal()" disabled>Enviar feedback e avançar</button>
+  <div class="acao-pendente" id="acao-pendente">Revise os 3 ambientes para liberar o envio.</div>
+</div>
+
+<footer>
+  <span class="rodape-logo">Guide</span>
+  <span class="rodape-tag">Arquitetura que transforma no seu ritmo</span>
+</footer>
+
+</main>
+
+<!-- MODAL APROVAÇÃO -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-tag">Aprovação final — Etapa 03</div>
+    <div class="modal-titulo">Enviando seu <em>feedback</em> completo.</div>
+    <div class="modal-texto">Revise o resumo abaixo. Ao confirmar, tudo será enviado para sua arquiteta e o projeto avança para o Guia Executivo.</div>
+    <div class="modal-resumo" id="modal-resumo">
+      <div class="modal-resumo-titulo">Resumo por ambiente</div>
+    </div>
+    <div class="modal-obs-label">Observações gerais (opcional)</div>
+    <textarea class="modal-obs" placeholder="Algo mais que queira compartilhar antes de avançar para a etapa final..."></textarea>
+    <div class="modal-aviso"><strong>Importante:</strong> ao confirmar, as imagens do projeto não serão mais alteradas nesta etapa. Caso precise de ajustes, entre em contato com sua arquiteta antes de confirmar.</div>
+    <div class="modal-aviso modal-aviso-rev" id="modal-aviso-rev" style="display:none;"><strong>Atenção:</strong> você tem ambientes com solicitação de revisão. Sua arquiteta receberá o feedback e fará os ajustes necessários antes de liberar a próxima etapa.</div>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Voltar e revisar</button>
+      <button class="btn-confirmar" onclick="confirmar()">Confirmar e enviar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════
+//  SUPABASE
+// ══════════════════════════════════════════════════
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+
+let sb = null;
+if (window.supabase && window.supabase.createClient) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+const BUCKET = 'projetos-imagens';
+const ETAPA = 'imagens';
+const MAX_RODADAS = 2;
+
+let projetoId = null;
+let ehArquiteto = false;
+let ambientes = [];
+let comentarios = [];
+let rodadasUsadas = 0;
+let cadernoEnviado = false;
+
+// ══════════════════════════════════════════════════
+//  UTIL
+// ══════════════════════════════════════════════════
+function toast(msg, tipo){
+  const e = document.getElementById('toast');
+  e.textContent = msg;
+  e.className = 'toast show' + (tipo ? ' ' + tipo : '');
+  setTimeout(()=>{ e.className = 'toast'; }, 3200);
+}
+function esc(t){
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dd(n){ return String(n).padStart(2,'0'); }
+
+// ══════════════════════════════════════════════════
+//  CARGA
+// ══════════════════════════════════════════════════
+async function inicializar(){
+  const cont = document.getElementById('ambientes-container');
+  if(!sb){ cont.innerHTML = '<div class="aviso-vazio">Erro de conexão. Recarregue a página.</div>'; return; }
+
+  const { data: sessao } = await sb.auth.getSession();
+  if(!sessao.session){ window.location.href = '/login'; return; }
+  const email = sessao.session.user.email;
+
+  const { data: arq } = await sb.from('arquitetos').select('email').eq('email', email).maybeSingle();
+  ehArquiteto = !!arq;
+
+  const projetoParam = new URLSearchParams(window.location.search).get('projeto');
+
+  if(ehArquiteto && projetoParam){
+    projetoId = projetoParam;
+    const { data: p } = await sb.from('projetos').select('nome_cliente').eq('id', projetoId).maybeSingle();
+    if(!p){ cont.innerHTML = '<div class="aviso-vazio">Projeto não encontrado.</div>'; return; }
+    toast('Modo arquiteto — visualização apenas.');
+  } else {
+    const { data: proj, error } = await sb.from('projetos')
+      .select('id, etapa_atual').eq('email', email).maybeSingle();
+    if(error || !proj){
+      cont.innerHTML = '<div class="aviso-vazio">Não encontramos seu projeto.<br>Entre em contato com a Guide.</div>';
+      return;
+    }
+    projetoId = proj.id;
+    // Etapa 3 = Imagens 3D
+    if((proj.etapa_atual || 1) < 3){
+      cont.innerHTML = '<div class="aviso-vazio">Esta etapa ainda não foi liberada.<br>Sua arquiteta avisará assim que as imagens estiverem prontas.</div>';
+      document.querySelector('.progress-bar-wrap')?.remove();
+      return;
+    }
+  }
+
+  await carregarTudo();
+}
+
+async function carregarTudo(){
+  const cont = document.getElementById('ambientes-container');
+
+  const { data: ambs, error } = await sb.from('ambientes')
+    .select('id, nome, ordem')
+    .eq('projeto_id', projetoId)
+    .order('ordem', { ascending: true });
+
+  if(error){ cont.innerHTML = '<div class="aviso-vazio">Erro ao carregar o caderno.</div>'; console.error(error); return; }
+  ambientes = ambs || [];
+
+  if(!ambientes.length){
+    cont.innerHTML = '<div class="aviso-vazio">As imagens do seu projeto ainda estão sendo preparadas.</div>';
+    return;
+  }
+
+  const ambIds = ambientes.map(a=>a.id);
+
+  // Imagens ligadas ao AMBIENTE (não à opção de layout)
+  const { data: imgs } = await sb.from('imagens')
+    .select('id, ambiente_id, opcao_id, url, nome, tipo, ordem, checklist')
+    .in('ambiente_id', ambIds)
+    .order('ordem', { ascending: true });
+
+  const { data: coms } = await sb.from('comentarios')
+    .select('id, ambiente_id, elemento_id, elemento_tipo, texto, reacao, audio_url, status')
+    .eq('projeto_id', projetoId)
+    .eq('etapa', ETAPA);
+  comentarios = coms || [];
+
+  const { data: st } = await sb.from('ambiente_status')
+    .select('ambiente_id, status')
+    .in('ambiente_id', ambIds)
+    .eq('etapa', ETAPA);
+
+  const { data: rev } = await sb.from('revisoes_etapa')
+    .select('rodadas_usadas')
+    .eq('projeto_id', projetoId)
+    .eq('etapa', ETAPA)
+    .maybeSingle();
+  rodadasUsadas = rev ? rev.rodadas_usadas : 0;
+
+  const doAmb = (id, ...tipos) =>
+    (imgs||[]).filter(i=>i.ambiente_id === id && !i.opcao_id && tipos.includes(i.tipo));
+
+  ambientes.forEach(a=>{
+    a.status = (st||[]).find(s=>s.ambiente_id === a.id)?.status || null;
+    if(a.status === 'pendente') a.status = null;
+    a.atmosfera = doAmb(a.id, 'atmosfera')[0] || null;
+    a.plantaHum = doAmb(a.id, 'planta_humanizada')[0] || null;
+    // '3d' é o tipo antigo do painel — continua valendo como imagem técnica
+    a.tecnicas  = doAmb(a.id, 'tecnica', '3d');
+  });
+
+  render();
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════
+function render(){
+  document.getElementById('ambientes-container').innerHTML =
+    ambientes.map((a,i)=>blocoAmbiente(a,i)).join('<div class="divisor"></div>');
+  renderRodadas();
+  renderRetorno();
+  renderAcaoGrid();
+  atualizarProgresso();
+  restaurarMarcacoes();
+  if(ehArquiteto) travarParaArquiteto();
+}
+
+function blocoAmbiente(a, i){
+  return `
+  <div class="ambiente-bloco" id="amb-${a.id}">
+    <div class="ambiente-header">
+      <div class="ambiente-num">${dd(i+1)}</div>
+      <div class="ambiente-info">
+        <div class="ambiente-titulo">${esc(a.nome)}</div>
+        <div class="ambiente-instrucao">Explore o render de atmosfera, confira a planta e analise cada perspectiva técnica com atenção. Ao final, indique se aprova ou solicita ajuste.</div>
+      </div>
+      <div class="amb-status-badge" id="badge-${a.id}">Não revisado</div>
+    </div>
+
+    ${blocoRender(a)}
+    ${blocoPlanta(a)}
+    ${blocoTecnicas(a)}
+
+    <div class="status-amb" id="status-${a.id}">
+      <div class="status-amb-titulo">Você aprova as imagens deste ambiente?</div>
+      <div class="status-amb-sub">Se algo precisa de ajuste, descreva com clareza — sua arquiteta vai considerar cada observação.</div>
+      <div class="status-btns">
+        <button class="sbtn" data-st="aprovado" onclick="definirStatus('${a.id}','aprovado',this)">✓ Aprovo este ambiente</button>
+        <button class="sbtn" data-st="revisao" onclick="definirStatus('${a.id}','revisao',this)">✎ Preciso de ajustes</button>
+      </div>
+      <div class="rev-box" id="rev-${a.id}">
+        <div class="com-instrucao"><strong>Descreva o ajuste:</strong> mencione o elemento específico. Ex: "O painel de TV poderia ser mais alto" ou "Prefiro o tom da madeira mais claro."</div>
+        <textarea class="com-area" id="txt-amb-${a.id}" placeholder="Descreva o que precisa ser ajustado neste ambiente..." style="min-height:80px;"></textarea>
+        <div class="audio-wrap">
+          <div class="audio-label">Comentário em áudio (opcional, máx. 2 min)</div>
+          <div class="audio-row">
+            <button class="btn-audio" onclick="toggleAudio(this)">🎙 Gravar áudio</button>
+            <div class="audio-timer">00:00</div>
+            <div class="audio-player"><audio controls></audio></div>
+          </div>
+        </div>
+        <div class="com-footer">
+          <button class="btn-salvar-com" onclick="salvarAjuste('${a.id}', this)">Registrar solicitação de ajuste</button>
+          <div class="com-saved">✓ Registrado</div>
+        </div>
+      </div>
+      <div class="amb-ok" id="ok-${a.id}"></div>
+    </div>
+  </div>`;
+}
+
+function blocoRender(a){
+  const img = a.atmosfera;
+  return `
+  <div class="render-bloco">
+    <div class="bloco-label">Imagem de atmosfera — gerada por inteligência artificial</div>
+    <div class="render-aviso"><strong>Atenção:</strong> esta é uma imagem gerada por inteligência artificial com caráter ilustrativo. Ela representa o clima e o conceito do ambiente, mas não reproduz com fidelidade todos os detalhes técnicos. Para verificar o projeto real, consulte as imagens técnicas abaixo.</div>
+    <div class="img-placeholder">
+      ${img ? `<img src="${esc(img.url)}" alt="Atmosfera — ${esc(a.nome)}" loading="lazy">`
+            : `<div class="img-placeholder-inner"><span class="img-placeholder-icon">🎨</span><div class="img-placeholder-title">Imagem de atmosfera — ${esc(a.nome)}</div><div class="img-placeholder-sub">Será inserida aqui pelo arquiteto.</div></div>`}
+    </div>
+    ${img ? blocoFeedback(a.id, img.id, 'Sua impressão sobre esta imagem...',
+        '<strong>Como comentar esta imagem:</strong> relate a sensação geral — cores, iluminação, atmosfera.') : ''}
+  </div>`;
+}
+
+function blocoPlanta(a){
+  const img = a.plantaHum;
+  return `
+  <div class="planta-bloco">
+    <div class="bloco-label">Planta humanizada</div>
+    <div class="planta-hum">
+      <div class="planta-hum-img">
+        ${img ? `<img src="${esc(img.url)}" alt="Planta humanizada — ${esc(a.nome)}" loading="lazy">`
+              : `<div class="img-placeholder-inner"><span class="img-placeholder-icon">🗺️</span><div class="img-placeholder-title">Planta Humanizada — ${esc(a.nome)}</div><div class="img-placeholder-sub">Será inserida aqui.</div></div>`}
+      </div>
+      <div class="planta-hum-info">
+        <div class="planta-hum-nota">A planta humanizada é uma referência visual da disposição dos móveis. Para verificar medidas e especificações técnicas, consulte as imagens técnicas abaixo.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function blocoTecnicas(a){
+  if(!a.tecnicas.length){
+    return `<div class="persp-bloco"><div class="bloco-label">Imagens técnicas do programa de projeto</div>
+      <div class="aviso-vazio">As imagens técnicas deste ambiente ainda não foram publicadas.</div></div>`;
+  }
+  return `
+  <div class="persp-bloco">
+    <div class="bloco-label">Imagens técnicas do programa de projeto</div>
+    ${a.tecnicas.map((t,k)=>{
+      const chk = Array.isArray(t.checklist) ? t.checklist : [];
+      return `
+      <div class="persp-accordion" id="persp-${t.id}">
+        <div class="persp-header" onclick="togglePersp(this)">
+          <div class="persp-header-left">
+            <span class="persp-num">Imagem técnica ${dd(k+1)}</span>
+            <span class="persp-nome">${esc(t.nome || '')}</span>
+          </div>
+          <span class="persp-chevron">▼</span>
+        </div>
+        <div class="persp-body">
+          <div class="persp-img"><img src="${esc(t.url)}" alt="${esc(t.nome||'Imagem técnica')}" loading="lazy"></div>
+          ${chk.length ? `<div class="checklist-label">O que observar nesta imagem</div>
+            <div class="checklist">${chk.map(c=>`<div class="check-item">${esc(c)}</div>`).join('')}</div>` : ''}
+          ${blocoFeedback(a.id, t.id, 'Seu feedback sobre esta imagem...',
+            '<strong>Feedback técnico:</strong> mencione o elemento específico que deseja ajustar.')}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// Bloco de reação + comentário de UMA imagem
+function blocoFeedback(ambId, imgId, placeholder, instrucao){
+  return `
+    <div class="reacao-row" data-amb="${ambId}" data-img="${imgId}">
+      <span class="reacao-label">Sua reação:</span>
+      ${['❤️','👍','😐','👎'].map(e=>`<button class="rbtn" data-e="${e}">${e}</button>`).join('')}
+    </div>
+    <div class="com-instrucao">${instrucao}</div>
+    <textarea class="com-area" id="txt-img-${imgId}" placeholder="${esc(placeholder)}"></textarea>
+    <div class="com-footer">
+      <button class="btn-salvar-com" onclick="salvarComentarioImagem('${ambId}','${imgId}', this)">Salvar comentário</button>
+      <div class="com-saved">✓ Salvo</div>
+    </div>`;
+}
+
+function renderRodadas(){
+  const alvo = document.getElementById('rev-counter-wrap');
+  if(alvo){
+    const restantes = MAX_RODADAS - rodadasUsadas;
+    const esgotado = restantes <= 0;
+    alvo.innerHTML = `
+      <div class="rev-counter ${esgotado ? 'esgotado' : ''}">
+        <div class="rev-counter-dots">
+          ${Array.from({length: MAX_RODADAS}, (_,i)=>`<div class="rev-dot ${i < rodadasUsadas ? 'usada' : ''}"></div>`).join('')}
+        </div>
+        <div class="rev-counter-txt">
+          ${esgotado
+            ? '<strong>Suas 2 rodadas de ajuste foram usadas.</strong> Para novos ajustes, fale com sua arquiteta.'
+            : `<strong>${restantes} rodada${restantes>1?'s':''} de ajuste disponíve${restantes>1?'is':'l'}.</strong> Uma rodada é usada quando você envia o caderno pedindo ajustes em algum ambiente.`}
+        </div>
+      </div>`;
+  }
+  // contador da seção final (já existia no HTML)
+  const d1 = document.getElementById('dot-acao-1');
+  const d2 = document.getElementById('dot-acao-2');
+  if(d1) d1.classList.toggle('used', rodadasUsadas >= 1);
+  if(d2) d2.classList.toggle('used', rodadasUsadas >= 2);
+  const txt = document.getElementById('rev-acao-texto');
+  if(txt){
+    const rest = MAX_RODADAS - rodadasUsadas;
+    txt.textContent = rest === 0 ? 'Nenhuma rodada disponível — as 2 já foram usadas'
+                                 : `${rest} rodada${rest>1?'s':''} disponíve${rest>1?'is':'l'} após o envio`;
+    txt.style.color = rest === 0 ? 'var(--red)' : 'var(--off)';
+  }
+}
+
+function renderRetorno(){
+  const alvo = document.getElementById('retorno-grid');
+  if(!alvo) return;
+  alvo.innerHTML = ambientes.map((a,i)=>
+    `<button class="btn-retorno" id="btn-ret-${a.id}" onclick="document.getElementById('amb-${a.id}').scrollIntoView({behavior:'smooth',block:'start'})"><span>Ambiente ${dd(i+1)}</span>${esc(a.nome)}</button>`
+  ).join('');
+}
+
+function renderAcaoGrid(){
+  const alvo = document.getElementById('acao-status-grid');
+  if(!alvo) return;
+  alvo.innerHTML = ambientes.map(a=>
+    `<div class="acao-status-item" id="asi-${a.id}"><span>·</span><span class="asi-nome">${esc(a.nome)}</span></div>`
+  ).join('');
+}
+
+function restaurarMarcacoes(){
+  ambientes.forEach(a=>{
+    if(a.status){
+      const wrap = document.getElementById('status-'+a.id);
+      const btn = wrap?.querySelector(`.sbtn[data-st="${a.status}"]`);
+      if(btn) btn.classList.add(a.status);
+      if(a.status === 'revisao') document.getElementById('rev-'+a.id)?.classList.add('vis');
+      pintarStatus(a.id, a.status);
+    }
+    const cAmb = comentarios.find(c=>c.elemento_tipo === 'ambiente' && c.ambiente_id === a.id);
+    if(cAmb?.texto){
+      const t = document.getElementById('txt-amb-'+a.id);
+      if(t) t.value = cAmb.texto;
+    }
+    [a.atmosfera, ...a.tecnicas].filter(Boolean).forEach(img=>{
+      const c = comentarios.find(x=>x.elemento_tipo === 'imagem' && x.elemento_id === img.id);
+      if(!c) return;
+      if(c.texto){
+        const t = document.getElementById('txt-img-'+img.id);
+        if(t) t.value = c.texto;
+      }
+      if(c.reacao){
+        const grupo = document.querySelector(`.reacao-row[data-img="${img.id}"]`);
+        const b = grupo?.querySelector(`.rbtn[data-e="${c.reacao}"]`);
+        if(b) b.classList.add('ativo');
+      }
+    });
+  });
+  atualizarProgresso();
+}
+
+function travarParaArquiteto(){
+  document.querySelectorAll('textarea, .sbtn, .btn-salvar-com, .rbtn, .btn-audio, #btn-aprovar').forEach(el=>{
+    el.disabled = true;
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.6';
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  INTERAÇÃO
+// ══════════════════════════════════════════════════
+function togglePersp(header){
+  header.closest('.persp-accordion').classList.toggle('aberto');
+}
+
+// Reação nas imagens
+document.addEventListener('click', async e=>{
+  const rbtn = e.target.closest('.rbtn');
+  if(!rbtn || cadernoEnviado || ehArquiteto) return;
+  const grupo = rbtn.closest('.reacao-row');
+  if(!grupo) return;
+  grupo.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('ativo'));
+  rbtn.classList.add('ativo');
+  await salvarComentario({
+    ambiente_id: grupo.dataset.amb,
+    elemento_tipo: 'imagem',
+    elemento_id: grupo.dataset.img,
+    reacao: rbtn.dataset.e
+  });
+});
+
+async function salvarComentarioImagem(ambId, imgId, btn){
+  if(cadernoEnviado || ehArquiteto) return;
+  const texto = document.getElementById('txt-img-'+imgId)?.value.trim() || '';
+  if(!texto){ toast('Escreva um comentário antes de salvar.'); return; }
+  const ok = await salvarComentario({ ambiente_id: ambId, elemento_tipo:'imagem', elemento_id: imgId, texto });
+  if(ok) feedbackBotao(btn, 'Salvo ✓', 'Salvar comentário');
+}
+
+async function salvarAjuste(ambId, btn){
+  if(cadernoEnviado || ehArquiteto) return;
+  const texto = document.getElementById('txt-amb-'+ambId)?.value.trim() || '';
+  const audio = await enviarAudioSeHouver(btn, 'amb-'+ambId);
+  if(!texto && !audio){ toast('Descreva o ajuste ou grave um áudio.'); return; }
+  const ok = await salvarComentario({
+    ambiente_id: ambId, elemento_tipo:'ambiente', elemento_id: null,
+    texto: texto || null, audio_url: audio || undefined
+  });
+  if(ok) feedbackBotao(btn, 'Registrado ✓', 'Registrar solicitação de ajuste');
+}
+
+function feedbackBotao(btn, ok, volta){
+  const saved = btn.closest('.com-footer')?.querySelector('.com-saved');
+  btn.textContent = ok; btn.style.color = 'var(--green)'; btn.style.borderColor = 'rgba(80,200,120,0.28)';
+  if(saved) saved.style.display = 'flex';
+  setTimeout(()=>{
+    btn.textContent = volta; btn.style.color = ''; btn.style.borderColor = '';
+    if(saved) saved.style.display = 'none';
+  }, 2500);
+}
+
+async function salvarComentario({ ambiente_id, elemento_tipo, elemento_id, texto, reacao, audio_url }){
+  const existente = comentarios.find(c=>
+    c.elemento_tipo === elemento_tipo &&
+    (elemento_id ? c.elemento_id === elemento_id : c.ambiente_id === ambiente_id && !c.elemento_id));
+
+  const payload = { status: 'pendente' };
+  if(texto !== undefined) payload.texto = texto;
+  if(reacao !== undefined) payload.reacao = reacao;
+  if(audio_url !== undefined) payload.audio_url = audio_url;
+
+  if(existente){
+    const { error } = await sb.from('comentarios').update(payload).eq('id', existente.id);
+    if(error){ toast('Erro ao salvar. Tente novamente.', 'erro'); console.error(error); return false; }
+    Object.assign(existente, payload);
+    return true;
+  }
+  const { data, error } = await sb.from('comentarios')
+    .insert({ projeto_id: projetoId, ambiente_id, etapa: ETAPA, elemento_tipo, elemento_id: elemento_id || null, ...payload })
+    .select('id, ambiente_id, elemento_id, elemento_tipo, texto, reacao, audio_url, status')
+    .single();
+  if(error){ toast('Erro ao salvar. Tente novamente.', 'erro'); console.error(error); return false; }
+  comentarios.push(data);
+  return true;
+}
+
+// ══════════════════════════════════════════════════
+//  STATUS  (rascunho — não consome rodada)
+// ══════════════════════════════════════════════════
+async function definirStatus(ambId, status, btn){
+  if(cadernoEnviado || ehArquiteto) return;
+
+  if(status === 'revisao' && rodadasUsadas >= MAX_RODADAS){
+    toast('Suas 2 rodadas de ajuste já foram usadas. Fale com sua arquiteta.', 'erro');
+    return;
+  }
+
+  const amb = ambientes.find(a=>a.id === ambId);
+  amb.status = status;
+
+  const wrap = document.getElementById('status-'+ambId);
+  wrap.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('aprovado','revisao'));
+  btn.classList.add(status);
+  document.getElementById('rev-'+ambId).classList.toggle('vis', status === 'revisao');
+  pintarStatus(ambId, status);
+  atualizarProgresso();
+
+  const { error } = await sb.from('ambiente_status')
+    .upsert({ ambiente_id: ambId, etapa: ETAPA, status, atualizado_em: new Date().toISOString() },
+            { onConflict: 'ambiente_id,etapa' });
+  if(error){ toast('Erro ao salvar status.', 'erro'); console.error(error); }
+}
+
+function pintarStatus(ambId, status){
+  const ok = document.getElementById('ok-'+ambId);
+  const badge = document.getElementById('badge-'+ambId);
+  if(status === 'aprovado'){
+    if(ok){ ok.textContent = '✓ Ambiente aprovado.'; ok.style.color=''; ok.style.background=''; ok.style.borderColor=''; ok.classList.add('vis'); }
+    if(badge){ badge.textContent = '✓ Aprovado'; badge.className = 'amb-status-badge aprovado'; }
+  } else if(status === 'revisao'){
+    if(ok){
+      ok.textContent = '✎ Ajuste solicitado — será enviado ao concluir o caderno.';
+      ok.style.color = 'var(--red)'; ok.style.background = 'var(--red-dim)'; ok.style.borderColor = 'var(--red-border)';
+      ok.classList.add('vis');
+    }
+    if(badge){ badge.textContent = '✎ Ajuste solicitado'; badge.className = 'amb-status-badge revisao'; }
+  } else {
+    ok?.classList.remove('vis');
+    if(badge){ badge.textContent = 'Não revisado'; badge.className = 'amb-status-badge'; }
+  }
+}
+
+function atualizarProgresso(){
+  const total = ambientes.length || 1;
+  const feitos = ambientes.filter(a=>a.status).length;
+  const bar = document.getElementById('progress-bar');
+  if(bar) bar.style.width = (feitos/total*100) + '%';
+  const lbl = document.getElementById('progress-label');
+  if(lbl) lbl.textContent = `${feitos}/${ambientes.length} ambientes revisados`;
+
+  ambientes.forEach(a=>{
+    const el = document.getElementById('asi-'+a.id);
+    if(el){
+      el.classList.toggle('ok', a.status === 'aprovado');
+      el.classList.toggle('rev', a.status === 'revisao');
+      const ic = el.querySelector('span');
+      if(ic) ic.textContent = a.status === 'aprovado' ? '✓' : a.status === 'revisao' ? '✎' : '·';
+    }
+    const ret = document.getElementById('btn-ret-'+a.id);
+    if(ret) ret.classList.toggle('ok', !!a.status);
+  });
+
+  const btn = document.getElementById('btn-aprovar');
+  const pend = document.getElementById('acao-pendente');
+  if(!btn || !pend) return;
+  if(cadernoEnviado){ btn.disabled = true; return; }
+  if(feitos === ambientes.length && ambientes.length > 0){
+    btn.disabled = false; pend.style.display = 'none';
+  } else {
+    btn.disabled = true; pend.style.display = 'block';
+    const faltam = ambientes.length - feitos;
+    pend.textContent = `Revise ${faltam} ambiente${faltam>1?'s':''} para liberar o envio.`;
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  ENVIO
+// ══════════════════════════════════════════════════
+function abrirModal(){
+  const resumo = document.getElementById('modal-resumo');
+  resumo.innerHTML = '<div class="modal-resumo-titulo">Resumo por ambiente</div>';
+  let temRevisao = false;
+  ambientes.forEach(a=>{
+    const txt = a.status === 'aprovado' ? '✓ Aprovado'
+              : a.status === 'revisao'  ? '✎ Ajuste solicitado'
+              : '— Não revisado';
+    const d = document.createElement('div');
+    d.className = 'modal-ri';
+    d.innerHTML = `<strong>${esc(a.nome)}</strong> — ${txt}`;
+    resumo.appendChild(d);
+    if(a.status === 'revisao') temRevisao = true;
+  });
+
+  const aviso = document.getElementById('modal-aviso-rev');
+  if(aviso){
+    aviso.style.display = 'block';
+    if(temRevisao){
+      const rest = MAX_RODADAS - rodadasUsadas;
+      aviso.innerHTML = rest > 0
+        ? `<strong>Este envio usará 1 rodada de ajuste.</strong> Após enviar, ${rest-1 === 1 ? 'restará 1 rodada' : `restarão ${rest-1} rodadas`}.`
+        : '<strong>Suas rodadas de ajuste acabaram.</strong> Aprove os ambientes ou fale com sua arquiteta.';
+    } else {
+      aviso.innerHTML = '<strong>Todos os ambientes aprovados.</strong> Nenhuma rodada de ajuste será usada.';
+    }
+  }
+  document.getElementById('modal').classList.add('show');
+}
+function fecharModal(){ document.getElementById('modal').classList.remove('show'); }
+
+async function confirmar(){
+  const temRevisao = ambientes.some(a=>a.status === 'revisao');
+
+  if(temRevisao && rodadasUsadas >= MAX_RODADAS){
+    toast('Suas 2 rodadas já foram usadas. Aprove os ambientes ou fale com sua arquiteta.', 'erro');
+    return;
+  }
+
+  const obs = document.querySelector('.modal-obs')?.value.trim();
+  if(obs){
+    await sb.from('comentarios').insert({
+      projeto_id: projetoId, ambiente_id: null, etapa: ETAPA,
+      elemento_tipo: 'caderno', elemento_id: null, texto: obs, status: 'pendente'
+    });
+  }
+
+  if(temRevisao){
+    const novo = rodadasUsadas + 1;
+    const { error } = await sb.from('revisoes_etapa')
+      .upsert({ projeto_id: projetoId, etapa: ETAPA, rodadas_usadas: novo, max_rodadas: MAX_RODADAS,
+                atualizado_em: new Date().toISOString() },
+              { onConflict: 'projeto_id,etapa' });
+    if(error){ toast('Erro ao enviar. Tente novamente.', 'erro'); console.error(error); return; }
+    rodadasUsadas = novo;
+  }
+
+  cadernoEnviado = true;
+  fecharModal();
+  renderRodadas();
+
+  const b = document.getElementById('btn-aprovar');
+  b.textContent = temRevisao ? '✎ Ajustes enviados' : '✓ Aprovado e enviado';
+  b.disabled = true;
+
+  toast(temRevisao
+    ? `Ajustes enviados — rodada ${rodadasUsadas}/${MAX_RODADAS} usada.`
+    : 'Feedback enviado! Sua arquiteta entrará em contato em breve. ✓');
+}
+
+// ══════════════════════════════════════════════════
+//  ÁUDIO
+// ══════════════════════════════════════════════════
+const gravadores = new WeakMap();
+const audiosPendentes = new WeakMap();
+
+async function toggleAudio(btn){
+  const g = gravadores.get(btn);
+
+  if(g && g.gravando){
+    g.mediaRecorder.stop();
+    clearInterval(g.timerInterval);
+    g.gravando = false;
+    btn.textContent = '🎙 Gravar áudio';
+    btn.classList.remove('gravando');
+    return;
+  }
+
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    const chunks = [];
+
+    const row = btn.closest('.audio-row');
+    const timer = row.querySelector('.audio-timer');
+    const player = row.querySelector('.audio-player');
+    const audio = player.querySelector('audio');
+
+    mr.ondataavailable = e=>chunks.push(e.data);
+    mr.onstop = ()=>{
+      const blob = new Blob(chunks, { type:'audio/webm' });
+      audio.src = URL.createObjectURL(blob);
+      player.classList.add('vis');
+      stream.getTracks().forEach(t=>t.stop());
+      const salvar = btn.closest('.rev-box')?.querySelector('.btn-salvar-com');
+      if(salvar) audiosPendentes.set(salvar, blob);
+    };
+
+    mr.start();
+    const inicio = Date.now();
+    const timerInterval = setInterval(()=>{
+      const s = Math.floor((Date.now()-inicio)/1000);
+      timer.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+      if(s >= 120){
+        mr.stop(); clearInterval(timerInterval);
+        const st = gravadores.get(btn); if(st) st.gravando = false;
+        btn.textContent = '🎙 Gravar áudio'; btn.classList.remove('gravando');
+        toast('Limite de 2 minutos atingido.');
+      }
+    }, 500);
+
+    gravadores.set(btn, { mediaRecorder: mr, timerInterval, gravando: true });
+    btn.textContent = '⏹ Parar gravação';
+    btn.classList.add('gravando');
+  } catch(err){
+    console.error(err);
+    toast('Não conseguimos acessar seu microfone.', 'erro');
+  }
+}
+
+async function enviarAudioSeHouver(btnSalvar, ref){
+  const blob = audiosPendentes.get(btnSalvar);
+  if(!blob) return null;
+  const caminho = `${projetoId}/imagens/audio/${ref}_${Date.now()}.webm`;
+  const { error } = await sb.storage.from(BUCKET).upload(caminho, blob, { contentType:'audio/webm' });
+  if(error){ toast('Erro ao enviar o áudio.', 'erro'); console.error(error); return null; }
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(caminho);
+  audiosPendentes.delete(btnSalvar);
+  return data.publicUrl;
+}
+
+document.addEventListener('DOMContentLoaded', inicializar);
+
+</script>
+</body>
+</html>
