@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Imagens 3D — Painel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Outfit:wght@200;300;400;500&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
+  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);
+  --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --border:rgba(201,162,39,0.14);--border2:rgba(201,162,39,0.07);
+  --green:rgba(80,200,120,0.9);--green-dim:rgba(80,200,120,0.08);--green-border:rgba(80,200,120,0.28);
+  --red:rgba(208,80,80,0.9);--red-dim:rgba(208,80,80,0.08);--red-border:rgba(208,80,80,0.3);
+}
+body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
+
+/* TOP BAR */
+.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,0.93);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:200;gap:14px;}
+.top-left{display:flex;align-items:center;gap:14px;min-width:0;}
+.btn-voltar{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-voltar:hover{color:var(--gold);border-color:var(--border);}
+.top-cliente{display:flex;flex-direction:column;min-width:0;}
+.top-nome{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-sub{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.modo-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-mid);border-radius:20px;padding:5px 12px;white-space:nowrap;}
+.btn-preview{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-preview:hover{color:var(--gold);border-color:var(--border);}
+
+/* DOC */
+.doc{max-width:980px;margin:0 auto;padding:96px 40px 140px;}
+.doc-header{margin-bottom:36px;}
+.doc-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.doc-titulo{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:300;color:var(--white);line-height:1.1;}
+.doc-sub{font-size:13px;color:var(--muted);margin-top:10px;max-width:600px;line-height:1.6;}
+
+/* RESUMO DO CLIENTE */
+.resumo-cliente{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:44px;}
+.resumo-item{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;}
+.resumo-item.alerta{border-color:var(--gold-mid);background:var(--gold-dim);}
+.resumo-num{font-family:'Quicksand',sans-serif;font-size:20px;font-weight:600;color:var(--white);line-height:1.2;}
+.resumo-item.alerta .resumo-num{color:var(--gold);}
+.resumo-lbl{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:3px;line-height:1.4;}
+
+/* AMBIENTES */
+.ambiente-bloco{margin-bottom:64px;}
+.ambiente-header{display:flex;align-items:center;gap:18px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border2);}
+.ambiente-num{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--gold);opacity:.35;line-height:1;min-width:56px;}
+.ambiente-info{flex:1;min-width:0;}
+.ambiente-titulo{font-size:19px;font-weight:400;color:var(--white);background:transparent;border:1px solid transparent;border-radius:8px;padding:3px 8px;margin-left:-8px;width:100%;font-family:'Outfit',sans-serif;transition:all .2s;}
+.ambiente-titulo:hover{border-color:var(--border2);}
+.ambiente-titulo:focus{outline:none;border-color:var(--gold-mid);background:var(--card);}
+.amb-badge{font-size:10px;letter-spacing:.05em;padding:4px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.amb-badge.ok{border-color:var(--green-border);color:var(--green);background:var(--green-dim);}
+.amb-badge.rev{border-color:var(--red-border);color:var(--red);background:var(--red-dim);}
+.ambiente-acoes{display:flex;gap:6px;flex-shrink:0;}
+.btn-mini{background:transparent;border:1px solid var(--border2);border-radius:8px;width:30px;height:30px;color:var(--muted);cursor:pointer;font-size:13px;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.btn-mini:hover{color:var(--gold);border-color:var(--gold-mid);}
+.btn-mini.perigo:hover{color:var(--red);border-color:var(--red-border);}
+.btn-mini:disabled{opacity:.25;cursor:not-allowed;}
+
+/* BLOCOS DE CONTEÚDO */
+.bloco{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;margin-bottom:14px;}
+.bloco-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:6px;}
+.bloco-nota{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:14px;}
+
+/* IMAGEM ÚNICA (atmosfera / planta humanizada) */
+.img-unica{position:relative;width:100%;aspect-ratio:16/10;border-radius:11px;overflow:hidden;border:1px solid var(--border2);background:var(--card2);}
+.img-unica img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-unica-vazia{width:100%;aspect-ratio:16/10;border-radius:11px;border:1px dashed var(--muted2);background:transparent;color:var(--muted2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:'Outfit',sans-serif;font-size:12px;}
+.img-unica-vazia:hover{border-color:var(--gold-mid);color:var(--gold);background:var(--gold-dim);}
+.img-unica-vazia span{font-size:22px;opacity:.5;}
+.img-acoes{display:flex;gap:8px;margin-top:9px;}
+.btn-img{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:5px 11px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--muted);cursor:pointer;transition:all .2s;}
+.btn-img:hover{color:var(--gold);border-color:var(--gold-mid);}
+.btn-img.perigo:hover{color:var(--red);border-color:var(--red-border);}
+
+/* IMAGENS TÉCNICAS */
+.tec-card{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:10px;}
+.tec-topo{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.tec-num{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);white-space:nowrap;flex-shrink:0;}
+.tec-nome{flex:1;min-width:0;background:transparent;border:1px solid transparent;border-radius:8px;padding:5px 9px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--white);font-weight:400;transition:all .2s;}
+.tec-nome:hover{border-color:var(--border2);}
+.tec-nome:focus{outline:none;border-color:var(--gold-mid);background:var(--card);}
+.tec-img{width:100%;aspect-ratio:16/9;border-radius:9px;overflow:hidden;border:1px solid var(--border2);background:var(--card);}
+.tec-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.chk-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:14px 0 7px;}
+.chk-item{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.chk-item::before{content:'○';color:var(--gold);opacity:.5;flex-shrink:0;font-size:10px;}
+.chk-input{flex:1;background:transparent;border:1px solid transparent;border-radius:7px;padding:4px 8px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--off);font-weight:300;transition:all .2s;min-width:0;}
+.chk-input:hover{border-color:var(--border2);}
+.chk-input:focus{outline:none;border-color:var(--gold-mid);background:var(--card);}
+.chk-del{background:transparent;border:none;color:var(--muted2);font-size:11px;cursor:pointer;padding:2px 5px;flex-shrink:0;line-height:1;}
+.chk-del:hover{color:var(--red);}
+.btn-add-item{background:transparent;border:1px dashed var(--muted2);border-radius:7px;padding:5px 11px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--muted2);cursor:pointer;transition:all .2s;margin-top:5px;}
+.btn-add-item:hover{border-color:var(--gold-mid);color:var(--gold);}
+.tec-rodape{display:flex;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid var(--border2);}
+.btn-add-tec{width:100%;background:transparent;border:1px dashed var(--border);border-radius:12px;padding:14px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;}
+.btn-add-tec:hover{border-color:var(--gold-mid);color:var(--gold);background:var(--gold-dim);}
+
+.btn-add-ambiente{width:100%;background:transparent;border:1px dashed var(--border);border-radius:16px;padding:22px;font-family:'Quicksand',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;margin-top:20px;}
+.btn-add-ambiente:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+
+/* COMENTÁRIOS DO CLIENTE */
+.coments{margin-top:12px;border:1px solid var(--gold-mid);border-radius:11px;background:var(--gold-dim);padding:13px 15px;}
+.coments-titulo{font-family:'Quicksand',sans-serif;font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px;}
+.coment{border-top:1px solid var(--border2);padding:9px 0;font-size:12px;color:var(--off);}
+.coment:first-of-type{border-top:none;}
+.coment-meta{font-size:10px;color:var(--muted);margin-bottom:3px;display:flex;align-items:center;gap:7px;}
+.coment-txt{line-height:1.55;}
+.coment-audio{margin-top:6px;width:100%;max-width:300px;height:30px;}
+.btn-resolver{background:transparent;border:1px solid var(--green-border);border-radius:7px;padding:4px 10px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--green);cursor:pointer;margin-top:7px;transition:all .2s;}
+.btn-resolver:hover{background:var(--green-dim);}
+.coment.resolvido{opacity:.45;}
+
+/* ESTADOS */
+.vazio{padding:44px 20px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border2);border-radius:14px;}
+.carregando{padding:80px 20px;text-align:center;color:var(--muted);font-size:13px;}
+.spinner{width:26px;height:26px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;margin:0 auto 14px;animation:girar .8s linear infinite;}
+@keyframes girar{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(20,20,24,.96);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:11px;padding:13px 22px;font-size:12px;color:var(--off);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.toast.vis{opacity:1;}
+.toast.ok{border-color:var(--green-border);}
+.toast.erro{border-color:var(--red-border);}
+
+@media(max-width:768px){
+  .doc{padding:88px 20px 100px;}
+  .top-bar{padding:0 16px;}
+  .doc-titulo{font-size:32px;}
+  .ambiente-header{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-left">
+    <button class="btn-voltar" onclick="voltar()">← Projeto</button>
+    <div class="top-cliente">
+      <span class="top-nome" id="top-nome">Carregando...</span>
+      <span class="top-sub">Editor de Imagens 3D</span>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="modo-tag">Modo arquiteto</span>
+    <button class="btn-preview" onclick="verComoCliente()">Ver como cliente</button>
+  </div>
+</div>
+
+<div class="doc">
+  <div class="doc-header">
+    <div class="doc-eyebrow">Etapa 03 · Guide Arquitetura</div>
+    <h1 class="doc-titulo">Imagens do Projeto</h1>
+    <p class="doc-sub">Para cada ambiente: a imagem de atmosfera (gerada por IA), a planta humanizada e as imagens técnicas do programa de projeto. O cliente verá exatamente esta estrutura quando a etapa for liberada.</p>
+  </div>
+
+  <div id="conteudo">
+    <div class="carregando"><div class="spinner"></div>Carregando projeto...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+
+let sb = null;
+if (window.supabase && window.supabase.createClient) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+const BUCKET = 'projetos-imagens';
+const ETAPA = 'imagens';
+const TIPOS_OK = ['image/png','image/jpeg','image/webp'];
+
+let projetoId = null;
+let ambientes = [];
+let comentarios = [];
+let rodadasUsadas = 0;
+let maxRodadas = 2;
+let timers = {};
+
+// ── UTIL ──
+function toast(msg, tipo){
+  const e = document.getElementById('toast');
+  e.textContent = msg;
+  e.className = 'toast vis' + (tipo ? ' ' + tipo : '');
+  setTimeout(()=>{ e.className = 'toast'; }, 2600);
+}
+function esc(t){
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dd(n){ return String(n).padStart(2,'0'); }
+function voltar(){ window.location.href = '/admin-projeto?id=' + encodeURIComponent(projetoId); }
+function verComoCliente(){ window.open('/imagens?projeto=' + encodeURIComponent(projetoId), '_blank'); }
+function agendar(chave, fn){
+  clearTimeout(timers[chave]);
+  timers[chave] = setTimeout(fn, 700);
+}
+
+// ── CARGA ──
+async function inicializar(){
+  const cont = document.getElementById('conteudo');
+  if(!sb){ cont.innerHTML = '<div class="vazio">Erro de conexão. Recarregue a página.</div>'; return; }
+
+  const { data: sessao } = await sb.auth.getSession();
+  if(!sessao.session){ window.location.href = '/admin'; return; }
+
+  const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', sessao.session.user.email).maybeSingle();
+  if(!arq){ await sb.auth.signOut(); window.location.href = '/admin'; return; }
+
+  projetoId = new URLSearchParams(window.location.search).get('id');
+  if(!projetoId){
+    cont.innerHTML = '<div class="vazio">Nenhum projeto informado. Volte ao painel e abra um projeto.</div>';
+    return;
+  }
+
+  const { data: proj, error } = await sb.from('projetos').select('nome_cliente').eq('id', projetoId).single();
+  if(error || !proj){ cont.innerHTML = '<div class="vazio">Projeto não encontrado.</div>'; return; }
+  document.getElementById('top-nome').textContent = proj.nome_cliente || 'Projeto';
+
+  await carregarTudo();
+}
+
+async function carregarTudo(){
+  const cont = document.getElementById('conteudo');
+
+  const { data: ambs, error } = await sb.from('ambientes')
+    .select('id, nome, ordem')
+    .eq('projeto_id', projetoId)
+    .order('ordem', { ascending: true });
+
+  if(error){ toast('Erro ao carregar ambientes', 'erro'); console.error(error); return; }
+  ambientes = ambs || [];
+
+  if(ambientes.length){
+    const ids = ambientes.map(a=>a.id);
+
+    // Imagens ligadas ao AMBIENTE (as de layout ficam ligadas à opção)
+    const { data: imgs } = await sb.from('imagens')
+      .select('id, ambiente_id, opcao_id, url, nome, tipo, ordem, checklist')
+      .in('ambiente_id', ids)
+      .order('ordem', { ascending: true });
+
+    const { data: coms } = await sb.from('comentarios')
+      .select('id, ambiente_id, elemento_id, elemento_tipo, texto, reacao, audio_url, status, criado_em')
+      .eq('projeto_id', projetoId)
+      .eq('etapa', ETAPA)
+      .order('criado_em', { ascending: true });
+    comentarios = coms || [];
+
+    const { data: sts } = await sb.from('ambiente_status')
+      .select('ambiente_id, status')
+      .in('ambiente_id', ids)
+      .eq('etapa', ETAPA);
+
+    const { data: rev } = await sb.from('revisoes_etapa')
+      .select('rodadas_usadas, max_rodadas')
+      .eq('projeto_id', projetoId)
+      .eq('etapa', ETAPA)
+      .maybeSingle();
+    rodadasUsadas = rev ? rev.rodadas_usadas : 0;
+    maxRodadas = (rev && rev.max_rodadas) ? rev.max_rodadas : 2;
+
+    const doAmb = (id, ...tipos) =>
+      (imgs||[]).filter(i=>i.ambiente_id === id && !i.opcao_id && tipos.includes(i.tipo));
+
+    ambientes.forEach(a=>{
+      const s = (sts||[]).find(x=>x.ambiente_id === a.id);
+      a.status = (s && s.status !== 'pendente') ? s.status : null;
+      a.atmosfera = doAmb(a.id, 'atmosfera')[0] || null;
+      a.plantaHum = doAmb(a.id, 'planta_humanizada')[0] || null;
+      // '3d' é o tipo antigo do painel — segue valendo como imagem técnica
+      a.tecnicas  = doAmb(a.id, 'tecnica', '3d').map(t=>({
+        ...t, checklist: Array.isArray(t.checklist) ? t.checklist : []
+      }));
+    });
+  }
+
+  render();
+}
+
+// ── RENDER ──
+function render(){
+  const alvo = document.getElementById('conteudo');
+
+  if(!ambientes.length){
+    alvo.innerHTML = `
+      <div class="vazio">Este projeto ainda não tem ambientes.<br>Adicione o primeiro — ele valerá também para o Layout.</div>
+      <button class="btn-add-ambiente" onclick="addAmbiente()">+ Adicionar ambiente</button>`;
+    return;
+  }
+
+  alvo.innerHTML = painelResumo()
+    + ambientes.map((a,i)=>blocoAmbiente(a,i)).join('')
+    + `<button class="btn-add-ambiente" onclick="addAmbiente()">+ Adicionar ambiente</button>`;
+}
+
+function painelResumo(){
+  const pendentes = comentarios.filter(c=>c.status === 'pendente').length;
+  const revisao   = ambientes.filter(a=>a.status === 'revisao').length;
+  const aprovados = ambientes.filter(a=>a.status === 'aprovado').length;
+  const restantes = maxRodadas - rodadasUsadas;
+  return `
+  <div class="resumo-cliente">
+    <div class="resumo-item">
+      <div class="resumo-num">${aprovados}/${ambientes.length}</div>
+      <div class="resumo-lbl">Aprovados pelo cliente</div>
+    </div>
+    <div class="resumo-item ${revisao ? 'alerta' : ''}">
+      <div class="resumo-num">${revisao}</div>
+      <div class="resumo-lbl">Com pedido de ajuste</div>
+    </div>
+    <div class="resumo-item ${pendentes ? 'alerta' : ''}">
+      <div class="resumo-num">${pendentes}</div>
+      <div class="resumo-lbl">Comentários pendentes</div>
+    </div>
+    <div class="resumo-item ${restantes <= 0 ? 'alerta' : ''}">
+      <div class="resumo-num">${rodadasUsadas}/${maxRodadas}</div>
+      <div class="resumo-lbl">Rodadas de ajuste usadas</div>
+    </div>
+  </div>`;
+}
+
+function badgeStatus(a){
+  if(a.status === 'aprovado') return '<span class="amb-badge ok">✓ Aprovado</span>';
+  if(a.status === 'revisao')  return '<span class="amb-badge rev">✎ Ajuste solicitado</span>';
+  return '<span class="amb-badge">Não revisado</span>';
+}
+
+function blocoAmbiente(a, i){
+  const ultimo = i === ambientes.length - 1;
+  const comsAmb = comentarios.filter(c=>c.elemento_tipo === 'ambiente' && c.ambiente_id === a.id);
+  return `
+  <div class="ambiente-bloco">
+    <div class="ambiente-header">
+      <div class="ambiente-num">${dd(i+1)}</div>
+      <div class="ambiente-info">
+        <input class="ambiente-titulo" value="${esc(a.nome)}" placeholder="Nome do ambiente"
+               oninput="renomearAmbiente('${a.id}', this.value)">
+      </div>
+      ${badgeStatus(a)}
+      <div class="ambiente-acoes">
+        <button class="btn-mini" title="Subir" onclick="moverAmbiente('${a.id}',-1)" ${i===0?'disabled':''}>↑</button>
+        <button class="btn-mini" title="Descer" onclick="moverAmbiente('${a.id}',1)" ${ultimo?'disabled':''}>↓</button>
+        <button class="btn-mini perigo" title="Remover ambiente" onclick="removerAmbiente('${a.id}')">✕</button>
+      </div>
+    </div>
+
+    <!-- ATMOSFERA -->
+    <div class="bloco">
+      <div class="bloco-label">Imagem de atmosfera</div>
+      <div class="bloco-nota">Gerada por IA. Representa o clima e o conceito do ambiente — uma por ambiente.</div>
+      ${blocoImagemUnica(a, 'atmosfera', a.atmosfera, 'Enviar imagem de atmosfera')}
+      ${a.atmosfera ? comentariosDe(a.atmosfera.id) : ''}
+    </div>
+
+    <!-- PLANTA HUMANIZADA -->
+    <div class="bloco">
+      <div class="bloco-label">Planta humanizada</div>
+      <div class="bloco-nota">Planta com o mobiliário ilustrado — uma por ambiente. O cliente não comenta nesta imagem.</div>
+      ${blocoImagemUnica(a, 'planta_humanizada', a.plantaHum, 'Enviar planta humanizada')}
+    </div>
+
+    <!-- IMAGENS TÉCNICAS -->
+    <div class="bloco">
+      <div class="bloco-label">Imagens técnicas do programa de projeto</div>
+      <div class="bloco-nota">Quantas quiser. Cada uma tem um nome e um checklist do que o cliente deve observar.</div>
+      ${a.tecnicas.map((t,k)=>cardTecnica(a, t, k)).join('')}
+      <button class="btn-add-tec" onclick="escolherArquivo('${a.id}','tecnica')">+ Adicionar imagem técnica</button>
+    </div>
+
+    ${comsAmb.length ? blocoComentarios(comsAmb, 'Pedido de ajuste do cliente') : ''}
+  </div>`;
+}
+
+function blocoImagemUnica(a, tipo, img, rotulo){
+  if(!img){
+    return `<button class="img-unica-vazia" onclick="escolherArquivo('${a.id}','${tipo}')">
+      <span>${tipo === 'atmosfera' ? '🎨' : '🗺️'}</span>${esc(rotulo)}
+    </button>`;
+  }
+  return `
+    <div class="img-unica"><img src="${esc(img.url)}" alt="${esc(img.nome||'')}" loading="lazy"></div>
+    <div class="img-acoes">
+      <button class="btn-img" onclick="escolherArquivo('${a.id}','${tipo}')">Trocar imagem</button>
+      <button class="btn-img perigo" onclick="removerImagem('${img.id}','${esc(img.nome||'')}')">Remover</button>
+    </div>`;
+}
+
+function cardTecnica(a, t, k){
+  const coms = comentarios.filter(c=>c.elemento_tipo === 'imagem' && c.elemento_id === t.id);
+  return `
+  <div class="tec-card">
+    <div class="tec-topo">
+      <span class="tec-num">Técnica ${dd(k+1)}</span>
+      <input class="tec-nome" value="${esc(t.nome || '')}" placeholder="Ex: Painel de TV e estante integrada"
+             oninput="renomearTecnica('${t.id}', this.value)">
+    </div>
+    <div class="tec-img"><img src="${esc(t.url)}" alt="${esc(t.nome||'')}" loading="lazy"></div>
+
+    <div class="chk-label">O que observar nesta imagem</div>
+    ${t.checklist.map((c,idx)=>itemChecklist(t.id, idx, c)).join('')}
+    <button class="btn-add-item" onclick="addChecklist('${t.id}')">+ item do checklist</button>
+
+    ${coms.length ? blocoComentarios(coms, 'Comentários do cliente') : ''}
+
+    <div class="tec-rodape">
+      <button class="btn-img perigo" onclick="removerImagem('${t.id}','${esc(t.nome||'')}')">Remover imagem</button>
+    </div>
+  </div>`;
+}
+
+function itemChecklist(tecId, idx, valor){
+  return `<div class="chk-item">
+    <input class="chk-input" value="${esc(valor)}" placeholder="Ex: Altura e largura do painel em relação ao sofá"
+           oninput="editarChecklist('${tecId}',${idx}, this.value)">
+    <button class="chk-del" title="Remover" onclick="removerChecklist('${tecId}',${idx})">✕</button>
+  </div>`;
+}
+
+function comentariosDe(imgId){
+  const coms = comentarios.filter(c=>c.elemento_tipo === 'imagem' && c.elemento_id === imgId);
+  return coms.length ? blocoComentarios(coms, 'Comentários do cliente') : '';
+}
+
+function blocoComentarios(coms, titulo){
+  const pend = coms.filter(c=>c.status === 'pendente').length;
+  return `<div class="coments">
+    <div class="coments-titulo">${esc(titulo)}${pend ? ` · ${pend} pendente${pend>1?'s':''}` : ' · resolvido'}</div>
+    ${coms.map(c=>`
+      <div class="coment ${c.status === 'resolvido' ? 'resolvido' : ''}">
+        <div class="coment-meta">
+          ${c.reacao ? `<span>${esc(c.reacao)}</span>` : ''}
+          <span>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</span>
+          ${c.status === 'resolvido' ? '<span>· resolvido</span>' : ''}
+        </div>
+        ${c.texto ? `<div class="coment-txt">${esc(c.texto)}</div>` : ''}
+        ${c.audio_url ? `<audio class="coment-audio" controls src="${esc(c.audio_url)}"></audio>` : ''}
+        ${c.status === 'pendente' ? `<button class="btn-resolver" onclick="resolverComentario('${c.id}')">Marcar como resolvido</button>` : ''}
+      </div>`).join('')}
+  </div>`;
+}
+
+// ── AMBIENTES (lista compartilhada com o Layout) ──
+async function addAmbiente(){
+  const ordem = ambientes.length ? Math.max(...ambientes.map(a=>a.ordem ?? 0)) + 1 : 0;
+  const { data, error } = await sb.from('ambientes')
+    .insert({ projeto_id: projetoId, nome: 'Novo ambiente', ordem })
+    .select('id, nome, ordem')
+    .single();
+  if(error){ toast('Erro ao criar ambiente', 'erro'); console.error(error); return; }
+  ambientes.push({ ...data, status: null, atmosfera: null, plantaHum: null, tecnicas: [] });
+  render();
+  toast('Ambiente adicionado — vale também para o Layout', 'ok');
+}
+
+function renomearAmbiente(id, nome){
+  const a = ambientes.find(x=>x.id === id);
+  if(a) a.nome = nome;
+  agendar('amb-'+id, async ()=>{
+    const { error } = await sb.from('ambientes').update({ nome }).eq('id', id);
+    if(error){ toast('Erro ao salvar nome', 'erro'); return; }
+    toast('Salvo', 'ok');
+  });
+}
+
+async function removerAmbiente(id){
+  const a = ambientes.find(x=>x.id === id);
+  if(!confirm(`Remover "${a?.nome}"? Isso apaga o ambiente também do Layout, com todas as suas opções e imagens.`)) return;
+  const { error } = await sb.from('ambientes').delete().eq('id', id);
+  if(error){ toast('Erro ao remover', 'erro'); console.error(error); return; }
+  ambientes = ambientes.filter(x=>x.id !== id);
+  await reordenar();
+  render();
+  toast('Ambiente removido', 'ok');
+}
+
+async function moverAmbiente(id, dir){
+  const i = ambientes.findIndex(a=>a.id === id);
+  const j = i + dir;
+  if(i < 0 || j < 0 || j >= ambientes.length) return;
+  [ambientes[i], ambientes[j]] = [ambientes[j], ambientes[i]];
+  render();
+  await reordenar();
+}
+
+async function reordenar(){
+  for(let i = 0; i < ambientes.length; i++){
+    if(ambientes[i].ordem !== i){
+      ambientes[i].ordem = i;
+      await sb.from('ambientes').update({ ordem: i }).eq('id', ambientes[i].id);
+    }
+  }
+}
+
+// ── IMAGENS ──
+function escolherArquivo(ambienteId, tipo){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/png,image/jpeg,image/webp';
+  // atmosfera e planta são únicas; técnicas podem vir várias de uma vez
+  input.multiple = (tipo === 'tecnica');
+  input.onchange = ()=>enviarImagens(input.files, ambienteId, tipo);
+  input.click();
+}
+
+async function enviarImagens(files, ambienteId, tipo){
+  const arquivos = [...files].filter(f=>{
+    if(!TIPOS_OK.includes(f.type)){ toast(`"${f.name}" ignorado — use PNG, JPEG ou WebP`, 'erro'); return false; }
+    return true;
+  });
+  if(!arquivos.length) return;
+
+  const a = ambientes.find(x=>x.id === ambienteId);
+  if(!a) return;
+
+  const unica = (tipo === 'atmosfera' || tipo === 'planta_humanizada');
+  const anterior = tipo === 'atmosfera' ? a.atmosfera : tipo === 'planta_humanizada' ? a.plantaHum : null;
+
+  toast(`Enviando ${arquivos.length} imagem(ns)...`);
+  let ordem = tipo === 'tecnica' ? a.tecnicas.length : 0;
+
+  for(const file of (unica ? [arquivos[0]] : arquivos)){
+    const seguro = file.name.replace(/[^\w.\-]/g, '_');
+    const caminho = `${projetoId}/imagens/${ambienteId}/${tipo}/${Date.now()}_${seguro}`;
+
+    const { error: upErr } = await sb.storage.from(BUCKET).upload(caminho, file, { contentType: file.type });
+    if(upErr){ toast(`Erro ao enviar "${file.name}"`, 'erro'); console.error(upErr); continue; }
+
+    const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(caminho);
+
+    const { data: reg, error: regErr } = await sb.from('imagens')
+      .insert({ ambiente_id: ambienteId, opcao_id: null, url: urlData.publicUrl,
+                nome: file.name, tipo, ordem: ordem++, checklist: [] })
+      .select('id, ambiente_id, opcao_id, url, nome, tipo, ordem, checklist')
+      .single();
+    if(regErr){ toast('Erro ao registrar imagem', 'erro'); console.error(regErr); continue; }
+
+    reg.checklist = [];
+    if(tipo === 'atmosfera') a.atmosfera = reg;
+    else if(tipo === 'planta_humanizada') a.plantaHum = reg;
+    else a.tecnicas.push(reg);
+  }
+
+  // Imagem única: a nova substitui a anterior
+  if(unica && anterior){
+    await sb.from('imagens').delete().eq('id', anterior.id);
+  }
+
+  render();
+  toast('Imagem enviada', 'ok');
+}
+
+async function removerImagem(id, nome){
+  if(!confirm(`Remover a imagem "${nome || 'selecionada'}"?`)) return;
+  const { error } = await sb.from('imagens').delete().eq('id', id);
+  if(error){ toast('Erro ao remover imagem', 'erro'); console.error(error); return; }
+  ambientes.forEach(a=>{
+    if(a.atmosfera?.id === id) a.atmosfera = null;
+    if(a.plantaHum?.id === id) a.plantaHum = null;
+    a.tecnicas = a.tecnicas.filter(t=>t.id !== id);
+  });
+  render();
+  toast('Imagem removida', 'ok');
+}
+
+function achaTecnica(id){
+  for(const a of ambientes){
+    const t = a.tecnicas.find(x=>x.id === id);
+    if(t) return t;
+  }
+  return null;
+}
+
+function renomearTecnica(id, nome){
+  const t = achaTecnica(id);
+  if(t) t.nome = nome;
+  agendar('tec-'+id, async ()=>{
+    const { error } = await sb.from('imagens').update({ nome }).eq('id', id);
+    if(error){ toast('Erro ao salvar nome', 'erro'); return; }
+    toast('Salvo', 'ok');
+  });
+}
+
+// ── CHECKLIST ──
+function addChecklist(tecId){
+  const t = achaTecnica(tecId);
+  if(!t) return;
+  t.checklist = [...t.checklist, ''];
+  render();
+  const inputs = document.querySelectorAll(`[oninput*="editarChecklist('${tecId}'"]`);
+  if(inputs.length) inputs[inputs.length-1].focus();
+}
+
+function editarChecklist(tecId, idx, valor){
+  const t = achaTecnica(tecId);
+  if(!t) return;
+  t.checklist[idx] = valor;
+  agendar('chk-'+tecId, ()=>salvarChecklist(tecId, true));
+}
+
+function removerChecklist(tecId, idx){
+  const t = achaTecnica(tecId);
+  if(!t) return;
+  t.checklist = t.checklist.filter((_,k)=>k !== idx);
+  render();
+  salvarChecklist(tecId);
+}
+
+async function salvarChecklist(tecId, avisar){
+  const t = achaTecnica(tecId);
+  if(!t) return;
+  const limpa = t.checklist.filter(v=>String(v).trim() !== '');
+  const { error } = await sb.from('imagens').update({ checklist: limpa }).eq('id', tecId);
+  if(error){ toast('Erro ao salvar checklist', 'erro'); console.error(error); return; }
+  if(avisar) toast('Salvo', 'ok');
+}
+
+// ── COMENTÁRIOS ──
+async function resolverComentario(id){
+  const { error } = await sb.from('comentarios')
+    .update({ status: 'resolvido', resolvido_em: new Date().toISOString() })
+    .eq('id', id);
+  if(error){ toast('Erro ao resolver', 'erro'); console.error(error); return; }
+  const c = comentarios.find(x=>x.id === id);
+  if(c) c.status = 'resolvido';
+  render();
+  toast('Comentário resolvido', 'ok');
+}
+
+document.addEventListener('DOMContentLoaded', inicializar);
+</script>
+
+</body>
+</html>
