@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor do Guia Executivo — Painel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Outfit:wght@200;300;400;500&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
+  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);
+  --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --border:rgba(201,162,39,0.14);--border2:rgba(201,162,39,0.07);
+  --green:rgba(80,200,120,0.9);--green-dim:rgba(80,200,120,0.08);--green-border:rgba(80,200,120,0.28);
+  --red:rgba(208,80,80,0.9);--red-dim:rgba(208,80,80,0.08);--red-border:rgba(208,80,80,0.3);
+}
+body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
+
+/* TOP BAR */
+.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,.93);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:200;gap:14px;}
+.top-left{display:flex;align-items:center;gap:14px;min-width:0;}
+.btn-voltar{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-voltar:hover{color:var(--gold);border-color:var(--border);}
+.top-cliente{display:flex;flex-direction:column;min-width:0;}
+.top-nome{font-family:'Quicksand',sans-serif;font-size:14px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-sub{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.top-right{display:flex;align-items:center;gap:10px;}
+.modo-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-mid);border-radius:20px;padding:5px 12px;white-space:nowrap;}
+.btn-preview{background:transparent;border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-preview:hover{color:var(--gold);border-color:var(--border);}
+
+/* DOC */
+.doc{max-width:1000px;margin:0 auto;padding:96px 40px 140px;}
+.doc-header{margin-bottom:36px;}
+.doc-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.doc-titulo{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:300;color:var(--white);line-height:1.1;}
+.doc-sub{font-size:13px;color:var(--muted);margin-top:10px;max-width:620px;line-height:1.6;}
+
+/* AMBIENTE */
+.amb-bloco{margin-bottom:52px;}
+.amb-header{display:flex;align-items:center;gap:18px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border2);}
+.amb-num{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;color:var(--gold);opacity:.35;line-height:1;min-width:54px;}
+.amb-nome{flex:1;min-width:0;font-size:19px;color:var(--white);background:transparent;border:1px solid transparent;border-radius:8px;padding:3px 8px;margin-left:-8px;font-family:'Outfit',sans-serif;font-weight:400;transition:all .2s;}
+.amb-nome:hover{border-color:var(--border2);}
+.amb-nome:focus{outline:none;border-color:var(--gold-mid);background:var(--card);}
+.amb-preenchido{font-size:10px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.amb-preenchido b{color:var(--gold);font-weight:500;}
+
+/* MÓDULO (accordion) */
+.mod{background:var(--card);border:1px solid var(--border2);border-radius:13px;margin-bottom:9px;overflow:hidden;}
+.mod-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 17px;cursor:pointer;user-select:none;transition:background .2s;}
+.mod-head:hover{background:rgba(255,255,255,.02);}
+.mod-head-left{display:flex;align-items:center;gap:11px;min-width:0;}
+.mod-icone{font-size:15px;opacity:.75;flex-shrink:0;}
+.mod-titulo{font-family:'Quicksand',sans-serif;font-size:13px;font-weight:600;color:var(--white);}
+.mod-contagem{font-size:10px;color:var(--muted);white-space:nowrap;}
+.mod-contagem.cheio{color:var(--gold);}
+.mod-chevron{font-size:9px;color:var(--muted);transition:transform .25s;flex-shrink:0;}
+.mod.aberto .mod-chevron{transform:rotate(180deg);}
+.mod-body{display:none;padding:4px 17px 18px;border-top:1px solid var(--border2);}
+.mod.aberto .mod-body{display:block;}
+.mod-nota{font-size:11px;color:var(--muted);line-height:1.55;margin:12px 0 14px;}
+
+/* LINHAS DE ITEM */
+.linha{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.linha-num{width:19px;height:19px;border-radius:50%;border:1px solid var(--gold-mid);color:var(--gold);font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.inp{flex:1;min-width:0;background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--off);font-weight:300;transition:all .2s;}
+.inp:hover{border-color:var(--border);}
+.inp:focus{outline:none;border-color:var(--gold-mid);background:var(--card);}
+.inp::placeholder{color:var(--muted2);}
+textarea.inp{min-height:56px;resize:vertical;line-height:1.55;}
+.del{background:transparent;border:none;color:var(--muted2);font-size:12px;cursor:pointer;padding:3px 6px;flex-shrink:0;line-height:1;}
+.del:hover{color:var(--red);}
+.btn-add{background:transparent;border:1px dashed var(--muted2);border-radius:8px;padding:6px 12px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--muted2);cursor:pointer;transition:all .2s;margin-top:6px;}
+.btn-add:hover{border-color:var(--gold-mid);color:var(--gold);}
+
+/* CARD DE ITEM COMPOSTO (material, mobiliário, detalhe, vista) */
+.card{background:var(--card2);border:1px solid var(--border2);border-radius:11px;padding:14px;margin-bottom:9px;}
+.card-topo{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+.card-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);white-space:nowrap;flex-shrink:0;}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.card-rodape{display:flex;justify-content:flex-end;margin-top:9px;padding-top:9px;border-top:1px solid var(--border2);}
+.btn-del-card{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 10px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--muted2);cursor:pointer;transition:all .2s;}
+.btn-del-card:hover{color:var(--red);border-color:var(--red-border);}
+
+/* IMAGENS */
+.img-slot{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid var(--border2);background:var(--card);margin-bottom:8px;}
+.img-slot img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-vazia{width:100%;aspect-ratio:16/9;border-radius:10px;border:1px dashed var(--muted2);background:transparent;color:var(--muted2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .2s;font-family:'Outfit',sans-serif;font-size:11px;margin-bottom:8px;}
+.img-vazia:hover{border-color:var(--gold-mid);color:var(--gold);background:var(--gold-dim);}
+.img-vazia span{font-size:19px;opacity:.5;}
+.img-mini{width:100%;aspect-ratio:4/3;border-radius:9px;overflow:hidden;border:1px solid var(--border2);background:var(--card);}
+.img-mini img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-btns{display:flex;gap:6px;margin-bottom:8px;}
+.btn-img{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 10px;font-family:'Outfit',sans-serif;font-size:10px;color:var(--muted);cursor:pointer;transition:all .2s;}
+.btn-img:hover{color:var(--gold);border-color:var(--gold-mid);}
+.btn-img.perigo:hover{color:var(--red);border-color:var(--red-border);}
+
+/* SELECT DE CATEGORIA */
+.sel{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:6px 9px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--off);cursor:pointer;}
+.sel:focus{outline:none;border-color:var(--gold-mid);}
+
+/* ESTADOS */
+.vazio{padding:44px 20px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border2);border-radius:14px;}
+.carregando{padding:80px 20px;text-align:center;color:var(--muted);font-size:13px;}
+.spinner{width:26px;height:26px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;margin:0 auto 14px;animation:girar .8s linear infinite;}
+@keyframes girar{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(20,20,24,.96);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:11px;padding:13px 22px;font-size:12px;color:var(--off);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.toast.vis{opacity:1;}
+.toast.ok{border-color:var(--green-border);}
+.toast.erro{border-color:var(--red-border);}
+
+@media(max-width:768px){
+  .doc{padding:88px 18px 100px;}
+  .top-bar{padding:0 16px;}
+  .doc-titulo{font-size:32px;}
+  .card-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-left">
+    <button class="btn-voltar" onclick="voltar()">← Projeto</button>
+    <div class="top-cliente">
+      <span class="top-nome" id="top-nome">Carregando...</span>
+      <span class="top-sub">Editor do Guia Executivo</span>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="modo-tag">Modo arquiteto</span>
+    <button class="btn-preview" onclick="verComoCliente()">Ver como cliente</button>
+  </div>
+</div>
+
+<div class="doc">
+  <div class="doc-header">
+    <div class="doc-eyebrow">Etapa 04 · Guide Arquitetura</div>
+    <h1 class="doc-titulo">Guia Executivo</h1>
+    <p class="doc-sub">Cada ambiente tem 7 módulos. Eles ficam recolhidos — abra só o que estiver preenchendo. O contador ao lado de cada módulo mostra quanto já foi cadastrado.</p>
+  </div>
+
+  <div id="conteudo">
+    <div class="carregando"><div class="spinner"></div>Carregando projeto...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+
+<script>
+// ── SUPABASE ──
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+
+let sb = null;
+if (window.supabase && window.supabase.createClient) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+const BUCKET = 'projetos-imagens';
+const TIPOS_OK = ['image/png','image/jpeg','image/webp'];
+const LETRAS = ['A','B','C','D','E','F','G','H'];
+
+let projetoId = null;
+let ambientes = [];
+let abertos = {};       // quais módulos estão expandidos
+let timers = {};
+
+// ── UTIL ──
+function toast(msg, tipo){
+  const e = document.getElementById('toast');
+  e.textContent = msg;
+  e.className = 'toast vis' + (tipo ? ' ' + tipo : '');
+  setTimeout(()=>{ e.className = 'toast'; }, 2400);
+}
+function esc(t){
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dd(n){ return String(n).padStart(2,'0'); }
+function voltar(){ window.location.href = '/admin-projeto?id=' + encodeURIComponent(projetoId); }
+function verComoCliente(){ window.open('/executivo?projeto=' + encodeURIComponent(projetoId), '_blank'); }
+function agendar(chave, fn){
+  clearTimeout(timers[chave]);
+  timers[chave] = setTimeout(fn, 800);
+}
+
+// Estrutura vazia de um ambiente
+function conteudoVazio(){
+  return {
+    orientacoes: { ordem: [], observacoes: [] },
+    materiais: [],
+    planta_piso: { img: null, instrucao: '' },
+    vistas: [],
+    marcenaria: [],
+    teto: { img: null, itens: [] },
+    mobiliario: []
+  };
+}
+
+// Garante que todas as chaves existem (mesmo em registro antigo)
+function normalizar(c){
+  const v = conteudoVazio();
+  if(!c || typeof c !== 'object') return v;
+  return {
+    orientacoes: {
+      ordem: Array.isArray(c.orientacoes?.ordem) ? c.orientacoes.ordem : [],
+      observacoes: Array.isArray(c.orientacoes?.observacoes) ? c.orientacoes.observacoes : []
+    },
+    materiais: Array.isArray(c.materiais) ? c.materiais : [],
+    planta_piso: { img: c.planta_piso?.img || null, instrucao: c.planta_piso?.instrucao || '' },
+    vistas: Array.isArray(c.vistas) ? c.vistas : [],
+    marcenaria: Array.isArray(c.marcenaria) ? c.marcenaria : [],
+    teto: { img: c.teto?.img || null, itens: Array.isArray(c.teto?.itens) ? c.teto.itens : [] },
+    mobiliario: Array.isArray(c.mobiliario) ? c.mobiliario : []
+  };
+}
+
+// ── CARGA ──
+async function inicializar(){
+  const cont = document.getElementById('conteudo');
+  if(!sb){ cont.innerHTML = '<div class="vazio">Erro de conexão. Recarregue a página.</div>'; return; }
+
+  const { data: sessao } = await sb.auth.getSession();
+  if(!sessao.session){ window.location.href = '/admin'; return; }
+
+  const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', sessao.session.user.email).maybeSingle();
+  if(!arq){ await sb.auth.signOut(); window.location.href = '/admin'; return; }
+
+  projetoId = new URLSearchParams(window.location.search).get('id');
+  if(!projetoId){ cont.innerHTML = '<div class="vazio">Nenhum projeto informado.</div>'; return; }
+
+  const { data: proj, error } = await sb.from('projetos').select('nome_cliente').eq('id', projetoId).single();
+  if(error || !proj){ cont.innerHTML = '<div class="vazio">Projeto não encontrado.</div>'; return; }
+  document.getElementById('top-nome').textContent = proj.nome_cliente || 'Projeto';
+
+  await carregarTudo();
+}
+
+async function carregarTudo(){
+  const { data: ambs, error } = await sb.from('ambientes')
+    .select('id, nome, ordem')
+    .eq('projeto_id', projetoId)
+    .order('ordem', { ascending: true });
+  if(error){ toast('Erro ao carregar ambientes', 'erro'); console.error(error); return; }
+  ambientes = ambs || [];
+
+  if(ambientes.length){
+    const ids = ambientes.map(a=>a.id);
+    const { data: execs } = await sb.from('executivo_ambiente')
+      .select('ambiente_id, conteudo')
+      .in('ambiente_id', ids);
+    ambientes.forEach(a=>{
+      const reg = (execs||[]).find(e=>e.ambiente_id === a.id);
+      a.c = normalizar(reg ? reg.conteudo : null);
+    });
+  }
+  render();
+}
+
+async function salvar(ambId, avisar){
+  const a = ambientes.find(x=>x.id === ambId);
+  if(!a) return;
+  const { error } = await sb.from('executivo_ambiente')
+    .upsert({ ambiente_id: ambId, conteudo: a.c, atualizado_em: new Date().toISOString() },
+            { onConflict: 'ambiente_id' });
+  if(error){ toast('Erro ao salvar', 'erro'); console.error(error); return; }
+  if(avisar) toast('Salvo', 'ok');
+}
+
+// ── RENDER ──
+function render(){
+  const alvo = document.getElementById('conteudo');
+  if(!ambientes.length){
+    alvo.innerHTML = '<div class="vazio">Este projeto ainda não tem ambientes.<br>Crie os ambientes no editor de Layout ou de Imagens — eles são compartilhados.</div>';
+    return;
+  }
+  alvo.innerHTML = ambientes.map((a,i)=>blocoAmbiente(a,i)).join('');
+}
+
+function contar(a){
+  const c = a.c;
+  return c.orientacoes.ordem.length + c.orientacoes.observacoes.length
+       + c.materiais.length + c.vistas.length + c.marcenaria.length
+       + c.teto.itens.length + c.mobiliario.length
+       + (c.planta_piso.img ? 1 : 0) + (c.teto.img ? 1 : 0);
+}
+
+function blocoAmbiente(a, i){
+  const total = contar(a);
+  return `
+  <div class="amb-bloco">
+    <div class="amb-header">
+      <div class="amb-num">${dd(i+1)}</div>
+      <input class="amb-nome" value="${esc(a.nome)}" placeholder="Nome do ambiente"
+             oninput="renomearAmbiente('${a.id}', this.value)">
+      <div class="amb-preenchido"><b>${total}</b> ${total === 1 ? 'item cadastrado' : 'itens cadastrados'}</div>
+    </div>
+
+    ${mod(a,'orientacoes','📋','Orientações e ordem de execução',
+        a.c.orientacoes.ordem.length + a.c.orientacoes.observacoes.length, modOrientacoes(a))}
+    ${mod(a,'materiais','🪨','Revestimentos e materiais',
+        a.c.materiais.length, modMateriais(a))}
+    ${mod(a,'planta','🗺️','Planta de piso',
+        a.c.planta_piso.img ? 1 : 0, modPlanta(a))}
+    ${mod(a,'vistas','📐','Vistas e detalhes por parede',
+        a.c.vistas.length, modVistas(a))}
+    ${mod(a,'marcenaria','🔨','Detalhes de marcenaria',
+        a.c.marcenaria.length, modMarcenaria(a))}
+    ${mod(a,'teto','💡','Teto e iluminação',
+        a.c.teto.itens.length + (a.c.teto.img ? 1 : 0), modTeto(a))}
+    ${mod(a,'mobiliario','🛋️','Mobiliário indicado',
+        a.c.mobiliario.length, modMobiliario(a))}
+  </div>`;
+}
+
+function mod(a, chave, icone, titulo, n, corpo){
+  const id = a.id + '::' + chave;
+  const aberto = !!abertos[id];
+  return `
+  <div class="mod ${aberto ? 'aberto' : ''}" id="mod-${esc(id)}">
+    <div class="mod-head" onclick="alternar('${a.id}','${chave}')">
+      <div class="mod-head-left">
+        <span class="mod-icone">${icone}</span>
+        <span class="mod-titulo">${titulo}</span>
+      </div>
+      <span class="mod-contagem ${n ? 'cheio' : ''}">${n ? n + (n===1?' item':' itens') : 'vazio'}</span>
+      <span class="mod-chevron">▼</span>
+    </div>
+    <div class="mod-body">${corpo}</div>
+  </div>`;
+}
+
+function alternar(ambId, chave){
+  const id = ambId + '::' + chave;
+  abertos[id] = !abertos[id];
+  const el = document.getElementById('mod-' + id);
+  if(el) el.classList.toggle('aberto');
+}
+
+// ── MÓDULO 1: ORIENTAÇÕES ──
+function modOrientacoes(a){
+  const o = a.c.orientacoes;
+  return `
+    <div class="mod-nota">A ordem de execução recomendada e as observações que o cliente deve passar ao empreiteiro.</div>
+    <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin-bottom:7px;">Ordem de execução</div>
+    ${o.ordem.map((t,k)=>`
+      <div class="linha">
+        <div class="linha-num">${k+1}</div>
+        <input class="inp" value="${esc(t)}" placeholder="Ex: Remoção do revestimento atual"
+               oninput="edLista('${a.id}','orientacoes.ordem',${k},this.value)">
+        <button class="del" onclick="delLista('${a.id}','orientacoes.ordem',${k})">✕</button>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addLista('${a.id}','orientacoes.ordem')">+ passo</button>
+
+    <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:16px 0 7px;">Observações específicas</div>
+    ${o.observacoes.map((t,k)=>`
+      <div class="linha">
+        <div class="linha-num">!</div>
+        <input class="inp" value="${esc(t)}" placeholder="Ex: Marcenaria deve ser orçada com antecedência"
+               oninput="edLista('${a.id}','orientacoes.observacoes',${k},this.value)">
+        <button class="del" onclick="delLista('${a.id}','orientacoes.observacoes',${k})">✕</button>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addLista('${a.id}','orientacoes.observacoes')">+ observação</button>`;
+}
+
+// ── MÓDULO 2: MATERIAIS ──
+function modMateriais(a){
+  return `
+    <div class="mod-nota">Cada revestimento ou material, com área, dimensão, marca e link de compra.</div>
+    ${a.c.materiais.map((m,k)=>`
+      <div class="card">
+        <div class="card-topo">
+          <span class="card-tag">${dd(k+1)}</span>
+          <input class="inp" value="${esc(m.nome||'')}" placeholder="Nome do revestimento / produto"
+                 oninput="edCampo('${a.id}','materiais',${k},'nome',this.value)">
+        </div>
+        <div class="card-grid">
+          <input class="inp" value="${esc(m.area||'')}" placeholder="Área (m²)"
+                 oninput="edCampo('${a.id}','materiais',${k},'area',this.value)">
+          <input class="inp" value="${esc(m.dimensao||'')}" placeholder="Dimensão da peça"
+                 oninput="edCampo('${a.id}','materiais',${k},'dimensao',this.value)">
+        </div>
+        <div class="card-grid">
+          <input class="inp" value="${esc(m.marca||'')}" placeholder="Marca"
+                 oninput="edCampo('${a.id}','materiais',${k},'marca',this.value)">
+          <input class="inp" value="${esc(m.link||'')}" placeholder="Link de compra (https://...)"
+                 oninput="edCampo('${a.id}','materiais',${k},'link',this.value)">
+        </div>
+        <div class="card-rodape">
+          <button class="btn-del-card" onclick="delItem('${a.id}','materiais',${k})">Remover material</button>
+        </div>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addItem('${a.id}','materiais',{nome:'',area:'',dimensao:'',marca:'',link:''})">+ material</button>`;
+}
+
+// ── MÓDULO 3: PLANTA DE PISO ──
+function modPlanta(a){
+  const p = a.c.planta_piso;
+  return `
+    <div class="mod-nota">A planta com as setas de assentamento e os hexágonos que referenciam cada revestimento.</div>
+    ${p.img
+      ? `<div class="img-slot"><img src="${esc(p.img.url)}" alt="Planta de piso" loading="lazy"></div>
+         <div class="img-btns">
+           <button class="btn-img" onclick="subirImg('${a.id}','planta_piso.img')">Trocar imagem</button>
+           <button class="btn-img perigo" onclick="tirarImg('${a.id}','planta_piso.img')">Remover</button>
+         </div>`
+      : `<button class="img-vazia" onclick="subirImg('${a.id}','planta_piso.img')"><span>🗺️</span>Enviar planta de piso</button>`}
+    <textarea class="inp" placeholder="Instrução ao cliente/empreiteiro (ex: as setas azuis indicam por onde começar a paginação...)"
+              oninput="edPath('${a.id}','planta_piso.instrucao',this.value)">${esc(p.instrucao||'')}</textarea>`;
+}
+
+// ── MÓDULO 4: VISTAS ──
+function modVistas(a){
+  return `
+    <div class="mod-nota">Uma vista por parede. Cada uma tem sua imagem técnica e a lista de itens especificados.</div>
+    ${a.c.vistas.map((v,k)=>`
+      <div class="card">
+        <div class="card-topo">
+          <span class="card-tag">Vista ${LETRAS[k] || (k+1)}</span>
+          <input class="inp" value="${esc(v.nome||'')}" placeholder="Identificação (ex: Parede da TV)"
+                 oninput="edCampo('${a.id}','vistas',${k},'nome',this.value)">
+        </div>
+        ${v.img
+          ? `<div class="img-slot"><img src="${esc(v.img.url)}" alt="" loading="lazy"></div>
+             <div class="img-btns">
+               <button class="btn-img" onclick="subirImgItem('${a.id}','vistas',${k})">Trocar imagem</button>
+               <button class="btn-img perigo" onclick="tirarImgItem('${a.id}','vistas',${k})">Remover</button>
+             </div>`
+          : `<button class="img-vazia" onclick="subirImgItem('${a.id}','vistas',${k})"><span>📐</span>Enviar imagem técnica da vista</button>`}
+
+        <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:12px 0 7px;">Itens desta parede</div>
+        ${(v.itens||[]).map((it,j)=>`
+          <div class="card" style="background:var(--card);margin-bottom:7px;padding:11px;">
+            <div class="card-topo">
+              <span class="card-tag">${j+1}</span>
+              <input class="inp" value="${esc(it.nome||'')}" placeholder="Item (ex: Painel de TV em marcenaria)"
+                     oninput="edSub('${a.id}',${k},${j},'nome',this.value)">
+              <select class="sel" onchange="edSub('${a.id}',${k},${j},'tag',this.value)">
+                <option value="" ${!it.tag?'selected':''}>Sem categoria</option>
+                <option value="Marcenaria" ${it.tag==='Marcenaria'?'selected':''}>Marcenaria</option>
+                <option value="Elétrica" ${it.tag==='Elétrica'?'selected':''}>Elétrica</option>
+                <option value="Pintura" ${it.tag==='Pintura'?'selected':''}>Pintura</option>
+                <option value="Hidráulica" ${it.tag==='Hidráulica'?'selected':''}>Hidráulica</option>
+              </select>
+              <button class="del" onclick="delSub('${a.id}',${k},${j})">✕</button>
+            </div>
+            <textarea class="inp" placeholder="Especificação, dimensões e observações de execução"
+                      oninput="edSub('${a.id}',${k},${j},'obs',this.value)">${esc(it.obs||'')}</textarea>
+          </div>`).join('')}
+        <button class="btn-add" onclick="addSub('${a.id}',${k})">+ item da parede</button>
+
+        <div class="card-rodape">
+          <button class="btn-del-card" onclick="delItem('${a.id}','vistas',${k})">Remover vista</button>
+        </div>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addItem('${a.id}','vistas',{nome:'',img:null,itens:[]})">+ vista (parede)</button>`;
+}
+
+// ── MÓDULO 5: MARCENARIA ──
+function modMarcenaria(a){
+  return `
+    <div class="mod-nota">Detalhes construtivos da marcenaria: imagem, nome e especificação técnica.</div>
+    ${a.c.marcenaria.map((d,k)=>`
+      <div class="card">
+        <div class="card-topo">
+          <span class="card-tag">Detalhe ${dd(k+1)}</span>
+          <input class="inp" value="${esc(d.nome||'')}" placeholder="Nome (ex: Rack com gavetão)"
+                 oninput="edCampo('${a.id}','marcenaria',${k},'nome',this.value)">
+        </div>
+        ${d.img
+          ? `<div class="img-slot"><img src="${esc(d.img.url)}" alt="" loading="lazy"></div>
+             <div class="img-btns">
+               <button class="btn-img" onclick="subirImgItem('${a.id}','marcenaria',${k})">Trocar</button>
+               <button class="btn-img perigo" onclick="tirarImgItem('${a.id}','marcenaria',${k})">Remover</button>
+             </div>`
+          : `<button class="img-vazia" onclick="subirImgItem('${a.id}','marcenaria',${k})"><span>🔨</span>Enviar imagem do detalhe</button>`}
+        <textarea class="inp" placeholder="Especificações: gavetas, puxadores, LED embutido, perfil, cor, alimentação elétrica..."
+                  oninput="edCampo('${a.id}','marcenaria',${k},'obs',this.value)">${esc(d.obs||'')}</textarea>
+        <div class="card-rodape">
+          <button class="btn-del-card" onclick="delItem('${a.id}','marcenaria',${k})">Remover detalhe</button>
+        </div>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addItem('${a.id}','marcenaria',{nome:'',obs:'',img:null})">+ detalhe</button>`;
+}
+
+// ── MÓDULO 6: TETO ──
+function modTeto(a){
+  const t = a.c.teto;
+  return `
+    <div class="mod-nota">A planta de teto e os itens de iluminação (pintura, trilhos, spots).</div>
+    ${t.img
+      ? `<div class="img-slot"><img src="${esc(t.img.url)}" alt="Planta de teto" loading="lazy"></div>
+         <div class="img-btns">
+           <button class="btn-img" onclick="subirImg('${a.id}','teto.img')">Trocar imagem</button>
+           <button class="btn-img perigo" onclick="tirarImg('${a.id}','teto.img')">Remover</button>
+         </div>`
+      : `<button class="img-vazia" onclick="subirImg('${a.id}','teto.img')"><span>💡</span>Enviar planta de teto</button>`}
+
+    <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);margin:12px 0 7px;">Itens de iluminação</div>
+    ${t.itens.map((it,k)=>`
+      <div class="card" style="padding:11px;">
+        <div class="card-topo">
+          <span class="card-tag">${k+1}</span>
+          <input class="inp" value="${esc(it.nome||'')}" placeholder="Item (ex: Trilho eletrificado preto)"
+                 oninput="edCampo('${a.id}','teto.itens',${k},'nome',this.value)">
+          <button class="del" onclick="delItem('${a.id}','teto.itens',${k})">✕</button>
+        </div>
+        <input class="inp" value="${esc(it.obs||'')}" placeholder="Quantidade, potência, temperatura de cor, área..."
+               oninput="edCampo('${a.id}','teto.itens',${k},'obs',this.value)">
+      </div>`).join('')}
+    <button class="btn-add" onclick="addItem('${a.id}','teto.itens',{nome:'',obs:''})">+ item de iluminação</button>`;
+}
+
+// ── MÓDULO 7: MOBILIÁRIO ──
+function modMobiliario(a){
+  return `
+    <div class="mod-nota">Mobiliário sugerido, com dimensões e link de referência para o cliente comprar.</div>
+    ${a.c.mobiliario.map((m,k)=>`
+      <div class="card">
+        <div class="card-topo">
+          <span class="card-tag">${dd(k+1)}</span>
+          <input class="inp" value="${esc(m.nome||'')}" placeholder="Nome (ex: Sofá 3 lugares)"
+                 oninput="edCampo('${a.id}','mobiliario',${k},'nome',this.value)">
+        </div>
+        ${m.img
+          ? `<div class="img-btns" style="align-items:flex-start">
+               <div class="img-mini" style="width:120px"><img src="${esc(m.img.url)}" alt="" loading="lazy"></div>
+               <button class="btn-img" onclick="subirImgItem('${a.id}','mobiliario',${k})">Trocar</button>
+               <button class="btn-img perigo" onclick="tirarImgItem('${a.id}','mobiliario',${k})">Remover</button>
+             </div>`
+          : `<button class="btn-img" style="margin-bottom:8px" onclick="subirImgItem('${a.id}','mobiliario',${k})">+ imagem (opcional)</button>`}
+        <div class="card-grid">
+          <input class="inp" value="${esc(m.dimensao||'')}" placeholder="Dimensões (ex: 2,10 × 0,90 m)"
+                 oninput="edCampo('${a.id}','mobiliario',${k},'dimensao',this.value)">
+          <input class="inp" value="${esc(m.link||'')}" placeholder="Link de referência (https://...)"
+                 oninput="edCampo('${a.id}','mobiliario',${k},'link',this.value)">
+        </div>
+        <input class="inp" value="${esc(m.obs||'')}" placeholder="Observações de compra ou personalização"
+               oninput="edCampo('${a.id}','mobiliario',${k},'obs',this.value)">
+        <div class="card-rodape">
+          <button class="btn-del-card" onclick="delItem('${a.id}','mobiliario',${k})">Remover item</button>
+        </div>
+      </div>`).join('')}
+    <button class="btn-add" onclick="addItem('${a.id}','mobiliario',{nome:'',dimensao:'',obs:'',link:'',img:null})">+ mobiliário</button>`;
+}
+
+// ══════════════════════════════════════
+//  EDIÇÃO — acesso por caminho (ex: 'teto.itens')
+// ══════════════════════════════════════
+function pegar(a, caminho){
+  return caminho.split('.').reduce((o,k)=>o[k], a.c);
+}
+function definir(a, caminho, valor){
+  const partes = caminho.split('.');
+  const ultima = partes.pop();
+  const alvo = partes.reduce((o,k)=>o[k], a.c);
+  alvo[ultima] = valor;
+}
+
+// Lista simples de textos (orientações)
+function addLista(ambId, caminho){
+  const a = ambientes.find(x=>x.id === ambId);
+  pegar(a, caminho).push('');
+  render();
+  focarUltimo(`edLista('${ambId}','${caminho}'`);
+}
+function edLista(ambId, caminho, idx, valor){
+  const a = ambientes.find(x=>x.id === ambId);
+  pegar(a, caminho)[idx] = valor;
+  agendar(ambId+caminho, ()=>{
+    definir(a, caminho, pegar(a, caminho).filter(v=>String(v).trim() !== ''));
+    salvar(ambId, true);
+  });
+}
+function delLista(ambId, caminho, idx){
+  const a = ambientes.find(x=>x.id === ambId);
+  definir(a, caminho, pegar(a, caminho).filter((_,k)=>k !== idx));
+  render();
+  salvar(ambId);
+}
+
+// Lista de objetos (materiais, vistas, marcenaria, teto.itens, mobiliário)
+function addItem(ambId, caminho, molde){
+  const a = ambientes.find(x=>x.id === ambId);
+  pegar(a, caminho).push(molde);
+  render();
+  salvar(ambId);
+}
+function edCampo(ambId, caminho, idx, campo, valor){
+  const a = ambientes.find(x=>x.id === ambId);
+  pegar(a, caminho)[idx][campo] = valor;
+  agendar(ambId+caminho+idx+campo, ()=>salvar(ambId, true));
+}
+function delItem(ambId, caminho, idx){
+  const a = ambientes.find(x=>x.id === ambId);
+  definir(a, caminho, pegar(a, caminho).filter((_,k)=>k !== idx));
+  render();
+  salvar(ambId);
+}
+// Campo simples aninhado (ex: planta_piso.instrucao)
+function edPath(ambId, caminho, valor){
+  const a = ambientes.find(x=>x.id === ambId);
+  definir(a, caminho, valor);
+  agendar(ambId+caminho, ()=>salvar(ambId, true));
+}
+
+// Itens dentro de uma vista
+function addSub(ambId, vistaIdx){
+  const a = ambientes.find(x=>x.id === ambId);
+  const v = a.c.vistas[vistaIdx];
+  v.itens = v.itens || [];
+  v.itens.push({ nome:'', obs:'', tag:'' });
+  render();
+  salvar(ambId);
+}
+function edSub(ambId, vistaIdx, itemIdx, campo, valor){
+  const a = ambientes.find(x=>x.id === ambId);
+  a.c.vistas[vistaIdx].itens[itemIdx][campo] = valor;
+  agendar(`${ambId}v${vistaIdx}i${itemIdx}${campo}`, ()=>salvar(ambId, true));
+}
+function delSub(ambId, vistaIdx, itemIdx){
+  const a = ambientes.find(x=>x.id === ambId);
+  const v = a.c.vistas[vistaIdx];
+  v.itens = v.itens.filter((_,k)=>k !== itemIdx);
+  render();
+  salvar(ambId);
+}
+
+function focarUltimo(trecho){
+  const els = document.querySelectorAll(`[oninput*="${trecho.replace(/"/g,'&quot;')}"]`);
+  if(els.length) els[els.length-1].focus();
+}
+
+function renomearAmbiente(id, nome){
+  const a = ambientes.find(x=>x.id === id);
+  if(a) a.nome = nome;
+  agendar('amb-'+id, async ()=>{
+    const { error } = await sb.from('ambientes').update({ nome }).eq('id', id);
+    if(error){ toast('Erro ao salvar nome', 'erro'); return; }
+    toast('Salvo', 'ok');
+  });
+}
+
+// ══════════════════════════════════════
+//  IMAGENS  (guardadas no Storage; a URL fica no JSON)
+// ══════════════════════════════════════
+function escolher(cb){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/png,image/jpeg,image/webp';
+  input.onchange = ()=>{
+    const f = input.files[0];
+    if(!f) return;
+    if(!TIPOS_OK.includes(f.type)){ toast('Use PNG, JPEG ou WebP', 'erro'); return; }
+    cb(f);
+  };
+  input.click();
+}
+
+async function enviarArquivo(ambId, file, pasta){
+  const seguro = file.name.replace(/[^\w.\-]/g, '_');
+  const caminho = `${projetoId}/executivo/${ambId}/${pasta}/${Date.now()}_${seguro}`;
+  toast('Enviando imagem...');
+  const { error } = await sb.storage.from(BUCKET).upload(caminho, file, { contentType: file.type });
+  if(error){ toast('Erro ao enviar imagem', 'erro'); console.error(error); return null; }
+  const { data } = sb.storage.from(BUCKET).getPublicUrl(caminho);
+  return { url: data.publicUrl, path: caminho, nome: file.name };
+}
+
+// Imagem em campo fixo (planta_piso.img, teto.img)
+function subirImg(ambId, caminho){
+  escolher(async file=>{
+    const a = ambientes.find(x=>x.id === ambId);
+    const antiga = pegar(a, caminho);
+    const img = await enviarArquivo(ambId, file, caminho.split('.')[0]);
+    if(!img) return;
+    definir(a, caminho, img);
+    render();
+    await salvar(ambId);
+    if(antiga?.path) await sb.storage.from(BUCKET).remove([antiga.path]).catch(()=>{});
+    toast('Imagem enviada', 'ok');
+  });
+}
+async function tirarImg(ambId, caminho){
+  const a = ambientes.find(x=>x.id === ambId);
+  const antiga = pegar(a, caminho);
+  if(!confirm('Remover esta imagem?')) return;
+  definir(a, caminho, null);
+  render();
+  await salvar(ambId);
+  if(antiga?.path) await sb.storage.from(BUCKET).remove([antiga.path]).catch(()=>{});
+  toast('Imagem removida', 'ok');
+}
+
+// Imagem dentro de um item de lista (vistas, marcenaria, mobiliário)
+function subirImgItem(ambId, caminho, idx){
+  escolher(async file=>{
+    const a = ambientes.find(x=>x.id === ambId);
+    const item = pegar(a, caminho)[idx];
+    const antiga = item.img;
+    const img = await enviarArquivo(ambId, file, caminho);
+    if(!img) return;
+    item.img = img;
+    render();
+    await salvar(ambId);
+    if(antiga?.path) await sb.storage.from(BUCKET).remove([antiga.path]).catch(()=>{});
+    toast('Imagem enviada', 'ok');
+  });
+}
+async function tirarImgItem(ambId, caminho, idx){
+  if(!confirm('Remover esta imagem?')) return;
+  const a = ambientes.find(x=>x.id === ambId);
+  const item = pegar(a, caminho)[idx];
+  const antiga = item.img;
+  item.img = null;
+  render();
+  await salvar(ambId);
+  if(antiga?.path) await sb.storage.from(BUCKET).remove([antiga.path]).catch(()=>{});
+  toast('Imagem removida', 'ok');
+}
+
+document.addEventListener('DOMContentLoaded', inicializar);
+</script>
+
+</body>
+</html>
