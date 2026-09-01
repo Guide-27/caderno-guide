@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meu Projeto — Guide Arquitetura</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Sora:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --black:#08080a;
@@ -17,12 +17,40 @@
   --gold-mid:rgba(201,162,39,0.22);
   --white:#f5f4f0;
   --off:#e0ddd6;
-  --muted:#7a7870;
+  /* --muted subiu de #7a7870 → #969488 para dar legibilidade ao texto pequeno (item 4 da revisão) */
+  --muted:#969488;
   --muted2:#4a4845;
   --border:rgba(201,162,39,0.14);
   --border2:rgba(255,255,255,0.06);
   --green:#50C878;
   --green-dim:rgba(80,200,120,0.09);
+  --green-mid:rgba(80,200,120,0.30);
+  --red:rgba(220,90,90,0.9);
+  /* cor semântica de AÇÃO PENDENTE — distinta do dourado de marca/estado (item 9) */
+  --alerta:#E8853A;
+  --alerta-light:#f0a267;
+  --alerta-dim:rgba(232,133,58,0.10);
+  --alerta-border:rgba(232,133,58,0.34);
+  --glass:rgba(255,255,255,0.055);
+  --glass2:rgba(255,255,255,0.035);
+
+  /* ── ESCALA TIPOGRÁFICA (item 3) — 8 valores viraram 6 degraus nomeados ── */
+  --fs-2xs:10px;   /* eyebrows / labels uppercase */
+  --fs-xs:11.5px;  /* legendas, meta, status */
+  --fs-sm:12.5px;  /* corpo secundário */
+  --fs-base:14px;  /* corpo */
+  --fs-md:16px;    /* subtítulos */
+  --fs-lg:19px;    /* títulos de card */
+  --fs-xl:22px;    /* título do hero */
+  --fs-2xl:26px;   /* título de modal */
+  --fs-serif:16px; /* citações em serif */
+
+  /* ── ESCALA DE RAIO (item 7) — 9 valores viraram 4 + pill ── */
+  --r-sm:12px;   /* inputs, pills retangulares, thumbs */
+  --r-md:16px;   /* sub-blocos, itens de lista */
+  --r-lg:24px;   /* cards */
+  --r-xl:28px;   /* modal, header */
+  --r-pill:999px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,15 +63,41 @@ html, body {
   overflow-x: hidden;
 }
 
-body { background: var(--black); }
+.serif { font-family: 'Cormorant Garamond', serif; }
+/* fonte única da verdade para todo título/heading (item 6) — antes esta regra estava morta */
+h1,h2,h3,h4,
+.card-titulo, .modal-titulo, .fase-nome, .quiz-pergunta, .sub-card-titulo,
+.humor-historico-titulo, .conta-bloco-titulo, .convite-titulo, .marco-nome,
+.flip-front, .dropdown-perfil-nome {
+  font-family: 'Sora', sans-serif;
+}
 
-/* FUNDO ANIMADO */
-#bg-canvas {
+/* ── SISTEMA ÚNICO DE TAMANHO DE ÍCONE (item 10) ── tudo por CSS, nada inline no JS */
+svg.lucide { display: inline-block; vertical-align: -3px; stroke-width: 1.8; width: 18px; height: 18px; }
+/* especificidade svg.lucide.ic-* (0,2,1) para vencer a base svg.lucide (0,1,1) */
+svg.lucide.ic-sm { width: 14px; height: 14px; }
+svg.lucide.ic-md { width: 18px; height: 18px; }
+svg.lucide.ic-lg { width: 22px; height: 22px; }
+svg.lucide.ic-xl { width: 28px; height: 28px; }
+.card-eyebrow svg.lucide, .modal-eyebrow svg.lucide, .card-cta svg.lucide,
+.fase-prazo svg.lucide, .marco-obra-link svg.lucide, .conta-bloco-titulo svg.lucide,
+.sub-card-titulo svg.lucide, .tab-btn svg.lucide, .convite-selo svg.lucide,
+.toast svg.lucide, .dropdown-item svg.lucide, .mural-upload-btn svg.lucide { width: 14px; height: 14px; }
+
+/* ───────────────────────────── FUNDO ───────────────────────────── */
+
+.bg-gradient {
   position: fixed;
   inset: 0;
   z-index: 0;
-  width: 100%;
-  height: 100%;
+  background: url('/assets/bg-fluid.jpg') center/cover no-repeat;
+  background-color: #0c0b09;
+}
+.bg-breath {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(8,8,10,0.50);
 }
 
 .noise {
@@ -56,383 +110,682 @@ body { background: var(--black); }
   background-size: 200px;
 }
 
-/* TOP BAR FLUTUANTE */
+/* ───────────────────────────── CURSOR CUSTOM ───────────────────────────── */
+
+.cursor-dot, .cursor-ring {
+  position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+  border-radius: 50%; transform: translate(-50%, -50%); will-change: transform;
+}
+.cursor-dot { width: 6px; height: 6px; background: var(--gold); }
+.cursor-ring { width: 30px; height: 30px; border: 1px solid var(--gold-mid); transition: width .2s, height .2s, border-color .2s; }
+.cursor-ring.on-interactive { width: 46px; height: 46px; border-color: var(--gold); }
+@media (hover: none) { .cursor-dot, .cursor-ring { display: none; } }
+
+/* ───────────────────────────── HEADER FLUTUANTE — 3 BOLHAS ───────────────────────────── */
+
 .top-bar {
   position: fixed;
-  top: 24px;
-  left: 28px;
-  right: 28px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(32px) saturate(160%);
-  -webkit-backdrop-filter: blur(32px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 28px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 24px rgba(201, 162, 39, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
+  top: 16px; left: 24px; right: 24px;
+  display: flex; align-items: center;
+  gap: 10px;
   z-index: 300;
 }
 
-.top-left {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+.tb-bubble {
+  background: rgba(255,255,255,0.055);
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 12px 36px rgba(0,0,0,0.40);
+  display: flex; align-items: center;
+  min-height: 54px;
+  transition: box-shadow .3s;
 }
 
-.top-logo {
-  font-family: 'Quicksand', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--white);
-  letter-spacing: 0.04em;
-}
+.tb-logo { padding: 0 20px; }
+.tb-logo .logo-img { height: 34px; width: auto; display: block; }
 
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.top-cliente {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.btn-logout {
-  background: transparent;
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 6px 14px;
-  font-size: 11px;
-  color: var(--muted);
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  transition: all 0.2s;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.btn-logout:hover {
-  color: var(--gold);
-  border-color: var(--border);
-}
-
-/* MAIN */
-.main {
-  max-width: 580px;
-  margin: 0 auto;
-  padding: 140px 28px 120px;
-  position: relative;
-  z-index: 2;
-}
-
-/* HEADER */
-.hub-header {
-  margin-bottom: 56px;
-  text-align: center;
-}
-
-.hub-saudacao {
-  font-size: 13px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-
-.hub-titulo {
-  font-family: 'Quicksand', sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 8px;
-  letter-spacing: -0.01em;
-}
-
-.hub-progresso {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 12px;
-}
-
-/* TIMELINE */
-.timeline {
-  position: relative;
-  padding-left: 32px;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(to bottom, var(--gold), var(--gold) 30%, transparent);
-}
-
-/* ETAPA CARD */
-.etapa-wrap {
-  margin-bottom: 32px;
-  position: relative;
-}
-
-.etapa-dot {
-  position: absolute;
-  left: -28px;
-  top: 24px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--card2);
-  border: 2px solid var(--muted2);
-  z-index: 10;
-  transition: all 0.3s;
-}
-
-.etapa-wrap.concluida .etapa-dot {
-  background: var(--green);
-  border-color: var(--green);
-  box-shadow: 0 0 12px rgba(80, 200, 120, 0.3);
-}
-
-.etapa-wrap.ativa .etapa-dot {
-  background: var(--gold);
-  border-color: var(--gold);
-  box-shadow: 0 0 12px rgba(201, 162, 39, 0.4);
-}
-
-.etapa-wrap.bloqueada .etapa-dot {
-  background: var(--muted2);
-  border-color: var(--muted2);
-  opacity: 0.4;
-}
-
-.etapa-card {
-  background: rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
-}
-
-.etapa-card:hover:not(.bloqueada) {
-  border-color: var(--gold-mid);
-  background: rgba(255, 255, 255, 0.05);
-  transform: translateX(4px);
-}
-
-.etapa-card.bloqueada {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.etapa-card.concluida {
-  border-color: rgba(80, 200, 120, 0.28);
-  background: rgba(80, 200, 120, 0.05);
-}
-
-.etapa-card.ativa {
-  border-color: var(--gold);
-  background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), rgba(201, 162, 39, 0.03));
-}
-
-/* CONTEÚDO DO CARD */
-.etapa-num {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-
-.etapa-card.bloqueada .etapa-num {
-  color: var(--muted2);
-}
-
-.etapa-card.concluida .etapa-num {
-  color: var(--green);
-}
-
-.etapa-nome {
-  font-family: 'Quicksand', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-.etapa-card.bloqueada .etapa-nome {
-  color: var(--muted);
-}
-
-.etapa-desc {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-
-.etapa-card.bloqueada .etapa-desc {
-  color: var(--muted2);
-}
-
-/* STATUS E BOTÃO */
-.etapa-footer {
-  display: flex;
-  align-items: center;
+.tb-nav {
+  flex: 1;
   justify-content: space-between;
+  gap: 4px;
+  padding: 0 8px 0 22px;
 }
+.top-saudacao { font-family: 'Sora', sans-serif; font-size: var(--fs-md); font-weight: 600; color: var(--white); letter-spacing: 0.005em; margin: 0; white-space: nowrap; }
+.top-saudacao .rev-word { display: inline-block; }
+.tb-nav-icones { display: flex; align-items: center; gap: 4px; }
 
-.etapa-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: var(--gold);
-  text-transform: uppercase;
+.tb-perfil { padding: 6px 8px 6px 18px; gap: 10px; }
+.perfil-trigger {
+  display: flex; align-items: center; gap: 10px;
+  background: transparent; border: none; cursor: pointer; color: var(--off); font-family: 'Outfit', sans-serif;
 }
-
-.etapa-status.concluida {
-  color: var(--green);
+.perfil-nome { font-size: var(--fs-sm); color: var(--off); white-space: nowrap; font-weight: 400; }
+.perfil-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--gold-dim); border: 1.5px solid var(--gold-mid);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); overflow: hidden; flex-shrink: 0;
 }
+.perfil-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
-.etapa-status.bloqueada {
-  color: var(--muted2);
-}
-
-.status-icon {
-  display: inline-block;
-  font-size: 12px;
-}
-
-.btn-acessar {
+.icon-btn {
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 6px 14px;
-  font-size: 10px;
-  color: var(--gold);
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  transition: all 0.2s;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.btn-acessar:hover {
-  border-color: var(--gold);
-  background: var(--gold-dim);
-}
-
-.btn-acessar:disabled {
-  border-color: var(--muted2);
-  color: var(--muted2);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* SEPARADOR */
-.timeline-sep {
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
-  margin: 48px 0;
-}
-
-/* TOAST */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  background: rgba(20, 20, 24, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 12px;
-  color: var(--off);
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
-.toast.vis {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* CARREGANDO */
-.loading {
-  text-align: center;
-  padding: 60px 20px;
+  border: 1px solid transparent;
   color: var(--muted);
-  font-size: 13px;
+  width: 42px; height: 42px;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.icon-btn:hover { color: var(--gold-light); background: var(--gold-dim); border-color: var(--border); }
+
+.dropdown-wrap { position: relative; }
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 240px;
+  background: rgba(18,18,22,0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  padding: 8px;
+  display: none;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.5);
+}
+.dropdown-panel.vis { display: block; }
+.dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  background: transparent; border: none;
+  color: var(--off); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm);
+  padding: 10px 12px; border-radius: var(--r-sm); cursor: pointer; transition: all .15s;
+}
+.dropdown-item:hover { background: var(--gold-dim); color: var(--gold-light); }
+.dropdown-perfil-nome { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-base); color:var(--white); padding:8px 12px 2px; }
+.dropdown-perfil-email { font-size:var(--fs-2xs); color:var(--muted); padding:0 12px 10px; }
+.dropdown-sep { height:1px; background:var(--border2); margin:6px 4px; }
+.dropdown-vazio { font-size: var(--fs-sm); color: var(--muted); padding: 12px; line-height: 1.6; }
+
+/* ───────────────────────────── MAIN / GRID ───────────────────────────── */
+
+.main { max-width: 1320px; margin: 0 auto; padding: 116px 24px 100px; position: relative; z-index: 2; }
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 224px 224px 210px 210px auto;
+  gap: 18px;
 }
 
-.spinner {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 16px;
+.card {
+  position: relative;
+  background: var(--glass2);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  padding: 22px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background .25s, transform .25s, box-shadow .25s;
+  display: flex;
+  flex-direction: column;
+}
+.card:hover { background: rgba(255,255,255,0.07); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
+.card::before {
+  content: '';
+  position: absolute; inset: -1px;
+  background: radial-gradient(240px circle at var(--x, 50%) var(--y, 50%), rgba(201,162,39,0.13), transparent 70%);
+  opacity: 0; transition: opacity .3s; pointer-events: none;
+}
+.card:hover::before { opacity: 1; }
+
+/* hero se distingue dos satélites — brilho de base próprio, sem contorno */
+.card-hero {
+  grid-column: 1 / 3; grid-row: 1 / 3;
+  background: linear-gradient(155deg, rgba(201,162,39,0.07), var(--glass2) 55%);
+  box-shadow: 0 0 40px rgba(201,162,39,0.05) inset;
+}
+.card-hero:hover { box-shadow: 0 0 50px rgba(201,162,39,0.10) inset, 0 16px 48px rgba(0,0,0,0.30); }
+/* campo de partículas douradas que fogem do mouse — fundo do card */
+.card-hero .card-corpo { justify-content: flex-end; position: relative; }
+.hero-particulas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.card-hero .card-corpo > *:not(.hero-particulas) { position: relative; z-index: 1; }
+.card-hero .hero-frase { line-height: 1.6; text-shadow: 0 1px 14px rgba(8,8,10,0.9); }
+.card-hero .hero-frase .rev-word { display: inline-block; }
+.hf-forte { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); line-height: 1.45; }
+.hf-sub { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; margin-top: 10px; }
+
+/* barras verticais de fase (capa "Meu Projeto") */
+.evolucao-chart { display: flex; align-items: flex-end; gap: 8px; height: 64px; margin-bottom: 14px; }
+.evolucao-barra-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.evolucao-barra { width: 60%; border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.10); transition: height .8s cubic-bezier(.22,.9,.32,1); height: 0; }
+.evolucao-barra.concluida { background: var(--green); }
+.evolucao-barra.ativa { background: var(--gold); box-shadow: 0 0 10px rgba(201,162,39,.5); }
+.evolucao-label { font-size: 8.5px; text-transform: uppercase; letter-spacing: .04em; color: rgba(245,244,240,0.55); text-shadow: 0 1px 6px rgba(8,8,10,0.8); }
+
+/* anéis circulares de progresso (capa + modal "Sua Trajetória") */
+.anel-duo { display: flex; gap: 24px; margin-bottom: 14px; }
+/* usado só na capa (card fechado) para centralizar a dupla de anéis no card */
+.anel-duo-centro { display: flex; justify-content: center; }
+.anel-duo-centro .anel-duo { gap: 30px; margin-bottom: 0; }
+.anel-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.anel-svg-wrap { position: relative; width: 60px; height: 60px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); }
+.anel-svg-wrap svg { position: absolute; inset: 0; }
+.anel-svg-wrap svg circle:last-child { transition: stroke-dashoffset 1s cubic-bezier(.22,.9,.32,1); }
+.anel-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--white); }
+/* rótulo menor e mais discreto — a leitura principal é o número dentro do anel */
+.anel-label { font-size: 8.5px; color: rgba(245,244,240,0.6); text-transform: uppercase; letter-spacing: .04em; text-align: center; line-height: 1.3; max-width: 74px; text-shadow: 0 1px 6px rgba(8,8,10,0.8); }
+.anel-item.anel-convite .anel-pct { color: var(--muted); }
+.anel-item.anel-convite .anel-label { color: var(--muted2); }
+
+.traj-frase { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; }
+.traj-frase .rev-word { display: inline-block; }
+
+/* blocos do modal "Sua Trajetória" */
+.traj-contadores { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.traj-contador-item { background: var(--glass2); border-radius: var(--r-md); padding: 14px 16px; }
+.tc-num { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-2xl); color: var(--gold-light); line-height: 1; margin-bottom: 6px; }
+.tc-label { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; display: flex; align-items: flex-start; gap: 5px; }
+.tc-label b { color: var(--off); font-weight: 500; }
+.traj-bloco-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-sm); color: var(--white); text-transform: uppercase; letter-spacing: .04em; margin: 22px 0 12px; display: flex; align-items: center; gap: 7px; }
+.traj-revisoes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.traj-revisao-item { display: flex; align-items: center; justify-content: space-between; background: var(--glass2); border-radius: var(--r-sm); padding: 9px 14px; font-size: var(--fs-sm); color: var(--off); }
+.traj-revisao-badge { font-size: var(--fs-2xs); color: var(--muted); background: rgba(255,255,255,0.05); border-radius: var(--r-pill); padding: 3px 10px; }
+.traj-atalhos { display: flex; flex-direction: column; gap: 10px; }
+.traj-atalho { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--glass2); border: none; border-radius: var(--r-md); padding: 13px 16px; cursor: pointer; color: var(--gold); transition: background .2s; font-family: 'Outfit', sans-serif; }
+.traj-atalho:hover { background: rgba(255,255,255,0.06); }
+.traj-atalho > div { flex: 1; }
+.traj-atalho .ta-titulo { font-size: var(--fs-sm); color: var(--white); font-weight: 500; }
+.traj-atalho .ta-sub { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
+.traj-atalho > svg:last-child { color: var(--muted); flex-shrink: 0; }
+.traj-previsao { font-size: var(--fs-base); color: var(--off); line-height: 1.7; }
+.traj-previsao .rev-word { display: inline-block; }
+.card-sonhou  { grid-column: 3 / 4; grid-row: 1 / 2; }
+.card-ateaqui { grid-column: 3 / 4; grid-row: 2 / 3; }
+/* Gui ocupa a antiga posição de "Rumo às chaves" (item 2x1, coluna 4) */
+.card-gui     { grid-column: 4 / 5; grid-row: 1 / 3; }
+.gui-capa { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 14px; text-align: center; min-height: 0; }
+.gui-img { width: 118px; height: auto; display: block; filter: drop-shadow(0 12px 26px rgba(0,0,0,0.5)); }
+.gui-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); line-height: 1.4; }
+.gui-titulo .rev-word { display: inline-block; }
+.card-guiders   { grid-column: 1 / 2; grid-row: 3 / 4; }
+.card-parceiros { grid-column: 2 / 3; grid-row: 3 / 4; }
+.card-glossario { grid-column: 3 / 4; grid-row: 3 / 4; }
+.card-diario    { grid-column: 4 / 5; grid-row: 3 / 4; }
+/* "Rumo às chaves" deslocado para baixo, numa linha própria acima do mural */
+.card-chaves  { grid-column: 1 / 3; grid-row: 4 / 5; }
+.card-mural     { grid-column: 1 / 5; grid-row: 5 / 6; min-height: 200px; }
+
+@media (max-width: 900px) {
+  .bento { grid-template-columns: repeat(2, 1fr); grid-template-rows: none; }
+  .card-hero    { grid-column: 1 / 3; grid-row: auto; }
+  .card-sonhou  { grid-column: 1 / 2; grid-row: auto; }
+  .card-ateaqui { grid-column: 2 / 3; grid-row: auto; }
+  .card-gui     { grid-column: 1 / 2; grid-row: auto; }
+  .card-guiders { grid-column: 2 / 3; grid-row: auto; }
+  .card-parceiros { grid-column: 1 / 2; grid-row: auto; }
+  .card-glossario { grid-column: 2 / 3; grid-row: auto; }
+  .card-diario  { grid-column: 1 / 3; grid-row: auto; }
+  .card-chaves  { grid-column: 1 / 3; grid-row: auto; }
+  .card-mural   { grid-column: 1 / 3; grid-row: auto; }
+  .card { min-height: 190px; }
+  .top-bar { left: 12px; right: 12px; gap: 6px; }
+  .tb-logo .logo-img { height: 26px; }
+  .top-saudacao { display: none; }
+  .perfil-nome { display: none; }
+  .tb-bubble { min-height: 46px; }
+  .tb-logo { padding: 0 14px; }
+  .tb-nav { padding: 0 6px; }
+  .tb-perfil { padding: 4px 6px; }
+  .perfil-avatar { width: 32px; height: 32px; }
+  .main { padding-top: 90px; }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.card-eyebrow { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; display:flex; align-items:center; gap:6px; }
+.card-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); margin-bottom: 8px; line-height: 1.25; }
+.card-hero .card-titulo { font-size: var(--fs-xl); }
+.card-corpo { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 0; }
+.card-convite { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; }
+.card-convite .rev-word { display: inline-block; }
+.card-cta {
+  align-self: flex-start; margin-top: 10px;
+  background: transparent; border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 7px 14px; font-size: var(--fs-2xs); color: var(--gold);
+  font-family: 'Outfit', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; transition: all .2s;
+  display: inline-flex; align-items: center; gap: 6px;
 }
+.card-cta:hover { border-color: var(--gold); background: var(--gold-dim); }
+
+@keyframes elastic { 0%{transform:scale(1)} 40%{transform:scale(.90)} 70%{transform:scale(1.05)} 100%{transform:scale(1)} }
+.elastic-pop { animation: elastic .38s cubic-bezier(.36,.07,.19,.97); }
+
+
+/* AÇÃO PENDENTE usa a cor de alerta (item 9), não o dourado de estado/marca */
+.pendente-banner { margin-top: auto; display: flex; align-items: flex-start; gap: 8px; background: var(--alerta-dim); border: 1px solid var(--alerta-border); border-radius: var(--r-sm); padding: 10px 12px; font-size: var(--fs-xs); color: var(--alerta-light); line-height: 1.5; }
+.pendente-banner svg { color: var(--alerta); flex-shrink: 0; margin-top: 1px; }
+.pendente-banner.pulsar { animation: pulsar 2.2s ease-in-out infinite; }
+@keyframes pulsar { 0%,100%{box-shadow:0 0 0 0 rgba(232,133,58,.34);} 50%{box-shadow:0 0 0 9px rgba(232,133,58,0);} }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: var(--fs-2xs); padding: 4px 10px; border-radius: var(--r-pill); background: var(--gold-dim); border: 1px solid var(--border); color: var(--off); display:inline-flex; align-items:center; gap:5px; }
+
+.mini-timeline { display: flex; flex-direction: column; gap: 7px; }
+.mini-timeline-item { display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-xs); color: var(--muted); }
+.mini-timeline-item .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+
+/* ───────────────────────────── MODAL EXPANDIDO ───────────────────────────── */
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(8,8,10,0.35); backdrop-filter: blur(6px); z-index: 900; opacity: 0; pointer-events: none; transition: opacity .35s; }
+.modal-overlay.vis { opacity: 1; pointer-events: auto; }
+
+.modal-window {
+  position: fixed; z-index: 901;
+  /* mesma identidade dos cards fechados — vidro translúcido sobre o fundo fluido, sem trocar de "mundo" ao abrir */
+  background: var(--glass2);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid transparent;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+  transition: top .48s cubic-bezier(.22,.9,.32,1), left .48s cubic-bezier(.22,.9,.32,1),
+              width .48s cubic-bezier(.22,.9,.32,1), height .48s cubic-bezier(.22,.9,.32,1),
+              border-radius .48s cubic-bezier(.22,.9,.32,1);
+}
+.modal-inner { position: absolute; inset: 0; overflow-y: auto; padding: 34px 30px 40px 34px; opacity: 0; transition: opacity .3s .18s; scrollbar-width: thin; scrollbar-color: rgba(201,162,39,0.32) transparent; }
+/* barra de rolagem glassmorfismo (item 4) — fina, translúcida, dourada, longe dos cantos arredondados */
+.modal-inner::-webkit-scrollbar { width: 11px; }
+.modal-inner::-webkit-scrollbar-track { background: transparent; margin: 16px 0; }
+.modal-inner::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(226,185,59,0.42), rgba(201,162,39,0.28));
+  border: 3px solid transparent; background-clip: padding-box; border-radius: var(--r-pill);
+  box-shadow: inset 0 0 6px rgba(255,255,255,0.15);
+}
+.modal-inner::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, rgba(226,185,59,0.6), rgba(201,162,39,0.45)); background-clip: padding-box; }
+.modal-inner.vis { opacity: 1; }
+.modal-close {
+  position: sticky; top: 0; float: right; z-index: 20;
+  background: rgba(20,20,24,0.9); border: 1px solid var(--border2); color: var(--muted);
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer; margin-left: 12px;
+  transition: all .2s; display:flex; align-items:center; justify-content:center;
+}
+.modal-close:hover { color: var(--gold); border-color: var(--gold); }
+.modal-eyebrow { font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; display:flex; align-items:center; gap:6px; }
+.modal-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-2xl); color: var(--white); margin-bottom: 20px; max-width: 80%; }
+
+/* fases (Meu Projeto expandido) — CARTÕES QUE EMPILHAM ao rolar (sticky + fundo opaco) */
+.fases-pilha { position: relative; }
+.fase-item {
+  position: sticky; top: 14px;
+  display: flex; gap: 16px;
+  border: 1px solid var(--border2); border-radius: var(--r-md); padding: 18px; margin-bottom: 16px;
+  background: linear-gradient(155deg, #1c1c22, #131317);
+  box-shadow: 0 -10px 30px rgba(0,0,0,.45);
+  will-change: transform, filter;
+}
+.fase-item.atual { border-color: var(--gold-mid); background: linear-gradient(155deg, #241f13, #17130a); }
+.fase-item.concluida { border-color: rgba(80,200,120,0.28); background: linear-gradient(155deg, #16211a, #121712); }
+.fase-icone { width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0; color: var(--gold); }
+.fase-item.concluida .fase-icone { color: var(--green); }
+.fase-corpo { flex: 1; min-width: 0; }
+.fase-nome-linha { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.fase-nome { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-md); color:var(--white); }
+.fase-status-tag { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.06em; padding:3px 9px; border-radius:var(--r-pill); color:var(--muted); border:1px solid var(--border2); }
+.fase-item.atual .fase-status-tag { color: var(--gold-light); border-color: var(--gold-mid); }
+.fase-item.concluida .fase-status-tag { color: var(--green); border-color: rgba(80,200,120,0.3); }
+/* hierarquia (item 1): explicação da etapa é a mais destacada */
+.fase-explicacao { font-size: var(--fs-base); color: var(--off); line-height: 1.65; margin: 10px 0; }
+.fase-acolhimento { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 8px 0; }
+.fase-prazo { display:flex; align-items:center; gap: 6px; font-size: var(--fs-xs); color: var(--muted); margin-top: 8px; }
+.fase-prazo svg { color: var(--gold); }
+/* prazo ainda indefinido — menos destaque */
+.fase-prazo.preparando { color: var(--muted2); font-style: italic; font-size: var(--fs-2xs); }
+.fase-prazo.preparando svg { color: var(--muted2); }
+.fase-btn { margin-top: 12px; }
+
+.video-wrap { margin: 20px 0; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); aspect-ratio: 16/9; }
+.video-wrap iframe { width: 100%; height: 100%; border: 0; }
+
+/* sub-cards do briefing */
+.sub-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; margin-top: 6px; }
+.sub-card { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px; }
+.sub-card-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-sm); color: var(--gold-light); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; display:flex; align-items:center; gap:6px; }
+.paleta-swatch-row { display: flex; border-radius: var(--r-sm); overflow: hidden; height: 30px; margin-bottom: 6px; }
+.paleta-swatch-row div { flex: 1; }
+.paleta-nome-mini { font-size: var(--fs-xs); color: var(--off); margin-bottom: 10px; }
+.foto-mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 8px; }
+.foto-mural-grid img { width: 100%; height: 90px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border2); }
+.foto-mural-legenda { font-size: var(--fs-2xs); color: var(--muted); margin-top: 8px; }
+
+/* até aqui — gráfico */
+/* tipografia dourada "clean" (sem serifa/itálico) usada nas frases dentro do card Sua Trajetória */
+.timeline-item-frase { color: var(--gold-light); margin: 2px 0 12px 13px; font-family:'Outfit', sans-serif; font-weight: 400; font-style: normal; font-size: var(--fs-sm); }
+.timeline-rodape { margin-top: 22px; font-family:'Outfit',sans-serif; font-weight: 500; font-style: normal; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.6; }
+
+/* rumo às chaves */
+.marco-item { border-bottom: 1px solid var(--border2); padding: 18px 0; }
+.marco-item:last-child { border-bottom: none; }
+.marco-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.marco-check { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--muted2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
+.marco-item.feito .marco-check { background: var(--green); border-color: var(--green); color: var(--black); }
+.marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); }
+.marco-item.feito .marco-nome { color: var(--white); }
+.marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
+.marco-conforto { color: var(--gold-light); font-style: italic; font-family:'Cormorant Garamond',serif; font-size: var(--fs-md); margin: 0 0 10px 38px; line-height: 1.5; }
+.marco-data-wrap { display: flex; align-items: center; gap: 10px; margin-left: 38px; }
+.marco-data-wrap input[type=date] {
+  background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm);
+  padding: 8px 10px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm);
+}
+.marco-obra-link { margin: 14px 0 0 38px; font-size: var(--fs-sm); }
+.marco-obra-link a { color: var(--gold-light); display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+
+/* glossário + quiz */
+.tab-switch { display: flex; gap: 8px; margin-bottom: 20px; }
+.tab-btn { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 8px 16px; font-size: var(--fs-xs); color: var(--muted); cursor: pointer; text-transform: uppercase; letter-spacing: .05em; font-family:'Outfit',sans-serif; }
+.tab-btn.ativa { color: var(--gold-light); border-color: var(--gold-mid); background: var(--gold-dim); }
+.glossario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 14px; }
+.flip-card { perspective: 1200px; height: 130px; cursor: pointer; }
+.flip-inner { position: relative; width: 100%; height: 100%; transition: transform .55s; transform-style: preserve-3d; }
+.flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+.flip-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--r-md); border: 1px solid var(--border2); padding: 16px; display: flex; align-items: center; justify-content: center; text-align: center; }
+.flip-front { background: var(--glass2); font-family: 'Sora', sans-serif; font-weight: 600; color: var(--gold-light); font-size: var(--fs-md); }
+.flip-back { background: rgba(201,162,39,0.08); transform: rotateY(180deg); font-size: var(--fs-xs); color: var(--off); line-height: 1.55; }
+
+.quiz-card { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 24px; }
+.quiz-pergunta { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-md); color:var(--white); margin-bottom: 18px; }
+.quiz-opcao { display:block; width:100%; text-align:left; background:var(--card2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:12px 14px; margin-bottom:10px; color:var(--off); font-family:'Outfit',sans-serif; font-size:var(--fs-base); cursor:pointer; transition: all .2s; }
+.quiz-opcao:hover { border-color: var(--gold-mid); }
+.quiz-opcao.correta { border-color: var(--green); background: var(--green-dim); color: var(--white); }
+.quiz-opcao.errada { border-color: var(--red); background: rgba(220,90,90,0.08); color: var(--white); }
+.quiz-feedback { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-top: 12px; }
+.quiz-progresso { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* diário */
+.humor-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+.humor-emocional { font-family:'Cormorant Garamond',serif; font-style: italic; font-size: var(--fs-serif); color: var(--gold-light); line-height: 1.65; margin-bottom: 22px; }
+.humor-opcoes { display: flex; gap: 10px; margin: 6px 0 26px; }
+.humor-btn { flex: 1; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px 6px; text-align: center; cursor: pointer; transition: all .2s; color: var(--muted); display:flex; flex-direction:column; align-items:center; gap:6px; }
+.humor-btn:hover, .humor-btn.sel { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
+.humor-btn span { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .04em; }
+.humor-historico-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 12px; }
+.humor-hist-item { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); color: var(--off); padding: 9px 0; border-bottom: 1px solid var(--border2); }
+.humor-hist-item .hi-data { margin-left: auto; color: var(--muted); font-size: var(--fs-2xs); }
+
+.farol { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: var(--fs-serif); color: var(--gold-light); line-height: 1.6; margin-bottom: 20px; }
+
+.form-input, .input-generico { width: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 11px 14px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); margin-bottom: 10px; }
+
+/* comunidade / parceiros — convite caprichado */
+.convite-hero { text-align: center; padding: 30px 10px 10px; }
+.convite-icone { width: 64px; height: 64px; border-radius: 50%; background: var(--gold-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--gold); }
+.convite-titulo { font-family:'Sora',sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); margin-bottom: 14px; }
+.convite-texto { font-size: var(--fs-base); color: var(--muted); line-height: 1.7; max-width: 420px; margin: 0 auto 18px; }
+.convite-selo { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color:var(--muted); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 5px 12px; }
+
+/* mural */
+.mural-form { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 22px; flex-wrap: wrap; }
+.mural-form .input-generico { margin-bottom: 0; flex: 1; min-width: 180px; }
+.mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 14px; }
+.mural-item { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
+.mural-item img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.mural-item-corpo { padding: 10px 12px; }
+.mural-item-legenda { font-size: var(--fs-xs); color: var(--off); line-height: 1.4; }
+.mural-item-data { font-size: var(--fs-2xs); color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.mural-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.mural-strip img { width: 90px; height: 70px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border2); flex-shrink: 0; }
+/* botão PRIMÁRIO (preenchido) — reservado à ação principal de cada tela; o .card-cta ghost é o secundário. Dois níveis, deliberado (item 8) */
+.btn-primario, .mural-upload-btn { display:inline-flex; align-items:center; gap:8px; background: var(--gold); color: var(--black); border:none; border-radius: var(--r-sm); padding: 11px 18px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; font-family:'Outfit',sans-serif; transition: transform .2s, box-shadow .2s; }
+.btn-primario:hover, .mural-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,162,39,0.22); }
+
+.conta-bloco { margin-bottom: 22px; }
+.conta-bloco-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
+.conta-bloco-corpo { font-size: var(--fs-base); color: var(--muted); line-height: 1.7; }
+.conta-bloco-corpo a { color: var(--gold-light); }
+
+.loading-inline { text-align: center; padding: 30px; color: var(--muted); font-size: var(--fs-sm); }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════ "O QUE VOCÊ SONHOU" ═══════════════ */
+
+/* — Capa: esteira infinita (marquee) — */
+.fx-marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.fx-marquee .trilho { display: flex; gap: 14px; width: max-content; animation: marquee 22s linear infinite; }
+.fx-marquee:hover .trilho { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .fx-marquee .trilho { animation: none; } }
+
+.sonhou-capa-wrap { position: relative; margin-top: auto; }
+.sonhou-marquee { border-radius: var(--r-md); }
+.sonhou-marquee .sonhou-slide { flex: 0 0 auto; width: 118px; height: 92px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--border2); }
+.sonhou-marquee.grande { margin: 6px 0 20px; }
+.sonhou-marquee.grande .sonhou-slide { width: 160px; height: 120px; }
+.sonhou-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sonhou-capa-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(8,8,10,0.25), rgba(8,8,10,0.55)); border-radius: var(--r-md); }
+.sonhou-capa-cta { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--gold-light); background: rgba(8,8,10,0.7); border: 1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 7px 14px; text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
+
+/* — 1.1 imagens de referência: carrossel manual —
+   passa o mouse sobre o carrossel e rola: a rolagem do mouse vira rolagem LATERAL das imagens,
+   sem descer a página; tirando o mouse de cima, a rolagem vertical do modal volta ao normal. */
+.ref-carrossel { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
+.ref-viewport { flex: 1; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; scrollbar-width: none; border-radius: var(--r-md); }
+.ref-viewport::-webkit-scrollbar { display: none; }
+.ref-track { display: flex; gap: 12px; }
+.ref-slide { flex: 0 0 auto; width: 190px; scroll-snap-align: start; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); }
+.ref-slide img { width: 100%; height: 140px; object-fit: cover; display: block; }
+.ref-nav { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; background: var(--glass); border: 1px solid var(--border2); color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.ref-nav:hover { background: var(--gold-dim); border-color: var(--gold-mid); }
+.ref-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.ref-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted2); cursor: pointer; transition: all .2s; }
+.ref-dot.ativo { background: var(--gold); transform: scale(1.3); }
+
+/* — 1.2 estilo arquitetônico (seção nobre) — */
+.estilo-selos { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 20px; }
+.estilo-selo { display: flex; align-items: center; gap: 14px; padding: 14px 20px 14px 14px; border-radius: var(--r-md); background: linear-gradient(135deg, rgba(201,162,39,0.14), var(--glass2) 70%); border: 1px solid var(--gold-mid); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.estilo-selo-icone { width: 42px; height: 42px; border-radius: 50%; background: var(--gold-dim); border: 1px solid var(--gold-mid); display: flex; align-items: center; justify-content: center; color: var(--gold); flex-shrink: 0; }
+.estilo-selo-rot { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .1em; color: var(--gold); }
+.estilo-selo-nome { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); line-height: 1.1; margin-top: 2px; }
+
+/* — 1.3 paleta poética (só cores) — */
+.paleta-poetica { display: flex; flex-wrap: wrap; gap: 16px; margin: 6px 0 20px; }
+.pp-grupo { flex: 1; min-width: 200px; }
+.pp-linha { display: flex; gap: 4px; height: 46px; border-radius: var(--r-sm); overflow: hidden; }
+.pp-bloco { border-radius: 4px; }
+.pp-nome { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: var(--fs-md); color: var(--gold-light); margin-top: 8px; }
+
+/* — 1.4 texturas (preenchimento por material, distinto da paleta) — */
+.textura-legenda { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 2px 0 12px; }
+.textura-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.textura-item { width: 84px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--border2); flex: 0 0 auto; }
+.textura-item img { width: 100%; height: 84px; object-fit: cover; display: block; }
+.textura-mat { display: flex; flex-direction: column; }
+.textura-fill { height: 62px; display: block; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+.textura-nome { font-size: var(--fs-2xs); color: var(--off); text-align: center; padding: 6px 4px; background: var(--glass2); }
+
+/* — 2 planta baixa (demonstração) — */
+.planta-demo { border-radius: var(--r-md); margin-bottom: 22px; overflow: hidden; }
+.planta-demo.vazio { border: 1.5px dashed var(--gold-mid); background: repeating-linear-gradient(135deg, rgba(201,162,39,0.03) 0 10px, transparent 10px 20px), var(--glass2); padding: 30px 24px; text-align: center; }
+.planta-icone { width: 56px; height: 56px; border-radius: 50%; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: var(--gold); }
+.planta-texto { font-size: var(--fs-sm); color: var(--muted); line-height: 1.65; max-width: 420px; margin: 0 auto; }
+.planta-demo.tem-imagem img { width: 100%; display: block; }
+
+/* — 3.2 moodboard — flat-lay editorial: fundo neutro liso, amostras retangulares com
+   passe-partout claro, rotação mínima, cluster compacto (referência: fotografia de moodboard
+   de material por cima de mesa/parede neutra). Vegetação/mobiliário entram como acentos atrás. */
+.moodboard-legenda { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+.moodboard-palco { position: relative; width: 100%; height: 380px; margin-bottom: 22px; border-radius: var(--r-md); border: 1px solid var(--border2); overflow: hidden; }
+.moodboard-fundo { position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(120% 90% at 50% 0%, #efe8da, #ded2ba 65%, #cabb9d 100%);
+}
+.mb-peca { position: absolute; background: #fbfaf6; padding: 6px; border-radius: 7px; box-shadow: 0 14px 28px rgba(0,0,0,0.28); }
+.mb-peca img, .mb-peca > span { display: block; width: 100%; height: 100%; border-radius: 3px; }
+.mb-foto { aspect-ratio: 4 / 5; }
+.mb-foto img { object-fit: cover; }
+.mb-cor, .mb-tex { aspect-ratio: 1; }
+.mb-comp { background: none; padding: 0; box-shadow: none; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.3)); }
+.mb-comp img { border-radius: 0; }
+
+/* — 3.3 promessas (flip + reveal escalonado) — */
+.promessa-legenda { font-size: var(--fs-sm); color: var(--muted); margin-bottom: 14px; }
+.promessa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 14px; }
+.promessa-card { perspective: 1200px; height: 150px; cursor: pointer; opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+.promessa-card.vis { opacity: 1; transform: translateY(0); }
+.promessa-inner { position: relative; width: 100%; height: 100%; transition: transform .55s; transform-style: preserve-3d; }
+.promessa-card.flipped .promessa-inner { transform: rotateY(180deg); }
+.promessa-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--r-md); border: 1px solid var(--gold-mid); padding: 16px; display: flex; flex-direction: column; }
+.promessa-front { background: linear-gradient(155deg, rgba(201,162,39,0.10), var(--glass2) 60%); }
+.promessa-icone { width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--gold-dim); display: flex; align-items: center; justify-content: center; color: var(--gold); margin-bottom: 10px; }
+.promessa-texto { font-family: 'Sora', sans-serif; font-weight: 500; font-size: var(--fs-sm); color: var(--white); line-height: 1.4; flex: 1; }
+.promessa-virar { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .05em; color: var(--gold); display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; }
+.promessa-back { background: rgba(201,162,39,0.10); transform: rotateY(180deg); align-items: center; justify-content: center; text-align: center; }
+.promessa-back-texto { font-size: var(--fs-sm); color: var(--off); line-height: 1.55; }
+
+/* — 3.4 jogo dos palpites — */
+.palpite-instrucao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.palpite-lista { display: flex; flex-direction: column; gap: 14px; margin-bottom: 6px; }
+.palpite-lista.compacta { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); }
+.palpite-card { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px; }
+/* balão em cápsula: extremidades em semicírculo, avatar embutido na ponta esquerda */
+.palpite-topo { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 999px; padding: 4px 20px 4px 4px; max-width: 100%; }
+.pers-avatar { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid var(--muted2); display: flex; align-items: center; justify-content: center; color: var(--off); flex-shrink: 0; }
+.pers-avatar.voce { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.pers-avatar.humano { border-color: #7fa8c9; color: #9dc0dc; background: rgba(127,168,201,0.10); }
+.pers-avatar.pet { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.pers-nome { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palpite-campo { display: block; margin-bottom: 10px; }
+.palpite-label { display: block; font-size: var(--fs-xs); color: var(--off); margin-bottom: 6px; line-height: 1.4; }
+.palpite-input { width: 100%; background: var(--card2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 12px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); }
+.palpite-input:focus { outline: none; border-color: var(--gold-mid); }
+.palpite-travado { display: flex; align-items: center; gap: 7px; font-size: var(--fs-xs); color: var(--muted); background: rgba(255,255,255,0.03); border: 1px dashed var(--border2); border-radius: var(--r-sm); padding: 10px 12px; line-height: 1.4; }
+.palpite-travado svg { color: var(--muted); flex-shrink: 0; }
+.palpite-obs { font-size: var(--fs-xs); color: var(--green); background: var(--green-dim); border-radius: var(--r-sm); padding: 9px 12px; line-height: 1.5; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 6px; }
+.palpite-obs svg { flex-shrink: 0; margin-top: 1px; }
+.palpite-revelacao { font-size: var(--fs-sm); color: var(--gold-light); background: var(--gold-dim); border-radius: var(--r-sm); padding: 10px 12px; line-height: 1.5; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.palpite-revelacao b { color: var(--white); font-weight: 500; }
+
+/* — 6 cards de compartilhamento — */
+.share-card { margin-bottom: 16px; padding: 20px; border-radius: var(--r-lg); background: linear-gradient(160deg, rgba(201,162,39,0.09), var(--glass2) 70%); border: 1px solid var(--gold-mid); }
+.share-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.share-icone { width: 48px; height: 48px; border-radius: 50%; background: var(--gold-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--gold); flex-shrink: 0; }
+.share-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-md); color: var(--white); line-height: 1.2; }
+.share-texto { font-size: var(--fs-sm); color: var(--muted); line-height: 1.65; margin-bottom: 16px; }
+.share-motivos { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.share-motivo { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 13px 15px; cursor: pointer; transition: all .2s; font-family: 'Outfit', sans-serif; }
+.share-motivo:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.05); }
+.share-motivo-txt { flex: 1; font-size: var(--fs-sm); color: var(--off); line-height: 1.5; }
+.share-motivo > svg { color: var(--gold); flex-shrink: 0; }
+.share-rodape { font-size: var(--fs-sm); color: var(--gold-light); line-height: 1.6; display: flex; align-items: flex-start; gap: 7px; padding-top: 4px; }
+.share-rodape svg { color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+.share-rodape b { color: var(--white); font-weight: 600; }
+
+/* — 6.2 Instagram builder — */
+.insta-builder { display: flex; gap: 18px; margin: 6px 0 18px; flex-wrap: wrap; }
+.insta-coluna { flex: 1; min-width: 200px; }
+.insta-sub { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .08em; color: var(--gold); margin: 14px 0 8px; }
+.insta-sub:first-child { margin-top: 0; }
+.insta-chips, .insta-frases { display: flex; flex-wrap: wrap; gap: 8px; }
+.insta-chip { display: inline-flex; align-items: center; gap: 5px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-pill); padding: 7px 13px; font-size: var(--fs-xs); color: var(--off); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all .2s; }
+.insta-chip.ativo { background: var(--gold-dim); border-color: var(--gold-mid); color: var(--gold-light); }
+.insta-chip:hover { border-color: var(--gold-mid); }
+.insta-frase { background: var(--card2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 7px 12px; font-size: var(--fs-xs); color: var(--off); cursor: pointer; font-family: 'Cormorant Garamond', serif; font-style: italic; transition: all .2s; }
+.insta-frase:hover { border-color: var(--gold-mid); color: var(--gold-light); }
+.insta-composicoes { display: flex; flex-direction: column; gap: 8px; }
+.insta-comp { text-align: left; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 11px 14px; cursor: pointer; transition: all .2s; font-family: 'Outfit', sans-serif; }
+.insta-comp.ativo { border-color: var(--gold-mid); background: var(--gold-dim); }
+.insta-comp:hover { border-color: var(--gold-mid); }
+.insta-comp-nome { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 500; color: var(--white); }
+.insta-comp-nome svg { color: var(--gold); }
+.insta-comp-desc { font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; margin-top: 4px; }
+.insta-preview { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.insta-story { position: relative; width: 150px; height: 267px; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--gold-mid); background: linear-gradient(165deg, #2a2418, #17130a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.insta-story-frase { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; color: var(--gold-light); }
+.insta-story-board { color: rgba(226,185,59,0.5); }
+.insta-watermark { position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 4px; font-family: 'Sora', sans-serif; font-size: var(--fs-2xs); color: rgba(245,244,240,0.75); letter-spacing: .04em; }
+.insta-watermark svg { color: var(--gold); }
+.insta-story-rotulo { font-size: var(--fs-2xs); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.insta-cta { margin-top: 4px; }
+
+/* — placeholder "em desenvolvimento" — */
+.mini-modal-overlay { position: fixed; inset: 0; z-index: 950; display: flex; align-items: center; justify-content: center; background: rgba(8,8,10,0.55); backdrop-filter: blur(6px); opacity: 0; transition: opacity .25s; padding: 24px; }
+.mini-modal-overlay.vis { opacity: 1; }
+.mini-modal-card { position: relative; max-width: 380px; width: 100%; text-align: center; background: rgba(20,20,24,0.98); border: 1px solid var(--gold-mid); border-radius: var(--r-xl); padding: 34px 28px 30px; box-shadow: 0 30px 80px rgba(0,0,0,0.55); transform: translateY(10px) scale(.98); transition: transform .25s; }
+.mini-modal-overlay.vis .mini-modal-card { transform: translateY(0) scale(1); }
+.mini-modal-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; background: transparent; border: 1px solid var(--border2); color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.mini-modal-close:hover { color: var(--gold); border-color: var(--gold); }
+.mini-modal-icone { width: 60px; height: 60px; border-radius: 50%; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); }
+.mini-modal-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); margin-bottom: 12px; }
+.mini-modal-texto { font-size: var(--fs-sm); color: var(--muted); line-height: 1.65; margin-bottom: 18px; }
+
+.toast { position: fixed; bottom: 24px; left: 24px; background: rgba(20,20,24,0.95); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 20px; font-size: var(--fs-sm); color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .3s; display:flex; align-items:center; gap:8px; }
+.toast.vis { opacity: 1; pointer-events: auto; }
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
+<div class="bg-gradient"></div>
+<div class="bg-breath"></div>
 <div class="noise"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
 
 <div class="top-bar">
-  <div class="top-left">
-    <div class="top-logo">Guide</div>
+  <div class="tb-bubble tb-logo">
+    <img src="/assets/logo-guide.svg" class="logo-img" alt="Guide Arquitetura">
   </div>
-  <div class="top-right">
-    <div class="top-cliente" id="top-cliente"></div>
-    <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+  <div class="tb-bubble tb-nav">
+    <div class="top-saudacao" id="top-saudacao">Olá</div>
+    <div class="tb-nav-icones">
+      <button class="icon-btn" id="btn-inicio" title="Início"><i data-lucide="home"></i></button>
+      <div class="dropdown-wrap">
+        <button class="icon-btn" id="btn-notif" title="Notificações"><i data-lucide="bell"></i></button>
+        <div class="dropdown-panel" id="painel-notif"></div>
+      </div>
+      <button class="icon-btn" id="btn-config" title="Configurações"><i data-lucide="settings"></i></button>
+    </div>
+  </div>
+  <div class="tb-bubble tb-perfil">
+    <div class="dropdown-wrap">
+      <button class="perfil-trigger" id="btn-perfil" title="Perfil">
+        <span class="perfil-nome" id="perfil-nome">Perfil</span>
+        <div class="perfil-avatar" id="perfil-avatar"><i data-lucide="user"></i></div>
+      </button>
+      <div class="dropdown-panel" id="painel-perfil"></div>
+    </div>
   </div>
 </div>
 
 <div class="main">
-  <div class="hub-header">
-    <div class="hub-saudacao">Bem-vindo</div>
-    <div class="hub-titulo">Meu Projeto</div>
-    <div class="hub-progresso" id="hub-progresso"></div>
+  <div class="bento" id="bento">
+    <div class="card card-hero" data-key="hero"><div class="loading-inline"><div class="spinner"></div>Carregando...</div></div>
+    <div class="card card-sonhou" data-key="sonhou"></div>
+    <div class="card card-ateaqui" data-key="ateaqui"></div>
+    <div class="card card-gui" data-key="gui"></div>
+    <div class="card card-guiders" data-key="guiders"></div>
+    <div class="card card-parceiros" data-key="parceiros"></div>
+    <div class="card card-glossario" data-key="glossario"></div>
+    <div class="card card-diario" data-key="diario"></div>
+    <div class="card card-chaves" data-key="chaves"></div>
+    <div class="card card-mural" data-key="mural"></div>
   </div>
+</div>
 
-  <div id="hub-content">
-    <div class="loading">
-      <div class="spinner"></div>
-      <p>Carregando seu projeto...</p>
-    </div>
-  </div>
+<div class="modal-overlay" id="modal-overlay"></div>
+<div class="modal-window" id="modal-window" style="display:none;">
+  <div class="modal-inner" id="modal-inner"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <!-- SUPABASE JS CLIENT (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<!-- LUCIDE ICONS (CDN) — todo ícone da interface é vetorial, via data-lucide + createIcons() -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <script>
 // ─────────────────────────────────────────────────────────────
@@ -449,237 +802,1815 @@ if (window.supabase && window.supabase.createClient) {
   console.error('Biblioteca Supabase não carregou. Verifique a conexão.');
 }
 
-// DEFINIÇÃO DAS 5 ETAPAS
-const ETAPAS = [
-  {
-    id: 'briefing',
-    num: 1,
-    nome: 'Briefing + Conceito',
-    desc: 'Conte-nos como você imagina seu novo lar',
-    url: '/briefing'
+const BUCKET = 'projetos-imagens';
+
+function icons() { if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons(); }
+// tamanho vem por classe (ic-sm/md/lg/xl) resolvida no CSS — nunca por width/height inline (item 10)
+function ic(nome, cls) { return `<i data-lucide="${nome}" class="${cls||''}"></i>`; }
+
+const FASES = [
+  { id:'briefing',  num:1, nome:'Briefing',   icon:'message-square', url:'/briefing',  tsField:'briefing_concluido_em' },
+  { id:'layout',    num:2, nome:'Layout',     icon:'layout-grid',    url:'/layout',    tsField:'layout_concluido_em' },
+  { id:'imagens',   num:3, nome:'Imagens',    icon:'image',          url:'/imagens',   tsField:'imagens_concluido_em' },
+  { id:'executivo', num:4, nome:'Executivo',  icon:'file-text',      url:'/executivo', tsField:'executivo_concluido_em' },
+  { id:'obra',      num:5, nome:'Obra',       icon:'hard-hat',       url:'/obra',      tsField:null },
+];
+
+const FASES_TEXTO = {
+  briefing: {
+    explicacao: 'O ponto de partida. Aqui a gente escuta seus sonhos, seu estilo de vida e o que você espera do seu novo lar.',
+    concluida: 'Você já concluiu esta etapa. Obrigado por compartilhar seus sonhos com a gente.',
+    atual: 'É hora de nos contar como você imagina seu lar. Reserve alguns minutos e responda com o coração.',
+    futura: null,
   },
-  {
-    id: 'layout',
-    num: 2,
-    nome: 'Estudo de Layout',
-    desc: 'Escolha a melhor disposição dos ambientes',
-    url: '/layout'
+  layout: {
+    explicacao: 'Definimos onde cada ambiente vai viver. A planta ganha vida de acordo com a sua rotina.',
+    concluida: 'Você já concluiu esta etapa. O esqueleto do seu lar está pronto.',
+    atual: 'Estamos desenhando as melhores possibilidades de layout para o seu apartamento, com todo o cuidado. Enquanto isso, que tal conhecer nossa comunidade?',
+    futura: 'Em breve. Assim que o briefing estiver completo, começamos a desenhar seu espaço.',
   },
-  {
-    id: 'imagens',
-    num: 3,
-    nome: 'Imagens 3D',
-    desc: 'Visualize o resultado final do projeto',
-    url: '/imagens'
+  imagens: {
+    explicacao: 'A parte mais emocionante: ver seu apartamento ganhar cor, textura e luz em imagens realistas.',
+    concluida: 'Você já concluiu esta etapa. Agora você já consegue enxergar seu novo lar.',
+    atual: 'Estamos preparando as imagens do seu projeto com todo o cuidado, para você. Enquanto isso, você pode navegar na nossa comunidade.',
+    futura: 'Em breve. Depois do layout aprovado, damos vida ao seu projeto em imagens.',
   },
-  {
-    id: 'executivo',
-    num: 4,
-    nome: 'Guia Executivo',
-    desc: 'Especificações técnicas e links de compra',
-    url: '/executivo'
+  executivo: {
+    explicacao: 'O guia técnico da sua obra: medidas, materiais e detalhes para tudo sair como planejado.',
+    concluida: 'Você já concluiu esta etapa. Seu projeto agora tem um mapa completo.',
+    atual: 'Estamos detalhando cada medida e material do seu projeto executivo. É o cuidado técnico que garante que tudo saia perfeito.',
+    futura: 'Em breve. Com as imagens aprovadas, preparamos o detalhamento técnico.',
   },
-  {
-    id: 'obra',
-    num: 5,
-    nome: 'Acompanhamento de Obra',
-    desc: 'Acompanhe o progresso da reforma',
-    url: '/obra'
-  }
+  obra: {
+    explicacao: 'A hora de transformar o papel em realidade. Acompanhe cada avanço da sua reforma.',
+    concluida: 'Sua obra está concluída. Bem-vindo(a) ao seu novo lar.',
+    atual: 'Sua obra está em andamento. Acompanhe cada etapa pelo cronograma.',
+    futura: 'Em breve. Quando o projeto executivo estiver pronto, a transformação começa.',
+  },
+};
+
+// paleta real do briefing (mesmos valores de briefing.html)
+const PALETAS = {
+  neblina:  { nome:'Neblina',        cores:['#f5f4f0','#e8e8e8','#c8d0d8','#b0bcc8'] },
+  areia:    { nome:'Areia e vento',  cores:['#f0e8d8','#e0d0b8','#c8b090','#b09070'] },
+  floresta: { nome:'Floresta urbana',cores:['#708060','#506840','#383828','#202818'] },
+  terra:    { nome:'Terra quente',   cores:['#c87850','#b06040','#d09060','#e8d8c0'] },
+  mar:      { nome:'Mar profundo',   cores:['#1a2a4a','#2a4060','#4a8090','#c8a840'] },
+  noite:    { nome:'Noite clara',    cores:['#181818','#303030','#c8a227','#f0ece0'] },
+  flor:     { nome:'Flor de inverno',cores:['#e0c0b8','#b0c0a8','#d8c0b0','#f8f0e8'] },
+};
+
+const HUMORES = [
+  { key:'triste',   icon:'frown',    label:'Ansiosa' },
+  { key:'neutro',   icon:'meh',      label:'Neutra' },
+  { key:'contente', icon:'smile',    label:'Bem' },
+  { key:'feliz',    icon:'laugh',    label:'Feliz' },
+  { key:'radiante', icon:'sparkles', label:'Radiante' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// "O QUE VOCÊ SONHOU" — mapas de tradução editáveis (briefing → inspiração)
+// Toda resposta do briefing é TRADUZIDA em promessa/inspiração; nunca exibimos o dado cru.
+// Edite os textos aqui sem tocar no HTML.
+// ═══════════════════════════════════════════════════════════════════════
+
+// slug de sensação (briefing) → rótulo humano + ícone vetorial
+const SENSACOES = {
+  acolhido:     { label:'Acolhimento', icon:'home' },
+  revigorado:   { label:'Renovação',   icon:'sun' },
+  'em-paz':     { label:'Serenidade',  icon:'leaf' },
+  inspirado:    { label:'Inspiração',  icon:'sparkles' },
+  orgulhoso:    { label:'Orgulho',     icon:'gem' },
+  livre:        { label:'Liberdade',   icon:'wind' },
+  vivo:         { label:'Vitalidade',  icon:'flame' },
+  aconchegante: { label:'Aconchego',   icon:'heart' },
+};
+
+// slug de estilo (briefing) → rótulo humano
+const ESTILOS = {
+  minimalista:'Minimalista', contemporaneo:'Contemporâneo', escandinavo:'Escandinavo',
+  industrial:'Industrial', boho:'Boho', 'classico-moderno':'Clássico moderno',
+  japandi:'Japandi', descobrir:'A descobrir juntos',
+};
+
+// MAPA DE PROMESSAS — por campo do briefing, por valor. front = promessa / verso = o cuidado (porquê).
+// Cada campo tem um fallback. Interpolação suportada nas de família: {pet}, {moradores}.
+const PROMESSAS = {
+  'nao-quer': {
+    icon:'shield-check',
+    valores: {
+      generico:              { p:'Adeus ao apartamento genérico — o seu vai ter a sua cara.', v:'Você disse que teme um lar igual a todos. Vamos fugir do óbvio em cada decisão de projeto.' },
+      'pouco-armario':       { p:'Um lugar para cada coisa, e leveza para a sua rotina.', v:'Faltava espaço para guardar. Marcenaria inteligente resolve isso sem pesar no ambiente.' },
+      'bagunca-visivel':     { p:'Tudo no seu lugar — e a desordem longe dos olhos.', v:'Você não queria ver a bagunça o tempo todo. Vamos escondê-la com elegância.' },
+      'sem-personalidade':   { p:'Um lar com alma, do jeitinho que é você.', v:'Ambientes sem personalidade te incomodavam. Cada detalhe vai carregar a sua história.' },
+      'muito-neutro':        { p:'Neutro na medida certa — nunca sem graça.', v:'O neutro demais parecia hospital. Vamos equilibrar com textura, calor e pontos de vida.' },
+      'muito-colorido':      { p:'Cor com equilíbrio, para nunca enjoar.', v:'Excesso de cor te cansava. Usaremos a paleta certa, na dose certa.' },
+      'pouca-luz':           { p:'Mais luz, mais respiro, mais bem-estar.', v:'A falta de luz natural te pesava. Vamos priorizar claridade em cada ambiente.' },
+      'moveis-descombinados':{ p:'Uma composição harmônica, do sofá à luminária.', v:'Móveis que brigavam te incomodavam. Tudo vai conversar em um só conceito.' },
+      frio:                  { p:'Um lar que abraça quem entra.', v:'Você não queria um espaço frio e sem alma. Traremos calor em materiais, luz e cor.' },
+      'sem-cantinho':        { p:'Um cantinho que é só seu, para recarregar.', v:'Faltava um refúgio pessoal. Vamos reservar um espaço com a sua energia.' },
+      'poluicao-visual':     { p:'Menos ruído visual, mais paz para os olhos.', v:'O excesso de estímulos cansava. Vamos desenhar com respiro e hierarquia.' },
+      'dificil-limpar':      { p:'Beleza que também é fácil de cuidar.', v:'Materiais difíceis de limpar preocupavam. Escolheremos acabamentos práticos e duráveis.' },
+      'sem-privacidade':     { p:'O aconchego da privacidade onde você mais precisa.', v:'Faltava privacidade. Vamos posicionar ambientes e soluções que te protegem.' },
+    },
+    fallback: { p:'Fim dos incômodos de antes — este lar foi pensado para você.', v:'Você nos contou o que nunca mais quer viver. Levamos cada ponto a sério no projeto.' },
+  },
+  sensacao: {
+    icon:'heart',
+    valores: {
+      acolhido:     { p:'Todo dia, a sensação de chegar em casa e respirar fundo.', v:'Você quer se sentir acolhido. Calor e conforto vão guiar cada escolha.' },
+      revigorado:   { p:'Um lar que renova as suas forças a cada manhã.', v:'Você quer se sentir revigorado. Leveza, luz e clareza vão desenhar o espaço.' },
+      'em-paz':     { p:'Silêncio, equilíbrio e a paz de estar em casa.', v:'Você quer se sentir em paz. Nada em excesso — tudo no seu devido lugar.' },
+      inspirado:    { p:'Um espaço que desperta o seu melhor todos os dias.', v:'Você quer se sentir inspirado. Beleza e referências vão preencher o ambiente.' },
+      orgulhoso:    { p:'Um lar que representa quem você é, com elegância.', v:'Você quer se sentir orgulhoso. Personalidade e sofisticação em cada detalhe.' },
+      livre:        { p:'Amplitude para respirar, sem excessos.', v:'Você quer se sentir livre. Fluidez e espaço vão comandar o projeto.' },
+      vivo:         { p:'Cor, movimento e presença — um lar cheio de vida.', v:'Você quer se sentir vivo. Vamos trazer energia e personalidade forte.' },
+      aconchegante: { p:'O tipo de lugar que abraça quem chega.', v:'Você quer aconchego. Quente, íntimo e seguro — assim será o seu lar.' },
+    },
+    fallback: { p:'Cada ambiente vai carregar a sensação que você sonhou.', v:'Você nos contou como quer se sentir em casa. Isso guia o projeto inteiro.' },
+  },
+  estilo: {
+    icon:'palette',
+    valores: {
+      minimalista:       { p:'A beleza do essencial, sem nada sobrando.', v:'Seu estilo é minimalista. Menos, porém melhor — em cada linha.' },
+      contemporaneo:     { p:'Atual, atemporal e sofisticado — o seu contemporâneo.', v:'Seu estilo é contemporâneo. Elegância que não sai de moda.' },
+      escandinavo:       { p:'Luz, madeira e aconchego nórdico no seu dia a dia.', v:'Seu estilo é escandinavo. Simplicidade quente e funcional.' },
+      industrial:        { p:'Personalidade urbana com materiais autênticos.', v:'Seu estilo é industrial. Concreto, metal e caráter marcante.' },
+      boho:              { p:'Um lar livre, cheio de camadas e histórias.', v:'Seu estilo é boho. Texturas, plantas e alma viajante.' },
+      'classico-moderno':{ p:'A elegância clássica com o frescor do agora.', v:'Seu estilo é clássico moderno. Tradição e leveza em equilíbrio.' },
+      japandi:           { p:'A serenidade do Japão com o calor escandinavo.', v:'Seu estilo é japandi. Minimalismo quente e profundamente calmo.' },
+      descobrir:         { p:'Vamos descobrir juntos o estilo do seu lar.', v:'Você quer orientação. Nossa equipe vai te guiar com opções e clareza.' },
+    },
+    fallback: { p:'O seu estilo vai guiar cada detalhe do projeto.', v:'Você nos mostrou o que te encanta. Vamos traduzir isso em espaço.' },
+  },
+  paleta: {
+    icon:'droplet',
+    fallback: { p:'As suas cores vão dar o tom de cada ambiente.', v:'Você escolheu a paleta que te representa. Ela conduz a atmosfera do lar.' },
+  },
+  'objetos-coração': {
+    icon:'gift',
+    fallback: { p:'Aquilo que você ama tem lugar de destaque aqui.', v:'Você nos contou de um objeto especial. Vamos dar a ele o espaço que merece.' },
+  },
+  'reutilizar-desc': {
+    icon:'recycle',
+    fallback: { p:'O que já é seu ganha um novo lugar no seu novo lar.', v:'Você quer reaproveitar peças queridas. Vamos integrá-las com carinho.' },
+  },
+  hobbies: {
+    icon:'sparkles',
+    fallback: { p:'Espaço para viver aquilo que te faz bem.', v:'Você nos contou dos seus hobbies. O lar vai abraçar o que você ama fazer.' },
+  },
+};
+
+// promessas derivadas da FAMÍLIA (com interpolação de {pet} / {moradores})
+const PROMESSAS_FAMILIA = {
+  pet:       { icon:'paw-print', p:'Um cantinho pensado também para {pet}.', v:'A sua família tem quatro patas também. {petCap} faz parte do projeto.' },
+  moradores: { icon:'users',     p:'Um lar que abraça as {moradores} pessoas desta casa.', v:'Vocês são {moradores}. Cada rotina foi considerada no desenho dos espaços.' },
+};
+
+// componentes genéricos do moodboard — subir manualmente em assets/o-que-voce-sonhou/moodboard/
+const MOODBOARD_COMPONENTES = [
+  'movel-sofa.png','movel-poltrona.png','movel-mesa.png','movel-luminaria.png',
+  'planta-1.png','planta-2.png','textura-1.jpg','textura-2.jpg',
+];
+// imagens genéricas de inspiração da capa — subir em assets/o-que-voce-sonhou/genericas/
+// nomes dos arquivos hoje em assets/o-que-voce-sonhou/genericas/ — acrescente aqui conforme
+// novas imagens forem subidas na pasta (o nome tem que bater exatamente com o arquivo).
+const GENERICAS = [
+  'bright-light-on-large-leaved-tropical-plant-png.webp',
+  'pngtree-indoor-plant-flowerpot-png-image_11669796.png',
+  'tropical-plants-on-transparent-background-as-botanical-foreground-lower-frame-border-cut-out-graphic-design-element-3d-rendering-png.webp',
+];
+
+// texturas/materiais coerentes com cada estilo — preenchimento por PADRÃO CSS (não cor sólida),
+// para deixar claro que são materiais, não cores. `css` é aplicado como background do bloco.
+const TEXTURAS = {
+  madeira:   { nome:'Madeira clara',   css:'repeating-linear-gradient(92deg, #b98a53 0 7px, #a9784390 7px 9px, #c69a63 9px 15px)' },
+  'madeira-escura':{ nome:'Nogueira', css:'repeating-linear-gradient(90deg, #5c4632 0 6px, #48372690 6px 8px, #6b5138 8px 14px)' },
+  linho:     { nome:'Linho natural',   css:'repeating-linear-gradient(0deg, #d8cdba 0 2px, #cabfa9 2px 4px), repeating-linear-gradient(90deg, #d8cdba 0 2px, #cec3ad 2px 4px)' },
+  concreto:  { nome:'Concreto',        css:'radial-gradient(circle at 30% 30%, #9a9790, #7f7c74 70%)' },
+  pedra:     { nome:'Pedra/mármore',   css:'linear-gradient(125deg, #e8e6df 0%, #d7d3c8 40%, #efece5 55%, #cfcabd 100%)' },
+  ratan:     { nome:'Palhinha',        css:'repeating-linear-gradient(45deg, #d8b878 0 4px, #c7a25f90 4px 6px), repeating-linear-gradient(-45deg, #d8b87860 0 4px, transparent 4px 6px)' },
+  verde:     { nome:'Folhagem',        css:'radial-gradient(circle at 35% 35%, #6f8f5e, #4d6b40 75%)' },
+  veludo:    { nome:'Veludo',          css:'radial-gradient(circle at 40% 30%, #7a4f57, #5a3a41 80%)' },
+};
+// quais materiais combinam com cada estilo do briefing
+const TEXTURAS_POR_ESTILO = {
+  minimalista:['pedra','concreto','madeira','linho'],
+  contemporaneo:['madeira','pedra','concreto','veludo'],
+  escandinavo:['madeira','linho','pedra','verde'],
+  industrial:['concreto','madeira-escura','pedra','linho'],
+  boho:['ratan','linho','madeira','verde'],
+  'classico-moderno':['pedra','veludo','madeira-escura','linho'],
+  japandi:['madeira','linho','pedra','verde'],
+  descobrir:['madeira','linho','pedra','verde'],
+};
+
+// frases instagramáveis prontas para o "Monte seu post"
+const FRASES_INSTA = ['vem aí...', 'sonho carregando...', 'a nossa próxima página', 'em construção (a melhor parte)'];
+
+const GLOSSARIO_PADRAO = [
+  { termo:'Briefing', explicacao:'A conversa inicial onde você conta seus sonhos, necessidades e estilo. É o alicerce de todo o projeto.' },
+  { termo:'Layout', explicacao:'A distribuição dos ambientes e móveis no espaço. Define por onde você anda, onde descansa, onde recebe.' },
+  { termo:'Projeto executivo', explicacao:'O conjunto de desenhos técnicos com todas as medidas e especificações que orientam a obra. É o mapa que o pedreiro e o marceneiro seguem.' },
+  { termo:'Planta baixa', explicacao:'O desenho do apartamento visto de cima, como se o teto fosse removido. Mostra a posição de paredes, portas e móveis.' },
+  { termo:'Render (imagem 3D)', explicacao:'Uma imagem realista de como o ambiente vai ficar pronto, feita no computador antes da obra.' },
+  { termo:'Marcenaria', explicacao:'Móveis planejados feitos sob medida para o seu espaço: armários, painéis, estantes.' },
+  { termo:'Drywall', explicacao:'Placas de gesso para construir paredes e forros de forma rápida e limpa, sem quebra-quebra.' },
+  { termo:'Ponto elétrico / hidráulico', explicacao:'Locais onde ficam tomadas, interruptores e saídas de água. Definir bem evita dor de cabeça depois.' },
+  { termo:'Revestimento', explicacao:'O material que cobre pisos e paredes: porcelanato, cerâmica, papel de parede, tinta.' },
+  { termo:'Iluminação indireta', explicacao:'Luz que não vem direto de uma lâmpada visível, criando aconchego e destacando ambientes.' },
+  { termo:'Cronograma de obra', explicacao:'O calendário que organiza cada etapa da reforma, do início à entrega.' },
+  { termo:'Memorial descritivo', explicacao:'Documento que lista todos os materiais e acabamentos escolhidos para a obra.' },
+  { termo:'Vistoria', explicacao:'A conferência do imóvel antes de receber as chaves, para garantir que está tudo certo.' },
+  { termo:'Habite-se', explicacao:'Documento da prefeitura que atesta que o prédio está pronto e apto para ser habitado.' },
+  { termo:'Marcenaria sob medida vs. modulada', explicacao:'Sob medida é feita exatamente para o seu espaço; modulada usa peças de tamanhos padrão, mais econômica.' },
+];
+
+const QUIZ = [
+  { pergunta:'O que é um projeto executivo?', opcoes:['A conversa inicial sobre seus sonhos e estilo','O conjunto de desenhos técnicos com todas as medidas que orientam a obra','Uma imagem realista de como o ambiente vai ficar','O calendário que organiza a obra'], correta:1 },
+  { pergunta:'O que é uma planta baixa?', opcoes:['O desenho do apartamento visto de cima','Uma reunião de condomínio','O documento que atesta que o prédio está pronto','O material que cobre pisos e paredes'], correta:0 },
+  { pergunta:'Para que serve o memorial descritivo?', opcoes:['Para escolher a paleta de cores','Para listar todos os materiais e acabamentos escolhidos','Para marcar a vistoria','Para desenhar a planta baixa'], correta:1 },
+  { pergunta:"O que é 'render'?", opcoes:['Um tipo de revestimento','Um documento técnico','Uma imagem realista de como o ambiente vai ficar pronto','Um tipo de iluminação'], correta:2 },
+  { pergunta:'Qual a diferença entre marcenaria sob medida e modulada?', opcoes:['Não há diferença','Sob medida é feita para o seu espaço; modulada usa peças padrão','Modulada é sempre mais cara','Sob medida é sempre mais rápida'], correta:1 },
+  { pergunta:'O que é o Habite-se?', opcoes:['Um tipo de acabamento','O documento da prefeitura que atesta que o prédio está pronto para ser habitado','A vistoria final do cliente','O contrato de obra'], correta:1 },
+  { pergunta:'Drywall é...', opcoes:['Um tipo de piso','Placas de gesso para construir paredes e forros de forma rápida','Um software de projeto','Um tipo de tinta'], correta:1 },
+];
+
+const MARCOS_DEF = [
+  { campo:'vistoria_em', nome:'Vistoria', icon:'clipboard-check',
+    explicacao:'É quando você visita o imóvel para conferir se está tudo conforme o combinado, antes de receber as chaves. Anote qualquer detalhe.',
+    conforto:'Não se preocupe em ser exigente aqui — é o momento certo para isso. Estamos com você.' },
+  { campo:'entrega_chaves_em', nome:'Entrega das chaves', icon:'key',
+    explicacao:'O grande dia. As chaves do seu imóvel finalmente são suas.',
+    conforto:'Respire fundo e aproveite. Este momento é a prova de que você chegou até aqui.' },
+  { campo:'assembleia_em', nome:'Assembleia geral de condomínio', icon:'users',
+    explicacao:'A reunião onde os moradores definem regras, taxas e o funcionamento do condomínio. Participar ajuda a entender o que pode e o que não pode na sua obra.',
+    conforto:'Parece burocrático, mas é aqui que você conhece as regras que vão facilitar sua reforma. Vá com calma e pergunte à vontade.' },
+  { campo:'inicio_reforma_em', nome:'Início da reforma', icon:'hammer',
+    explicacao:'O ponto de virada: seu apartamento começa a se transformar no lar que você imaginou.',
+    conforto:'A ansiedade é natural. A partir daqui, cada dia te aproxima do resultado final.' },
 ];
 
 // ─────────────────────────────────────────────────────────────
-// FUNDO ANIMADO
-// ─────────────────────────────────────────────────────────────
-
-(function(){
-  const c = document.getElementById('bg-canvas');
-  const ctx = c.getContext('2d');
-  let W, H, t = 0;
-  
-  const orbs = [
-    { x: 0.15, y: 0.2, r: 0.42, c: [201, 162, 39], a: 0.045 },
-    { x: 0.85, y: 0.8, r: 0.36, c: [201, 162, 39], a: 0.032 },
-    { x: 0.5, y: 0.5, r: 0.28, c: [80, 100, 200], a: 0.022 },
-  ];
-  
-  function resize() {
-    W = c.width = innerWidth;
-    H = c.height = innerHeight;
-  }
-  
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    t += 0.0025;
-    
-    orbs.forEach((o, i) => {
-      const dx = Math.sin(t * 0.7 + i * 1.3) * 0.05;
-      const dy = Math.cos(t * 0.5 + i * 0.9) * 0.04;
-      const x = (o.x + dx) * W;
-      const y = (o.y + dy) * H;
-      const r = o.r * Math.min(W, H);
-      
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, `rgba(${o.c}, ${o.a})`);
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    
-    requestAnimationFrame(draw);
-  }
-  
-  window.addEventListener('resize', resize);
-  resize();
-  draw();
-})();
-
-// ─────────────────────────────────────────────────────────────
-// MAIN
+// ESTADO GLOBAL
 // ─────────────────────────────────────────────────────────────
 
 let usuarioAtual = null;
-let clienteAtual = null;
-let etapaAtual = 0; // número da etapa liberada (1 a 5)
+let projeto = null;
+let briefing = null;
+let statusAmbientes = {};
+let ambientesFaseAtiva = [];
+let marcos = null;
+let glossario = [];
+let comunidade = [];
+let parceiros = [];
+let humores = [];
+let mural = [];
+let palpites = [];
+let quizIndex = 0;
+let quizAcertos = 0;
+let glossarioAba = 'termos';
+
+// ─────────────────────────────────────────────────────────────
+// UTIL
+// ─────────────────────────────────────────────────────────────
+
+async function tentar(promessa, fallback) {
+  try {
+    const { data, error } = await promessa;
+    if (error) { console.warn('Aviso Supabase:', error.message || error); return fallback; }
+    return data !== undefined && data !== null ? data : fallback;
+  } catch (err) {
+    console.warn('Tabela ainda não existe ou falhou (rode a migração):', err.message || err);
+    return fallback;
+  }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = ic('info') + `<span>${msg}</span>`;
+  icons();
+  t.classList.add('vis');
+  setTimeout(() => t.classList.remove('vis'), 4000);
+}
+
+function formatarData(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+}
+function paraInputDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toISOString().slice(0,10);
+}
+
+function primeiroNome(nomeCompleto) { return (nomeCompleto || '').split(' ')[0] || 'você'; }
+
+function marcarPalavras(texto) {
+  return texto.split(' ').map((p, i) => `<span class="rev-word" style="transition-delay:${i * 45}ms">${p}</span>`).join(' ');
+}
+function revelarPalavras(container) {
+  const spans = container.querySelectorAll('.rev-word');
+  spans.forEach(s => { s.style.opacity = '0'; s.style.transform = 'translateY(6px)'; s.style.transition = s.style.transition || 'opacity .5s ease, transform .5s ease'; });
+  requestAnimationFrame(() => requestAnimationFrame(() => { spans.forEach(s => { s.style.opacity = '1'; s.style.transform = 'translateY(0)'; }); }));
+}
+function popElastic(el) { el.classList.remove('elastic-pop'); void el.offsetWidth; el.classList.add('elastic-pop'); }
+
+// ─────────────────────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────────────────────
 
 async function inicializar() {
-  if (!sb) {
-    mostrarErro('Erro de conexão com o servidor. Recarregue a página.');
-    return;
-  }
-  // Check se está logado
+  if (!sb) { toast('Erro de conexão com o servidor. Recarregue a página.'); return; }
+
   const { data } = await sb.auth.getSession();
-  if (!data.session) {
-    window.location.href = '/login';
-    return;
-  }
-  
+  if (!data.session) { window.location.href = '/login'; return; }
   usuarioAtual = data.session.user;
-  document.getElementById('top-cliente').textContent = usuarioAtual.email;
-  
-  // Buscar dados do projeto pelo email do cliente
-  try {
-    const { data: projeto, error } = await sb
-      .from('projetos')
-      .select('id, nome_cliente, etapa_atual')
-      .eq('email', usuarioAtual.email)
-      .single();
-    
-    if (error) {
-      mostrarErro('Erro ao carregar projeto. Entre em contato com a Guide.');
-      console.error('Erro ao buscar projeto:', error);
-      return;
+
+  const proj = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).single(), null);
+  if (!proj) { toast('Não encontramos seu projeto. Fale com a Guide.'); return; }
+  projeto = proj;
+
+  document.getElementById('top-saudacao').innerHTML = marcarPalavras(`Olá, ${primeiroNome(projeto.nome_cliente)}!`);
+  revelarPalavras(document.getElementById('top-saudacao'));
+  document.getElementById('perfil-nome').textContent = projeto.nome_cliente || 'Perfil';
+
+  const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
+
+  const [bf, marcosRow, gloss, comum, parc, hums, muralRows, palpRows] = await Promise.all([
+    tentar(sb.from('briefing_respostas').select('dados, status').eq('projeto_id', projeto.id).maybeSingle(), null),
+    tentar(sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projeto.id).maybeSingle(), null),
+    tentar(sb.from('glossario_termos').select('*').order('ordem', { ascending: true }), []),
+    tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', '__pendente__').order('criado_em', { ascending: false }), []),
+    tentar(sb.from('parceiros').select('*').order('ordem', { ascending: true }), []),
+    tentar(sb.from('diario_humor').select('*').eq('projeto_id', projeto.id).order('registrado_em', { ascending: false }).limit(40), []),
+    tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []),
+    tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
+  ]);
+  briefing = bf;
+  marcos = marcosRow;
+  glossario = gloss && gloss.length ? gloss : GLOSSARIO_PADRAO;
+  const empreendimento = (bfDados()||{})['empreendimento'];
+  comunidade = empreendimento ? await tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', empreendimento).order('criado_em', { ascending: false }), []) : comum;
+  parceiros = parc;
+  humores = hums;
+  mural = muralRows;
+  palpites = palpRows || [];
+
+  if (faseAtualId === 'layout' || faseAtualId === 'imagens') {
+    const ambs = await tentar(sb.from('ambientes').select('id, nome').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []);
+    ambientesFaseAtiva = ambs;
+    if (ambs.length) {
+      const sts = await tentar(sb.from('ambiente_status').select('ambiente_id, status').in('ambiente_id', ambs.map(a => a.id)).eq('etapa', faseAtualId), []);
+      statusAmbientes = {};
+      sts.forEach(s => { statusAmbientes[s.ambiente_id] = s.status; });
     }
-    
-    clienteAtual = projeto;
-    etapaAtual = projeto.etapa_atual || 1;
-    
-    // Personalizar saudação com nome do cliente
-    if (projeto.nome_cliente) {
-      const primeiroNome = projeto.nome_cliente.split(' ')[0];
-      document.querySelector('.hub-saudacao').textContent = `Olá, ${primeiroNome}`;
-    }
-    
-    // Renderizar timeline
-    renderTimeline();
-    
-  } catch (err) {
-    mostrarErro('Erro ao carregar dados.');
-    console.error(err);
   }
+
+  renderBento();
+  initEfeitos();
+  ligarHeader();
 }
 
-function renderTimeline() {
-  const timeline = document.createElement('div');
-  timeline.className = 'timeline';
-  
-  ETAPAS.forEach((etapa, idx) => {
-    const numEtapa = idx + 1;               // 1 a 5
-    const liberada = numEtapa <= etapaAtual; // liberada se <= etapa atual
-    const concluida = numEtapa < etapaAtual; // concluída se for anterior à atual
-    const ativa = numEtapa === etapaAtual;   // ativa é a etapa atual
+function bfDados() { return briefing ? briefing.dados : null; }
 
-    const wrap = document.createElement('div');
-    let classe = 'etapa-wrap';
-    if (concluida) classe += ' concluida';
-    else if (ativa) classe += ' ativa';
-    else classe += ' bloqueada';
-    wrap.className = classe;
-    
-    // Texto e ícone de status
-    let statusTxt, statusIcon, statusClasse, btnTxt;
-    if (concluida) {
-      statusTxt = 'Concluído';
-      statusIcon = '✓';
-      statusClasse = 'concluida';
-      btnTxt = 'Acessar →';
-    } else if (ativa) {
-      statusTxt = 'Disponível agora';
-      statusIcon = '→';
-      statusClasse = '';
-      btnTxt = 'Acessar →';
-    } else {
-      statusTxt = 'Bloqueado';
-      statusIcon = '🔒';
-      statusClasse = 'bloqueada';
-      btnTxt = 'Em breve';
+// ─────────────────────────────────────────────────────────────
+// RENDER — GRID FECHADO
+// ─────────────────────────────────────────────────────────────
+
+function renderBento() {
+  document.querySelector('.card-hero').innerHTML = fechadoHero();
+  document.querySelector('.card-sonhou').innerHTML = fechadoSonhou();
+  document.querySelector('.card-ateaqui').innerHTML = fechadoAteAqui();
+  document.querySelector('.card-gui').innerHTML = fechadoGui();
+  document.querySelector('.card-chaves').innerHTML = fechadoChaves();
+  document.querySelector('.card-guiders').innerHTML = fechadoGuiders();
+  document.querySelector('.card-parceiros').innerHTML = fechadoParceiros();
+  document.querySelector('.card-glossario').innerHTML = fechadoGlossario();
+  document.querySelector('.card-diario').innerHTML = fechadoDiario();
+  document.querySelector('.card-mural').innerHTML = fechadoMural();
+
+  document.querySelectorAll('.card').forEach(el => {
+    revelarPalavras(el);
+    el.addEventListener('click', (ev) => { if (ev.target.closest('a')) return; abrirCard(el.dataset.key, el); });
+  });
+  icons();
+  iniciarParticulasHero();
+}
+
+// PARTÍCULAS QUE FOGEM DO MOUSE — fundo do card "Meu Projeto".
+// Grade de pontos dourados; ao aproximar o mouse eles são empurrados e voltam devagar.
+let pararParticulas = null;
+function iniciarParticulasHero() {
+  if (pararParticulas) { pararParticulas(); pararParticulas = null; }
+  const card = document.querySelector('.card-hero');
+  const zona = card && card.querySelector('.card-corpo');
+  const cv = zona && zona.querySelector('.hero-particulas');
+  if (!cv || !zona) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = cv.getContext('2d');
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, mn, mx) => Math.max(mn, Math.min(mx, v));
+  let pts = [], mouse = { x: -999, y: -999 }, raf = null, rodando = false;
+
+  function medir() {
+    cv.width = zona.clientWidth; cv.height = zona.clientHeight;
+    pts = [];
+    for (let y = 16; y < cv.height; y += 24)
+      for (let x = 16; x < cv.width; x += 24)
+        pts.push({ ox: x, oy: y, x, y });
+  }
+  medir();
+  const onResize = () => medir();
+  const onMove = (ev) => { const r = cv.getBoundingClientRect(); mouse.x = ev.clientX - r.left; mouse.y = ev.clientY - r.top; };
+  const onLeave = () => { mouse.x = mouse.y = -999; };
+  window.addEventListener('resize', onResize);
+  card.addEventListener('mousemove', onMove);
+  card.addEventListener('mouseleave', onLeave);
+
+  function passo() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of pts) {
+      const dx = p.x - mouse.x, dy = p.y - mouse.y, d = Math.hypot(dx, dy);
+      if (d < 80 && d > 0) { const f = (80 - d) / 80; p.x += (dx / d) * f * 6; p.y += (dy / d) * f * 6; }
+      p.x = lerp(p.x, p.ox, 0.08); p.y = lerp(p.y, p.oy, 0.08);
+      const desloc = Math.hypot(p.x - p.ox, p.y - p.oy);
+      const brilho = clamp(1 - desloc / 34, 0.12, 0.8);
+      const cor = desloc > 6 ? '226,185,59' : '201,162,39';
+      ctx.fillStyle = `rgba(${cor},${brilho})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.6, 0, 6.2832); ctx.fill();
     }
-    
-    wrap.innerHTML = `
-      <div class="etapa-dot"></div>
-      <div class="etapa-card ${liberada ? '' : 'bloqueada'}">
-        <div class="etapa-num">Etapa ${etapa.num}</div>
-        <div class="etapa-nome">${etapa.nome}</div>
-        <div class="etapa-desc">${etapa.desc}</div>
-        <div class="etapa-footer">
-          <div class="etapa-status ${statusClasse}">
-            <span class="status-icon">${statusIcon}</span>
-            <span>${statusTxt}</span>
-          </div>
-          <button class="btn-acessar" onclick="acessarEtapa('${etapa.id}')" ${!liberada ? 'disabled' : ''}>
-            ${btnTxt}
-          </button>
+    raf = requestAnimationFrame(passo);
+  }
+  function ligar() { if (!rodando) { rodando = true; passo(); } }
+  function desligar() { if (rodando) { rodando = false; cancelAnimationFrame(raf); } }
+  const obs = new IntersectionObserver(e => { e[0].isIntersecting ? ligar() : desligar(); }, { threshold: 0 });
+  obs.observe(card);
+  ligar();
+
+  pararParticulas = () => {
+    desligar(); obs.disconnect();
+    window.removeEventListener('resize', onResize);
+    card.removeEventListener('mousemove', onMove);
+    card.removeEventListener('mouseleave', onLeave);
+  };
+}
+
+function infoFaseAtiva() {
+  const num = projeto.etapa_atual || 1;
+  const fase = FASES[num - 1] || FASES[0];
+  return { num, fase };
+}
+
+// desenha um anel de progresso (SVG puro, sem libs) — usado na capa de "Meu Projeto"
+function anelSVG(pct, cor, tamanho, esp) {
+  tamanho = tamanho || 60; esp = esp || 6;
+  const raio = (tamanho - esp) / 2;
+  const c = 2 * Math.PI * raio;
+  const p = Math.max(0, Math.min(100, pct));
+  const off = c * (1 - p / 100);
+  return `<svg width="${tamanho}" height="${tamanho}" viewBox="0 0 ${tamanho} ${tamanho}">
+    <circle cx="${tamanho/2}" cy="${tamanho/2}" r="${raio}" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="${esp}"/>
+    <circle cx="${tamanho/2}" cy="${tamanho/2}" r="${raio}" fill="none" stroke="${cor}" stroke-width="${esp}" stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 ${tamanho/2} ${tamanho/2})"/>
+  </svg>`;
+}
+
+// barras verticais por fase — gráfico da capa "Meu Projeto"
+function graficoBarrasFases(num) {
+  const barras = FASES.map(f => {
+    const concluida = f.num < num, ativa = f.num === num;
+    const altura = concluida ? 100 : (ativa ? 55 : 12);
+    return `<div class="evolucao-barra-wrap"><div class="evolucao-barra ${concluida ? 'concluida' : ativa ? 'ativa' : ''}" style="height:${altura}%"></div><div class="evolucao-label">${f.nome}</div></div>`;
+  }).join('');
+  return `<div class="evolucao-chart">${barras}</div>`;
+}
+
+// dupla de anéis circulares — gráfico da capa E do conteúdo expandido de "Sua Trajetória"
+// `tamanho` deixa o modal exibir os anéis maiores que a capa (mesma função, dois contextos)
+function aneisProgresso(num, tamanho) {
+  tamanho = tamanho || 60;
+  const fontePct = Math.max(11, Math.round(tamanho * 0.22));
+  const designPct = Math.round(Math.min(num - 1, 4) / 4 * 100);
+  const obraIniciada = num >= 5;
+  const obraPct = obraIniciada ? Math.max(0, Math.min(100, projeto.obra_progresso_pct || 0)) : 0;
+
+  const anelDesign = `
+    <div class="anel-item">
+      <div class="anel-svg-wrap" style="width:${tamanho}px;height:${tamanho}px;">${anelSVG(designPct, 'var(--gold)', tamanho)}<div class="anel-pct" style="font-size:${fontePct}px">${designPct}%</div></div>
+      <div class="anel-label">Design do projeto</div>
+    </div>`;
+  const anelObra = obraIniciada
+    ? `<div class="anel-item">
+        <div class="anel-svg-wrap" style="width:${tamanho}px;height:${tamanho}px;">${anelSVG(obraPct, 'var(--green)', tamanho)}<div class="anel-pct" style="font-size:${fontePct}px">${obraPct}%</div></div>
+        <div class="anel-label">Obra</div>
+      </div>`
+    : `<div class="anel-item anel-convite" title="Disponível quando a obra começar">
+        <div class="anel-svg-wrap" style="width:${tamanho}px;height:${tamanho}px;">${anelSVG(0, 'rgba(255,255,255,0.16)', tamanho)}<div class="anel-pct" style="font-size:${fontePct}px">${ic('lock','ic-sm')}</div></div>
+        <div class="anel-label">Obra</div>
+      </div>`;
+
+  return `<div class="anel-duo">${anelDesign}${anelObra}</div>`;
+}
+
+// heurística de "decisões tomadas": cada aprovação/entrega concreta ao longo da jornada conta uma
+function contarDecisoes() {
+  let n = 0;
+  if (briefing && briefing.status === 'enviado') n++;
+  n += Math.max(0, (projeto.etapa_atual || 1) - 1);
+  n += Object.values(statusAmbientes || {}).filter(s => s === 'aprovado').length;
+  if (marcos) n += MARCOS_DEF.filter(m => marcos[m.campo]).length;
+  return n;
+}
+
+function previsao7dias() {
+  const { fase } = infoFaseAtiva();
+  const prazo = (projeto.prazos_etapas || {})[fase.id];
+  if (prazo) {
+    const dias = Math.ceil((new Date(prazo) - new Date()) / 86400000);
+    if (dias >= 0 && dias <= 7) {
+      return `O prazo previsto da fase ${fase.nome} está próximo: ${formatarData(prazo)}. Fique de olho nas novidades por aqui.`;
+    }
+  }
+  return `Nos próximos 7 dias, nossa equipe segue avançando na fase de ${fase.nome}, com todo o cuidado. Qualquer novidade, você é a primeira pessoa a saber.`;
+}
+
+function calcularPendencia() {
+  const { fase } = infoFaseAtiva();
+  if (fase.id === 'briefing') {
+    if (!briefing || briefing.status !== 'enviado') return 'Complete seu briefing para darmos o próximo passo no seu projeto.';
+    return null;
+  }
+  if (fase.id === 'layout' || fase.id === 'imagens') {
+    const pendentes = ambientesFaseAtiva.filter(a => !statusAmbientes[a.id]);
+    if (pendentes.length) {
+      const rotulo = fase.id === 'layout' ? 'opções de layout' : 'imagens 3D';
+      const extra = pendentes.length > 1 ? ` e mais ${pendentes.length - 1} ambiente(s)` : '';
+      return `Agora é com você — reaja às ${rotulo} da sua ${pendentes[0].nome}${extra}.`;
+    }
+    return null;
+  }
+  return null;
+}
+
+function fechadoHero() {
+  const { num, fase } = infoFaseAtiva();
+  return `
+    <div class="card-eyebrow">${ic('layout-dashboard','ic-sm')} Meu Projeto</div>
+    <div class="card-titulo">Você está na fase ${fase.nome}</div>
+    ${graficoBarrasFases(num)}
+    <div class="card-corpo"><canvas class="hero-particulas"></canvas><div class="hero-frase">
+      <div class="hf-forte">${marcarPalavras('Aqui mora o seu projeto inteiro. É o coração da sua jornada.')}</div>
+      <div class="hf-sub">${marcarPalavras('Fique por dentro de cada etapa, prazo, entregas e todo o conteúdo até a finalização do seu Guia completo.')}</div>
+    </div></div>
+  `;
+}
+
+// imagens usadas no carrossel; se não houver referências reais, cai nas genéricas
+function imagensSonhou(dados) {
+  const refs = (dados && dados._uploads && dados._uploads['refs-prev']) || [];
+  const urls = refs.map(r => r.url).filter(Boolean);
+  if (urls.length) return urls;
+  return GENERICAS.map(f => `/assets/o-que-voce-sonhou/genericas/${f}`);
+}
+
+// esteira infinita (marquee) — lista duplicada para o laço ficar invisível
+function marqueeSonhou(urls, cls) {
+  const slides = [...urls, ...urls]
+    .map(u => `<div class="sonhou-slide"><img src="${u}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'"></div>`)
+    .join('');
+  return `<div class="fx-marquee sonhou-marquee ${cls || ''}"><div class="trilho">${slides}</div></div>`;
+}
+
+function fechadoSonhou() {
+  const dados = bfDados();
+  const preenchido = !!dados;
+  const urls = imagensSonhou(dados);
+  const overlay = preenchido ? '' : `
+    <div class="sonhou-capa-overlay">
+      <span class="sonhou-capa-cta">${ic('sparkles','ic-sm')} Toque para começar o seu</span>
+    </div>`;
+  const frase = preenchido
+    ? 'As inspirações, cores e sonhos que você compartilhou — reunidos aqui.'
+    : 'Seu estilo, suas cores e inspirações vão morar aqui. Vamos começar?';
+  return `
+    <div class="card-eyebrow">${ic('heart')} O que você sonhou</div>
+    <div class="card-titulo">Seu estilo, em resumo</div>
+    <div class="card-corpo">
+      <div class="sonhou-capa-wrap">
+        ${marqueeSonhou(urls)}
+        ${overlay}
+      </div>
+      <div class="card-convite">${marcarPalavras(frase)}</div>
+    </div>
+  `;
+}
+
+function fechadoAteAqui() {
+  const { num } = infoFaseAtiva();
+  return `
+    <div class="card-eyebrow">${ic('trending-up')} Até aqui</div>
+    <div class="card-titulo">Sua Trajetória</div>
+    <div class="card-corpo">
+      <div class="anel-duo-centro">${aneisProgresso(num, 52)}</div>
+      <div class="traj-frase">${marcarPalavras('Cada etapa é um passo mais perto do seu lar.')}</div>
+    </div>
+  `;
+}
+
+function montarTimeline() {
+  const itens = [];
+  if (projeto.criado_em) itens.push({ label: 'Projeto iniciado', data: projeto.criado_em, tipo: 'concluida' });
+  const num = projeto.etapa_atual || 1;
+  FASES.forEach(f => {
+    if (f.num < num) itens.push({ label: `${f.nome} concluído`, data: projeto[f.tsField] || null, tipo: 'concluida' });
+  });
+  const faseAtual = FASES[num - 1];
+  itens.push({ label: `Agora — ${faseAtual.nome}`, data: null, tipo: 'atual' });
+  return itens;
+}
+
+function fechadoGui() {
+  return `
+    <div class="card-eyebrow">${ic('sparkles','ic-sm')} Assistente</div>
+    <div class="gui-capa">
+      <img src="/assets/character-1.png" alt="Gui" class="gui-img">
+      <div class="gui-titulo">${marcarPalavras('Eu sou o Gui, seu assistente.')}</div>
+    </div>
+  `;
+}
+
+function fechadoChaves() {
+  if (!marcos) {
+    return `
+      <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
+      <div class="card-titulo">Seu grande dia está chegando</div>
+      <div class="card-corpo"><div class="card-convite">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu. Assim que a obra avançar, cada marco aparece aqui.')}</div></div>
+    `;
+  }
+  const feitos = MARCOS_DEF.filter(m => marcos[m.campo]).length;
+  return `
+    <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
+    <div class="card-titulo">${feitos} de ${MARCOS_DEF.length} marcos cumpridos</div>
+    <div class="card-corpo"><div class="mini-timeline">
+      ${MARCOS_DEF.map(m => `<div class="mini-timeline-item"><span class="dot" style="background:${marcos[m.campo] ? 'var(--green)' : 'var(--muted2)'}"></span>${m.nome}</div>`).join('')}
+    </div></div>
+  `;
+}
+
+function fechadoGuiders() {
+  return `
+    <div class="card-eyebrow">${ic('users')} Guiders</div>
+    <div class="card-titulo">Comunidade</div>
+    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Em breve você vai poder se conectar com outros Guiders.')}</div></div>
+  `;
+}
+
+function fechadoParceiros() {
+  return `
+    <div class="card-eyebrow">${ic('handshake')} Parceiros Guide</div>
+    <div class="card-titulo">Indicações de confiança</div>
+    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Estamos reunindo fornecedores de confiança para você.')}</div></div>
+  `;
+}
+
+function fechadoGlossario() {
+  return `
+    <div class="card-eyebrow">${ic('book-open')} Glossário</div>
+    <div class="card-titulo">${glossario.length} termos + quiz</div>
+    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Toque para virar as cartas e teste o que aprendeu no quiz.')}</div></div>
+  `;
+}
+
+function fechadoDiario() {
+  const hoje = humores[0];
+  const hojeInfo = hoje ? HUMORES.find(h => h.key === hoje.humor) : null;
+  return `
+    <div class="card-eyebrow">${ic('notebook-pen')} Seu diário</div>
+    <div class="card-titulo">Como você está hoje?</div>
+    <div class="card-corpo">
+      <div style="color:var(--gold);">${hojeInfo ? ic(hojeInfo.icon, 'ic-xl') : ic('circle-dashed','ic-lg')}</div>
+      <div class="card-convite">${marcarPalavras('Guarde como você se sente em cada momento desta jornada.')}</div>
+    </div>
+  `;
+}
+
+function fechadoMural() {
+  const strip = mural.slice(0, 8);
+  return `
+    <div class="card-eyebrow">${ic('images')} Mural de imagens</div>
+    <div class="card-titulo">${mural.length ? mural.length + ' foto(s) registradas' : 'Sua evolução, em fotos'}</div>
+    <div class="card-corpo">
+      ${strip.length ? `<div class="mural-strip">${strip.map(f => `<img src="${f.url}">`).join('')}</div>` : `<div class="card-convite">${marcarPalavras('Fotografe cada passo desta jornada — este mural é a memória viva da sua conquista.')}</div>`}
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────
+// MECANISMO DE EXPANSÃO — "janela nasce do card"
+// ─────────────────────────────────────────────────────────────
+
+let cardOrigemAtual = null;
+
+function abrirCard(key, origemEl) {
+  const overlay = document.getElementById('modal-overlay');
+  const win = document.getElementById('modal-window');
+  const inner = document.getElementById('modal-inner');
+
+  cardOrigemAtual = origemEl;
+  const r = origemEl.getBoundingClientRect();
+
+  win.style.display = 'block';
+  win.style.top = r.top + 'px';
+  win.style.left = r.left + 'px';
+  win.style.width = r.width + 'px';
+  win.style.height = r.height + 'px';
+  win.style.borderRadius = '24px';
+  inner.classList.remove('vis');
+  inner.innerHTML = '';
+
+  requestAnimationFrame(() => {
+    overlay.classList.add('vis');
+    const alvo = alvoExpandido();
+    void win.offsetWidth;
+    win.style.top = alvo.top + 'px';
+    win.style.left = alvo.left + 'px';
+    win.style.width = alvo.width + 'px';
+    win.style.height = alvo.height + 'px';
+    win.style.borderRadius = '28px';
+  });
+
+  setTimeout(() => {
+    inner.innerHTML = conteudoExpandido(key);
+    inner.classList.add('vis');
+    ligarEventosExpandido(key);
+    revelarPalavras(inner);
+    icons();
+  }, 480);
+
+  document.addEventListener('keydown', escFecha);
+  overlay.onclick = fecharExpandido;
+}
+
+function alvoExpandido() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const w = Math.min(780, vw - 48);
+  const h = Math.min(vh - 80, 660);
+  return { top: (vh - h) / 2, left: (vw - w) / 2, width: w, height: h };
+}
+
+function escFecha(e) { if (e.key === 'Escape') fecharExpandido(); }
+
+function fecharExpandido() {
+  const overlay = document.getElementById('modal-overlay');
+  const win = document.getElementById('modal-window');
+  const inner = document.getElementById('modal-inner');
+  inner.classList.remove('vis');
+  overlay.classList.remove('vis');
+
+  const origem = cardOrigemAtual;
+  setTimeout(() => {
+    if (origem) {
+      const r = origem.getBoundingClientRect();
+      win.style.top = r.top + 'px'; win.style.left = r.left + 'px';
+      win.style.width = r.width + 'px'; win.style.height = r.height + 'px';
+      win.style.borderRadius = '24px';
+    }
+  }, 20);
+
+  setTimeout(() => { win.style.display = 'none'; inner.innerHTML = ''; }, 520);
+  document.removeEventListener('keydown', escFecha);
+}
+
+function abrirDeNav(key, iconEl) { abrirCard(key, iconEl); }
+
+// ─────────────────────────────────────────────────────────────
+// CONTEÚDO EXPANDIDO — por card
+// ─────────────────────────────────────────────────────────────
+
+function conteudoExpandido(key) {
+  const mapa = {
+    hero: expandidoHero, sonhou: expandidoSonhou, ateaqui: expandidoAteAqui, gui: expandidoGui, chaves: expandidoChaves,
+    guiders: expandidoGuiders, parceiros: expandidoParceiros, glossario: expandidoGlossario,
+    diario: expandidoDiario, mural: expandidoMural, ajuda: expandidoAjuda,
+  };
+  const fn = mapa[key] || (() => '<p>Conteúdo indisponível.</p>');
+  return `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + fn();
+}
+
+function ligarEventosExpandido(key) {
+  document.querySelectorAll('#modal-inner .card-cta').forEach(b => b.addEventListener('click', () => popElastic(b)));
+  if (key === 'hero') ativarPilhaFases();
+  if (key === 'chaves') ligarChaves();
+  if (key === 'glossario') ligarGlossario();
+  if (key === 'diario') ligarDiario();
+  if (key === 'mural') ligarMural();
+  if (key === 'ateaqui') ligarAteAqui();
+  if (key === 'sonhou') ligarSonhou();
+}
+
+// ── "O que você sonhou" — flip das promessas, reveal escalonado, compartilhar, 1º acesso ──
+function ligarSonhou() {
+  // vira o cartão de promessa ao toque
+  document.querySelectorAll('#modal-inner .promessa-card').forEach(c =>
+    c.addEventListener('click', () => c.classList.toggle('flipped')));
+
+  // reveal escalonado conforme rola — baseado no scroll do modal (robusto em qualquer navegador)
+  const root = document.getElementById('modal-inner');
+  const alvos = [...document.querySelectorAll('#modal-inner .reveal')];
+  if (alvos.length) {
+    const revelarVisiveis = () => {
+      const rr = root.getBoundingClientRect();
+      alvos.forEach(a => {
+        if (a.classList.contains('vis')) return;
+        const r = a.getBoundingClientRect();
+        if (r.top < rr.bottom - 20) a.classList.add('vis');
+      });
+    };
+    root.addEventListener('scroll', revelarVisiveis, { passive: true });
+    requestAnimationFrame(revelarVisiveis);
+    // rede de segurança: nada fica invisível para sempre se o scroll não disparar
+    setTimeout(() => alvos.forEach(a => a.classList.add('vis')), 2500);
+  }
+
+  // carrossel manual das imagens de referência (setas + dots + arrastar + mouse sobre = rola de lado)
+  const carr = document.querySelector('#modal-inner .ref-carrossel');
+  if (carr) {
+    const vp = carr.querySelector('.ref-viewport');
+    const slides = [...carr.querySelectorAll('.ref-slide')];
+    const dots = [...document.querySelectorAll('#modal-inner .ref-dot')];
+    const irPara = (i) => { const s = slides[i]; if (s) vp.scrollTo({ left: s.offsetLeft - vp.offsetLeft, behavior: 'smooth' }); };
+    carr.querySelector('.ref-prev').addEventListener('click', () => vp.scrollBy({ left: -vp.clientWidth * 0.8, behavior: 'smooth' }));
+    carr.querySelector('.ref-next').addEventListener('click', () => vp.scrollBy({ left: vp.clientWidth * 0.8, behavior: 'smooth' }));
+    dots.forEach(d => d.addEventListener('click', () => irPara(+d.dataset.i)));
+    vp.addEventListener('scroll', () => {
+      const idx = Math.round(vp.scrollLeft / (vp.clientWidth * 0.8 || 1));
+      dots.forEach((d, i) => d.classList.toggle('ativo', i === Math.min(idx, dots.length - 1)));
+    }, { passive: true });
+    // com o mouse sobre o carrossel, a rolagem do mouse vira rolagem lateral (sem descer a página);
+    // ao tirar o mouse de cima, a rolagem vertical do modal volta a funcionar normalmente
+    vp.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
+        vp.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+  }
+
+  // jogo dos palpites — salva palpite/confirmação (por personagem) ao sair do campo
+  document.querySelectorAll('#modal-inner .palpite-input').forEach(inp =>
+    inp.addEventListener('change', () => salvarPalpite(inp)));
+
+  // botões de compartilhar → placeholder "em desenvolvimento"
+  document.querySelectorAll('#modal-inner [data-share]').forEach(b =>
+    b.addEventListener('click', () => mostrarEmDesenvolvimento(b.dataset.share)));
+
+  // primeiro acesso → leva ao card "Meu Projeto" para iniciar o briefing
+  const iniciar = document.getElementById('sonhou-iniciar');
+  if (iniciar) iniciar.addEventListener('click', () => { fecharExpandido(); setTimeout(() => abrirCard('hero', document.querySelector('.card-hero')), 550); });
+}
+
+// salva um palpite/confirmação do jogo (upsert por projeto+personagem)
+async function salvarPalpite(inp) {
+  const key = inp.dataset.key, campo = inp.dataset.campo, valor = inp.value.trim();
+  let reg = palpites.find(p => p.personagem_key === key);
+  if (!reg) { reg = { personagem_key: key, personagem_nome: inp.dataset.nome, personagem_tipo: inp.dataset.tipo }; palpites.push(reg); }
+  reg[campo] = valor;
+  if (usuarioAtual && usuarioAtual.email === 'demo@demo.com') { toast('Palpite guardado.'); return; }
+  const payload = {
+    projeto_id: projeto.id, personagem_key: key,
+    personagem_nome: inp.dataset.nome, personagem_tipo: inp.dataset.tipo,
+    [campo]: valor || null, atualizado_em: new Date().toISOString(),
+  };
+  const { error } = await sb.from('palpites_ambiente').upsert(payload, { onConflict: 'projeto_id,personagem_key' });
+  if (error) { toast('Não foi possível guardar o palpite agora.'); console.error(error); return; }
+  toast('Palpite guardado.');
+}
+
+// placeholder simples "em desenvolvimento" — o compartilhamento real virá em sessão dedicada
+function mostrarEmDesenvolvimento(tipo) {
+  const rotulos = {
+    'comunidade-perfil': 'Compartilhar seu perfil', 'comunidade-lar': 'Compartilhar seu novo lar', 'comunidade-pessoas': 'Conectar com vizinhos',
+    'insta-elemento': 'Escolher elementos', 'insta-frase': 'Frases prontas', 'insta-comp': 'Composição do post', 'insta-montar': 'Montar meu post',
+  };
+  const el = document.createElement('div');
+  el.className = 'mini-modal-overlay';
+  el.innerHTML = `
+    <div class="mini-modal-card">
+      <button class="mini-modal-close" aria-label="Fechar">${ic('x')}</button>
+      <div class="mini-modal-icone">${ic('rocket','ic-xl')}</div>
+      <div class="mini-modal-titulo">${rotulos[tipo] || 'Em breve'}</div>
+      <div class="mini-modal-texto">Esta forma de compartilhar está em desenvolvimento dedicado. Em breve você vai poder mostrar o seu sonho para o mundo.</div>
+      <div class="convite-selo">${ic('sparkles','ic-sm')} Em desenvolvimento dedicado</div>
+    </div>`;
+  document.body.appendChild(el);
+  icons();
+  requestAnimationFrame(() => el.classList.add('vis'));
+  const fechar = () => { el.classList.remove('vis'); setTimeout(() => el.remove(), 250); };
+  el.addEventListener('click', (e) => { if (e.target === el) fechar(); });
+  el.querySelector('.mini-modal-close').addEventListener('click', fechar);
+}
+
+// atalhos clicáveis do card "Sua Trajetória" — fecha esta janela e abre a de destino
+function ligarAteAqui() {
+  const btnDiario = document.getElementById('atalho-diario');
+  const btnMural = document.getElementById('atalho-mural');
+  if (btnDiario) btnDiario.addEventListener('click', () => { fecharExpandido(); setTimeout(() => abrirCard('diario', document.querySelector('.card-diario')), 550); });
+  if (btnMural) btnMural.addEventListener('click', () => { fecharExpandido(); setTimeout(() => abrirCard('mural', document.querySelector('.card-mural')), 550); });
+}
+
+// EFEITO "CARTÕES QUE EMPILHAM" — cada fase gruda no topo (sticky) e a seguinte sobe
+// por cima; as de baixo encolhem e escurecem. Roda no scroll do modal (#modal-inner).
+function ativarPilhaFases() {
+  const caixa = document.getElementById('modal-inner');
+  const folhas = [...document.querySelectorAll('#fases-pilha .fase-item')];
+  if (!caixa || !folhas.length) return;
+  const TOPO = 14;
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  // posição natural de cada folha (medida com o sticky desligado — senão o offsetTop mente)
+  const naturais = folhas.map(f => {
+    const antes = f.style.position;
+    f.style.position = 'static';
+    const y = f.offsetTop;
+    f.style.position = antes;
+    return y;
+  });
+
+  function passo() {
+    folhas.forEach((f, i) => {
+      const vao = f.offsetHeight + 16;
+      const preso = clamp((caixa.scrollTop + TOPO - naturais[i]) / vao, 0, 1);
+      f.style.transform = 'scale(' + (1 - preso * 0.06) + ')';
+      f.style.filter = 'brightness(' + (1 - preso * 0.4) + ')';
+      f.style.zIndex = i;
+    });
+  }
+  passo();
+  caixa.addEventListener('scroll', passo, { passive: true });
+}
+
+// ── Meu Projeto ──
+function expandidoHero() {
+  const { num } = infoFaseAtiva();
+  const videos = projeto.videos_explicativos || {};
+  return `
+    <div class="modal-eyebrow">${ic('layout-dashboard')} Meu Projeto</div>
+    <div class="modal-titulo">Acompanhe cada fase</div>
+    <div class="fases-pilha" id="fases-pilha">
+      ${FASES.map(f => renderFaseItem(f, num, videos)).join('')}
+    </div>
+  `;
+}
+
+function renderFaseItem(f, numAtual, videos) {
+  const txt = FASES_TEXTO[f.id];
+  const concluida = f.num < numAtual;
+  const atual = f.num === numAtual;
+  const liberada = f.num <= numAtual;
+  const cls = 'fase-item' + (concluida ? ' concluida' : '') + (atual ? ' atual' : '');
+  const status = concluida ? 'Concluído' : (atual ? 'Em andamento' : 'Em breve');
+  const acolhimento = concluida ? txt.concluida : (atual ? txt.atual : txt.futura);
+  const dataConcluida = f.tsField ? projeto[f.tsField] : null;
+  const prazoArquiteto = (projeto.prazos_etapas || {})[f.id];
+  let prazoHtml, prazoCls = 'fase-prazo';
+  if (concluida && dataConcluida) {
+    prazoHtml = `${ic('calendar-check', 'ic-sm')} Concluído em ${formatarData(dataConcluida)}`;
+  } else if (prazoArquiteto) {
+    prazoHtml = `${ic('calendar', 'ic-sm')} Prazo previsto: ${formatarData(prazoArquiteto)}`;
+  } else {
+    prazoCls += ' preparando';
+    prazoHtml = `${ic('calendar', 'ic-sm')} Estamos preparando este conteúdo com todo o cuidado para você.`;
+  }
+  const video = videos[f.id] ? `<div class="video-wrap"><iframe src="${videos[f.id]}" allowfullscreen></iframe></div>` : '';
+  return `
+    <div class="${cls}">
+      <div class="fase-icone">${ic(f.icon, 'ic-lg')}</div>
+      <div class="fase-corpo">
+        <div class="fase-nome-linha"><span class="fase-nome">${f.nome}</span><span class="fase-status-tag">${status}</span></div>
+        <div class="fase-explicacao">${txt.explicacao}</div>
+        ${acolhimento ? `<div class="fase-acolhimento">${acolhimento}</div>` : ''}
+        <div class="${prazoCls}">${prazoHtml}</div>
+        ${video}
+        ${liberada ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ── O que você sonhou ──
+// util: normaliza um campo que pode vir como array, escalar ou vazio
+function comoLista(v) { return Array.isArray(v) ? v : (v || v === 0 ? [v] : []); }
+
+// parse dos moradores/pets a partir das chaves planas mb-N-*  (pet tem espécie/porte/raça)
+function parseMembros(dados) {
+  const membros = {};
+  Object.keys(dados).forEach(k => {
+    const m = k.match(/^mb-(\d+)-(.+)$/);
+    if (m) { (membros[m[1]] = membros[m[1]] || {})[m[2]] = dados[k]; }
+  });
+  const humanos = [], pets = [];
+  Object.keys(membros).sort((a, b) => (+a) - (+b)).forEach(id => {
+    const mb = membros[id];
+    const ehPet = !!(mb.especie || mb.porte || mb.raca);
+    if (ehPet) pets.push({ id, key: 'mb-' + id, tipo: 'pet', nome: (mb.nome || '').trim(), especie: mb.especie || '' });
+    else humanos.push({ id, key: 'mb-' + id, tipo: 'humano', nome: (mb.nome || '').trim(), relacao: mb.relacao || '', primeiro: humanos.length === 0 });
+  });
+  return { humanos, pets };
+}
+
+// monta a lista curada de promessas (front = promessa / verso = o cuidado que a originou)
+function montarPromessas(dados) {
+  const out = [];
+  const push = (campo, valor) => {
+    const def = PROMESSAS[campo]; if (!def) return;
+    let item;
+    if (campo === 'paleta') {
+      const pal = PALETAS[valor];
+      if (pal) item = { p: `${pal.nome} — as cores que vão te representar.`, v: `Você escolheu a paleta ${pal.nome}. Ela conduz a atmosfera de cada ambiente.` };
+    } else if (def.valores && def.valores[valor]) {
+      item = def.valores[valor];
+    }
+    if (!item) item = def.fallback;
+    if (item) out.push({ icon: def.icon, p: item.p, v: item.v });
+  };
+  // ordem de impacto emocional
+  comoLista(dados['nao-quer']).slice(0, 3).forEach(v => push('nao-quer', v));
+  comoLista(dados['sensacao']).slice(0, 2).forEach(v => push('sensacao', v));
+  comoLista(dados['estilo']).slice(0, 1).forEach(v => push('estilo', v));
+  comoLista(dados['paleta']).slice(0, 1).forEach(v => push('paleta', v));
+  if ((dados['objetos-coração'] || '').toString().trim()) push('objetos-coração');
+  if ((dados['reutilizar-desc'] || '').toString().trim()) push('reutilizar-desc');
+  // família (com interpolação)
+  const { humanos, pets } = parseMembros(dados);
+  const petNome = (pets.find(p => p.nome) || {}).nome;
+  if (pets.length) {
+    const d = PROMESSAS_FAMILIA.pet;
+    const alvo = petNome ? `o ${petNome}` : (pets[0].especie ? `o seu ${pets[0].especie.toLowerCase()}` : 'o seu pet');
+    const alvoCap = alvo.charAt(0).toUpperCase() + alvo.slice(1);
+    out.push({ icon: d.icon, p: d.p.replace('{pet}', alvo), v: d.v.replace('{petCap}', alvoCap).replace('{pet}', alvo) });
+  }
+  if (humanos.length >= 2) {
+    const d = PROMESSAS_FAMILIA.moradores;
+    out.push({ icon: d.icon, p: d.p.replace('{moradores}', humanos.length), v: d.v.replace('{moradores}', humanos.length) });
+  }
+  return out;
+}
+
+// 1.1 — imagens de referência em carrossel navegável (controle manual, não a esteira da capa)
+function blocoReferencias(dados) {
+  const refs = (dados._uploads && dados._uploads['refs-prev']) || [];
+  if (!refs.length) return '';
+  const slides = refs.map(r => `<div class="ref-slide"><img src="${r.url}" alt="" loading="lazy"></div>`).join('');
+  const dots = refs.map((_, i) => `<span class="ref-dot ${i === 0 ? 'ativo' : ''}" data-i="${i}"></span>`).join('');
+  return `
+    <div class="traj-bloco-titulo">${ic('image','ic-sm')} Imagens de referência</div>
+    <div class="ref-carrossel">
+      <button class="ref-nav ref-prev" aria-label="Anterior">${ic('chevron-left','ic-md')}</button>
+      <div class="ref-viewport"><div class="ref-track">${slides}</div></div>
+      <button class="ref-nav ref-next" aria-label="Próxima">${ic('chevron-right','ic-md')}</button>
+    </div>
+    <div class="ref-dots">${dots}</div>
+  `;
+}
+
+// 1.2 — estilo arquitetônico escolhido (seção nobre, própria)
+function blocoEstilo(dados) {
+  const estilos = comoLista(dados['estilo']).map(k => ESTILOS[k] || k).filter(Boolean);
+  if (!estilos.length) return '';
+  const selos = estilos.map(nome => `
+    <div class="estilo-selo">
+      <div class="estilo-selo-icone">${ic('gem','ic-md')}</div>
+      <div class="estilo-selo-txt"><div class="estilo-selo-rot">Estilo escolhido</div><div class="estilo-selo-nome">${nome}</div></div>
+    </div>`).join('');
+  return `
+    <div class="traj-bloco-titulo">${ic('drafting-compass','ic-sm')} Estilo arquitetônico</div>
+    <div class="estilo-selos">${selos}</div>
+  `;
+}
+
+// 1.3 — paleta de cores (só cores, blocos de tamanhos variados, nomes poéticos)
+function blocoPaleta(dados) {
+  const paletaKeys = comoLista(dados['paleta']);
+  const larguras = [1.7, 1, 1.35, 0.85];
+  const grupos = paletaKeys.map(k => {
+    const pal = PALETAS[k]; if (!pal) return '';
+    const blocos = pal.cores.map((c, i) => `<div class="pp-bloco" style="flex:${larguras[i % larguras.length]};background:${c}"></div>`).join('');
+    return `<div class="pp-grupo"><div class="pp-linha">${blocos}</div><div class="pp-nome">${pal.nome}</div></div>`;
+  }).join('');
+  if (!grupos) return '';
+  return `
+    <div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>
+    <div class="paleta-poetica">${grupos}</div>
+  `;
+}
+
+// 1.4 — texturas (preenchimento por PADRÃO/material, distinto da paleta), coerentes com o estilo
+function blocoTexturas(dados) {
+  const estilos = comoLista(dados['estilo']);
+  let chaves = [];
+  estilos.forEach(e => { (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!chaves.includes(t)) chaves.push(t); }); });
+  if (!chaves.length) chaves = ['madeira', 'linho', 'pedra', 'verde'];
+  chaves = chaves.slice(0, 6);
+  const genericos = ['textura-1.jpg', 'textura-2.jpg']
+    .map(f => `<div class="textura-item"><img src="/assets/o-que-voce-sonhou/moodboard/${f}" alt="" onerror="this.parentElement.remove()"></div>`).join('');
+  const blocos = chaves.map(k => {
+    const t = TEXTURAS[k]; if (!t) return '';
+    return `<div class="textura-item textura-mat"><span class="textura-fill" style="background:${t.css}"></span><span class="textura-nome">${t.nome}</span></div>`;
+  }).join('');
+  return `
+    <div class="traj-bloco-titulo">${ic('layers','ic-sm')} Texturas e materiais</div>
+    <div class="textura-legenda">Os materiais que combinam com o seu estilo — na sua parede, no seu piso, na sua marcenaria.</div>
+    <div class="textura-row">${blocos}${genericos}</div>
+  `;
+}
+
+// 2 — demonstração da planta baixa (sem upload real por enquanto; pronto para receber o arquivo)
+function blocoPlanta() {
+  const url = projeto.planta_baixa_url;
+  return `
+    <div class="traj-bloco-titulo">${ic('scan','ic-sm')} A planta do seu imóvel</div>
+    ${url
+      ? `<div class="planta-demo tem-imagem"><img src="${url}" alt="Planta baixa"></div>`
+      : `<div class="planta-demo vazio">
+          <div class="planta-icone">${ic('ruler','ic-xl')}</div>
+          <div class="planta-texto">${marcarPalavras('Sua planta ainda não foi anexada. Assim que ela chegar até nós, vamos usá-la para tornar seu projeto ainda mais real.')}</div>
+        </div>`}
+  `;
+}
+
+// 3.2 — moodboard: flat-lay editorial (referência: amostras de material fotografadas sobre
+// fundo neutro, levemente sobrepostas, rotação mínima). Vegetação/mobiliário como acentos atrás.
+function montarMoodboard(dados) {
+  const refs = (dados._uploads && dados._uploads['refs-prev']) || [];
+  const paletaKeys = comoLista(dados['paleta']);
+  const cores = [];
+  paletaKeys.forEach(k => { if (PALETAS[k]) cores.push(...PALETAS[k].cores); });
+  const estilos = comoLista(dados['estilo']);
+  const texKeys = [];
+  estilos.forEach(e => (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!texKeys.includes(t)) texKeys.push(t); }));
+
+  // cluster compacto e centrado, poucas peças maiores, rotação mínima (clean, não "quadro de avisos")
+  const POS = [
+    { l: 6,  t: 4,  r: -2, z: 4,  w: 30 }, { l: 37, t: 0,  r: 2,  z: 6,  w: 27 },
+    { l: 63, t: 7,  r: -3, z: 5,  w: 27 }, { l: 15, t: 33, r: 3,  z: 8,  w: 29 },
+    { l: 43, t: 30, r: -2, z: 10, w: 31 }, { l: 71, t: 35, r: 3,  z: 7,  w: 25 },
+    { l: 25, t: 62, r: -3, z: 7,  w: 27 }, { l: 53, t: 64, r: 2,  z: 7,  w: 27 },
+  ];
+  let i = 0;
+  const pecas = [];
+  const posStyle = () => { const p = POS[i % POS.length]; i++; return `left:${p.l}%;top:${p.t}%;width:${p.w}%;z-index:${p.z};transform:rotate(${p.r}deg);`; };
+
+  refs.slice(0, 3).forEach(r => pecas.push(`<div class="mb-peca mb-foto" style="${posStyle()}"><img src="${r.url}" alt=""></div>`));
+  cores.slice(0, 3).forEach(c => pecas.push(`<div class="mb-peca mb-cor" style="${posStyle()}"><span style="background:${c}"></span></div>`));
+  texKeys.slice(0, 2).forEach(k => { const t = TEXTURAS[k]; if (t) pecas.push(`<div class="mb-peca mb-tex" style="${posStyle()}" title="${t.nome}"><span style="background:${t.css}"></span></div>`); });
+
+  // vegetação e mobiliário: acentos ilustrativos maiores, nas bordas, sem "passe-partout"
+  const ACENTOS = [{ l: -6, t: 8, r: -6, z: 2, w: 26 }, { l: 80, t: 46, r: 8, z: 2, w: 24 }];
+  let j = 0;
+  MOODBOARD_COMPONENTES.filter(f => f.startsWith('movel') || f.startsWith('planta')).slice(0, 2).forEach(f => {
+    const p = ACENTOS[j % ACENTOS.length]; j++;
+    pecas.push(`<div class="mb-peca mb-comp" style="left:${p.l}%;top:${p.t}%;width:${p.w}%;z-index:${p.z};transform:rotate(${p.r}deg);"><img src="/assets/o-que-voce-sonhou/moodboard/${f}" alt="" onerror="this.parentElement.remove()"></div>`);
+  });
+
+  return `<div class="moodboard-palco"><div class="moodboard-fundo"></div>${pecas.join('')}</div>`;
+}
+
+// 3.4 — "Quem divide esse sonho com você": JOGO DOS PALPITES (dado próprio do card, não do briefing)
+// registro do palpite (antes) e confirmação (depois que a fase Imagens é liberada).
+function palpiteDe(key) { return palpites.find(p => p.personagem_key === key) || {}; }
+
+function montarPalpites(dados) {
+  const { humanos, pets } = parseMembros(dados);
+  const personagens = [...humanos, ...pets];
+  if (!personagens.length) return '';
+  const imagensLiberada = (projeto.etapa_atual || 1) >= 3; // fase Imagens = etapa 3
+
+  const cartao = (m) => {
+    const ehPet = m.tipo === 'pet';
+    const primeiro = m.primeiro;
+    const nome = ehPet ? (m.nome || m.especie || 'seu pet') : (primeiro ? (m.nome || 'Você') : (m.nome || m.relacao || 'Morador'));
+    const papelCls = ehPet ? 'pet' : (primeiro ? 'voce' : 'humano');
+    const icone = ehPet ? 'paw-print' : (primeiro ? 'user-round' : 'user');
+    const reg = palpiteDe(m.key);
+    const nomeQuestao = primeiro ? (m.nome || 'você') : nome;
+
+    const perguntaAntes = ehPet
+      ? 'Qual você acha que vai ser o ambiente preferido do seu pet?'
+      : `Qual ambiente ${nomeQuestao} acha que será seu favorito?`;
+    const perguntaDepois = ehPet
+      ? 'E aí, qual foi mesmo o cantinho preferido dele?'
+      : `Agora que já viram as imagens, qual foi mesmo o ambiente favorito ${primeiro ? 'seu' : 'do(a) ' + nome}?`;
+
+    // revelação lado a lado quando ambos preenchidos
+    const revelacao = (reg.palpite && reg.confirmacao)
+      ? `<div class="palpite-revelacao">${ic('sparkles','ic-sm')} Palpite: <b>"${reg.palpite}"</b> · Na real: <b>"${reg.confirmacao}"</b></div>`
+      : '';
+
+    const obsPet = ehPet ? `<div class="palpite-obs">${ic('info','ic-sm')} Ah, mas esse só dá pra descobrir depois de tudo pronto. Mas volte aqui e registre se o seu palpite deu certo!</div>` : '';
+
+    const campoDepois = imagensLiberada
+      ? `<label class="palpite-campo">
+           <span class="palpite-label">${perguntaDepois}</span>
+           <input type="text" class="palpite-input" data-key="${m.key}" data-nome="${nome}" data-tipo="${m.tipo}" data-campo="confirmacao" placeholder="O ambiente favorito de verdade..." value="${(reg.confirmacao || '').replace(/"/g,'&quot;')}">
+         </label>`
+      : `<div class="palpite-travado">${ic('lock','ic-sm')} A confirmação abre quando as imagens do projeto forem liberadas. Guarde seu palpite!</div>`;
+
+    return `
+      <div class="palpite-card">
+        <div class="palpite-topo">
+          <div class="pers-avatar ${papelCls}">${ic(icone,'ic-md')}</div>
+          <div class="pers-nome">${nome}</div>
         </div>
+        ${obsPet}
+        <label class="palpite-campo">
+          <span class="palpite-label">${perguntaAntes}</span>
+          <input type="text" class="palpite-input" data-key="${m.key}" data-nome="${nome}" data-tipo="${m.tipo}" data-campo="palpite" placeholder="Ex.: a varanda, a cozinha, o home office..." value="${(reg.palpite || '').replace(/"/g,'&quot;')}">
+        </label>
+        ${campoDepois}
+        ${revelacao}
       </div>
     `;
-    
-    timeline.appendChild(wrap);
-  });
-  
-  // Atualizar progresso (etapas concluídas = etapaAtual - 1, ou seja, as já passadas)
-  const concluidas = Math.max(0, etapaAtual - 1);
-  document.getElementById('hub-progresso').textContent = `${concluidas} de ${ETAPAS.length} etapas concluídas`;
-  
-  // Render
-  document.getElementById('hub-content').innerHTML = '';
-  document.getElementById('hub-content').appendChild(timeline);
+  };
+
+  return `
+    <div class="traj-bloco-titulo">${ic('users','ic-sm')} Quem divide esse sonho com você</div>
+    <div class="palpite-instrucao">Registre seu palpite: qual será o ambiente favorito de cada um? Depois do projeto pronto, volte e descubra.</div>
+    <div class="palpite-lista ${personagens.length > 3 ? 'compacta' : ''}">${personagens.map(cartao).join('')}</div>
+  `;
 }
 
-function acessarEtapa(etapaId) {
-  const idx = ETAPAS.findIndex(e => e.id === etapaId);
-  const numEtapa = idx + 1;
-  if (idx !== -1 && numEtapa <= etapaAtual) {
-    window.location.href = ETAPAS[idx].url;
+function expandidoSonhou() {
+  const dados = bfDados();
+
+  // ── ESTADO PRIMEIRO ACESSO ──
+  if (!dados) {
+    const urls = imagensSonhou(null);
+    return `
+      <div class="modal-eyebrow">${ic('heart')} O que você sonhou</div>
+      <div class="modal-titulo">O seu sonho começa aqui</div>
+      ${marqueeSonhou(urls, 'grande')}
+      <p class="farol">${marcarPalavras('Aqui você vai poder ver o seu estilo, suas cores e as inspirações do seu lar reunidas num só lugar. Mas primeiro, precisamos conhecer o seu sonho.')}</p>
+      <button class="btn-primario" id="sonhou-iniciar">${ic('arrow-right','ic-sm')} Começar pelo Meu Projeto</button>
+    `;
   }
+
+  // ── ESTADO PREENCHIDO ──
+  const promessas = montarPromessas(dados);
+
+  const blocoMoodboard = `
+    <div class="traj-bloco-titulo">${ic('layout-panel-left','ic-sm')} O painel dos seus sonhos</div>
+    <div class="moodboard-legenda">Um moodboard montado com as suas referências, cores, texturas e o clima do seu estilo.</div>
+    ${montarMoodboard(dados)}
+  `;
+
+  const blocoPromessas = promessas.length ? `
+    <div class="traj-bloco-titulo">${ic('sparkles','ic-sm')} As nossas promessas para você</div>
+    <div class="promessa-legenda">Toque em cada uma para ver o cuidado por trás dela.</div>
+    <div class="promessa-grid">
+      ${promessas.map((pr, i) => `
+        <div class="promessa-card reveal" style="transition-delay:${i * 70}ms">
+          <div class="promessa-inner">
+            <div class="promessa-face promessa-front">
+              <div class="promessa-icone">${ic(pr.icon, 'ic-md')}</div>
+              <div class="promessa-texto">${pr.p}</div>
+              <div class="promessa-virar">${ic('rotate-cw','ic-sm')} o porquê</div>
+            </div>
+            <div class="promessa-face promessa-back">
+              <div class="promessa-back-texto">${pr.v}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+  ` : '';
+
+  return `
+    <div class="modal-eyebrow">${ic('heart')} O que você sonhou</div>
+    <div class="modal-titulo">O sonho, guardado em detalhes</div>
+    ${blocoReferencias(dados)}
+    ${blocoEstilo(dados)}
+    ${blocoPaleta(dados)}
+    ${blocoTexturas(dados)}
+    ${blocoPlanta()}
+    ${blocoMoodboard}
+    ${blocoPromessas}
+    ${montarPalpites(dados)}
+    ${blocoCompartilhar()}
+  `;
+}
+
+// 6 — dois cards de compartilhamento (estrutura visual pronta; publicação virá depois)
+function blocoCompartilhar() {
+  // 6.1 — Comunidade: convite forte com três motivos + linha final de direcionamento
+  const comunidade = `
+    <div class="share-card share-comunidade">
+      <div class="share-head">
+        <div class="share-icone">${ic('users','ic-lg')}</div>
+        <div class="share-titulo">Compartilhar na Comunidade</div>
+      </div>
+      <div class="share-motivos">
+        <button class="share-motivo" data-share="comunidade-perfil">
+          <div class="share-motivo-txt">Que tal compartilhar seu perfil arquitetônico na comunidade Guide? Bom para acrescentar personalidade e trocar dicas com quem vive o mesmo momento que você.</div>
+          ${ic('arrow-right','ic-sm')}
+        </button>
+        <button class="share-motivo" data-share="comunidade-lar">
+          <div class="share-motivo-txt">Vamos compartilhar o que você espera do seu novo lar?</div>
+          ${ic('arrow-right','ic-sm')}
+        </button>
+        <button class="share-motivo" data-share="comunidade-pessoas">
+          <div class="share-motivo-txt">Quer compartilhar as pessoas que vão dividir esse momento? Se encontrar gente do seu condomínio, já vai saber quem serão seus vizinhos. Vamos conectar!</div>
+          ${ic('arrow-right','ic-sm')}
+        </button>
+      </div>
+      <div class="share-rodape">${ic('compass','ic-sm')} Descubra o que mais você pode encontrar e compartilhar acessando o card <b>Comunidade</b> no seu painel.</div>
+    </div>
+  `;
+
+  // 6.2 — Instagram "Monte seu post": layout do builder (visual ativo; geração virá depois)
+  const chipsElementos = ['Moodboard', 'Paleta', 'Referências', 'Frase pronta']
+    .map((t, i) => `<button class="insta-chip ${i < 2 ? 'ativo' : ''}" data-share="insta-elemento">${ic('plus','ic-sm')} ${t}</button>`).join('');
+  const frasesChips = FRASES_INSTA.map(f => `<button class="insta-frase" data-share="insta-frase">${f}</button>`).join('');
+  const instagram = `
+    <div class="share-card share-insta">
+      <div class="share-head">
+        <div class="share-icone">${ic('instagram','ic-lg')}</div>
+        <div class="share-titulo">Compartilhar no Instagram — Monte seu post</div>
+      </div>
+      <div class="share-texto">${marcarPalavras("Monte o seu story com o seu moodboard, sua paleta e frases prontas como 'vem aí...' ou 'sonho carregando...'. Ou recrie aquele clima de escritório de arquitetura — seu moodboard sobre a mesa, cafezinho ao lado — tudo pronto pra postar, com a marca Guide.")}</div>
+
+      <div class="insta-builder">
+        <div class="insta-coluna">
+          <div class="insta-sub">Elementos</div>
+          <div class="insta-chips">${chipsElementos}</div>
+          <div class="insta-sub">Frases prontas</div>
+          <div class="insta-frases">${frasesChips}</div>
+          <div class="insta-sub">Composição</div>
+          <div class="insta-composicoes">
+            <button class="insta-comp ativo" data-share="insta-comp">
+              <div class="insta-comp-nome">${ic('image','ic-sm')} Versão crua</div>
+              <div class="insta-comp-desc">Moodboard, paleta e referências direto, com frase pronta.</div>
+            </button>
+            <button class="insta-comp" data-share="insta-comp">
+              <div class="insta-comp-nome">${ic('coffee','ic-sm')} Versão escritório</div>
+              <div class="insta-comp-desc">Seu moodboard sobre a mesa, cafezinho ao lado — o clima do ateliê.</div>
+            </button>
+          </div>
+        </div>
+        <div class="insta-preview">
+          <div class="insta-story">
+            <div class="insta-story-frase">vem aí...</div>
+            <div class="insta-story-board">${ic('layout-panel-left','ic-lg')}</div>
+            <div class="insta-watermark">${ic('hexagon','ic-sm')} Guide</div>
+          </div>
+          <div class="insta-story-rotulo">Story · 9:16</div>
+        </div>
+      </div>
+
+      <button class="btn-primario insta-cta" data-share="insta-montar">${ic('wand-sparkles','ic-sm')} Montar meu post</button>
+    </div>
+  `;
+
+  return `
+    <div class="traj-bloco-titulo">${ic('share-2','ic-sm')} Compartilhe esse momento</div>
+    ${comunidade}
+    ${instagram}
+  `;
+}
+
+// ── Sua Trajetória (ex-"Até aqui") ──
+function expandidoAteAqui() {
+  const { num } = infoFaseAtiva();
+  const itens = montarTimeline();
+
+  // contadores sempre visíveis, mesmo em zero
+  const dias = projeto.criado_em ? Math.max(0, Math.floor((Date.now() - new Date(projeto.criado_em)) / 86400000)) : 0;
+  const decisoes = contarDecisoes();
+  const revisoes = projeto.revisoes_por_etapa || {};
+
+  let concluidasVistas = 0;
+  const linhas = itens.map((item) => {
+    let frase = '';
+    if (item.tipo === 'concluida') {
+      frase = concluidasVistas === 0 ? 'Aqui você deu o melhor passo para conduzir sua reforma.' : 'Cada etapa vencida te aproxima do seu lar.';
+      concluidasVistas++;
+    } else if (item.tipo === 'atual') {
+      frase = 'Você está exatamente onde precisa estar. Siga no seu ritmo.';
+    }
+    return `
+      <div class="mini-timeline-item" style="font-size:var(--fs-base);"><span class="dot" style="${item.tipo==='atual' ? 'background:var(--gold);box-shadow:0 0 8px var(--gold)' : ''}"></span><strong style="color:var(--white);font-weight:500;margin-right:8px;">${item.data ? formatarData(item.data) : ''}</strong> ${item.label}</div>
+      <div class="timeline-item-frase">${frase}</div>
+    `;
+  }).join('');
+
+  return `
+    <div class="modal-eyebrow">${ic('trending-up')} Até aqui</div>
+    <div class="modal-titulo">Sua Trajetória</div>
+
+    ${aneisProgresso(num, 96)}
+
+    <div class="traj-contadores">
+      <div class="traj-contador-item">
+        <div class="tc-num">${dias}</div>
+        <div class="tc-label">${ic('calendar-days','ic-sm')} Você está com a Guide há <b>${dias}</b> dia${dias === 1 ? '' : 's'}.</div>
+      </div>
+      <div class="traj-contador-item">
+        <div class="tc-num">${decisoes}</div>
+        <div class="tc-label">${ic('check-circle-2','ic-sm')} Você já tomou <b>${decisoes}</b> decisõe${decisoes === 1 ? '' : 's'} importante${decisoes === 1 ? '' : 's'} para o seu projeto.</div>
+      </div>
+    </div>
+
+    <div class="traj-bloco-titulo">${ic('repeat','ic-sm')} Revisões por etapa</div>
+    <div class="traj-revisoes">
+      ${FASES.filter(f => ['layout','imagens','executivo'].includes(f.id)).map(f => {
+        const usadas = Math.min(2, revisoes[f.id] || 0);
+        return `<div class="traj-revisao-item"><span>${f.nome}</span><span class="traj-revisao-badge">${usadas} de 2</span></div>`;
+      }).join('')}
+    </div>
+
+    <div class="traj-bloco-titulo">${ic('bookmark','ic-sm')} Seus registros</div>
+    <div class="traj-atalhos">
+      <button class="traj-atalho" id="atalho-diario">
+        ${ic('notebook-pen','ic-md')}
+        <div>
+          <div class="ta-titulo">${humores.length ? `${humores.length} registro${humores.length === 1 ? '' : 's'} no diário` : 'Nenhum registro no diário ainda'}</div>
+          <div class="ta-sub">${humores.length ? 'Reveja como você se sentiu em cada etapa.' : 'Que tal registrar como você está se sentindo hoje?'}</div>
+        </div>
+        ${ic('arrow-right','ic-sm')}
+      </button>
+      <button class="traj-atalho" id="atalho-mural">
+        ${ic('images','ic-md')}
+        <div>
+          <div class="ta-titulo">${mural.length ? `${mural.length} foto${mural.length === 1 ? '' : 's'} no mural` : 'Nenhuma foto no mural ainda'}</div>
+          <div class="ta-sub">${mural.length ? 'Reviva cada momento registrado.' : 'Comece a fotografar sua evolução.'}</div>
+        </div>
+        ${ic('arrow-right','ic-sm')}
+      </button>
+    </div>
+
+    <div class="traj-bloco-titulo">${ic('calendar-clock','ic-sm')} Próximos 7 dias</div>
+    <p class="traj-previsao">${marcarPalavras(previsao7dias())}</p>
+
+    <div class="traj-bloco-titulo">${ic('map','ic-sm')} Linha do tempo</div>
+    <div>${linhas}</div>
+
+    <div class="timeline-rodape">${marcarPalavras('Seu projeto avança em um ritmo só seu — e está tudo certo assim.')}</div>
+  `;
+}
+
+// ── Gui (assistente) — convite caprichado ──
+function expandidoGui() {
+  return `
+    <div class="convite-hero">
+      <img src="/assets/character-1.png" alt="Gui" style="width:120px;height:auto;margin:0 auto 20px;display:block;filter:drop-shadow(0 12px 26px rgba(0,0,0,0.45));">
+      <div class="convite-titulo">Eu sou o Gui, seu assistente.</div>
+      <div class="convite-texto">${marcarPalavras('Em breve vou poder tirar suas dúvidas, te lembrar de prazos e te ajudar a entender cada etapa do seu projeto — a qualquer hora.')}</div>
+      <div class="convite-selo">${ic('sparkles','ic-sm')} Em desenvolvimento dedicado</div>
+    </div>
+  `;
+}
+
+// ── Rumo às chaves ──
+function expandidoChaves() {
+  return `
+    <div class="modal-eyebrow">${ic('key')} Rumo às chaves</div>
+    <div class="modal-titulo">O caminho até a virada da chave</div>
+    <p class="farol">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu.')}</p>
+    ${MARCOS_DEF.map((m,i) => {
+      const val = marcos && marcos[m.campo];
+      return `
+        <div class="marco-item ${val ? 'feito':''}">
+          <div class="marco-topo">
+            <div class="marco-check">${ic('check','ic-sm')}</div>
+            <div class="marco-nome">${m.nome}</div>
+          </div>
+          <div class="marco-explicacao">${m.explicacao}</div>
+          <div class="marco-conforto">${m.conforto}</div>
+          <div class="marco-data-wrap">
+            ${ic('calendar','ic-sm')}
+            <input type="date" class="marco-data-input" data-campo="${m.campo}" value="${paraInputDate(val)}">
+          </div>
+          ${m.campo === 'inicio_reforma_em' ? `<div class="marco-obra-link"><a href="/obra">Agora siga pelo acompanhamento da obra, onde poderá acompanhar cada etapa dentro do seu cronograma. ${ic('arrow-right','ic-sm')}</a></div>` : ''}
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function ligarChaves() {
+  document.querySelectorAll('#modal-inner .marco-data-input').forEach(inp => {
+    inp.addEventListener('change', async () => {
+      const campo = inp.dataset.campo;
+      const valor = inp.value ? new Date(inp.value).toISOString() : null;
+      const payload = { projeto_id: projeto.id, [campo]: valor, atualizado_em: new Date().toISOString() };
+      const { data, error } = await sb.from('marcos_pos_chaves').upsert(payload, { onConflict: 'projeto_id' }).select().single();
+      if (error) { toast('Não foi possível salvar esta data agora.'); console.error(error); return; }
+      marcos = data;
+      toast('Data salva.');
+      renderBento();
+      document.getElementById('modal-inner').innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoChaves();
+      ligarChaves();
+      icons();
+    });
+  });
+}
+
+// ── Guiders (comunidade) — convite caprichado ──
+function expandidoGuiders() {
+  return `
+    <div class="convite-hero">
+      <div class="convite-icone">${ic('users', 'ic-xl')}</div>
+      <div class="convite-titulo">Guiders</div>
+      <div class="convite-texto">${marcarPalavras('Em breve você vai poder se conectar com outros Guiders, trocar experiências e acompanhar transformações reais — algumas do seu próprio condomínio.')}</div>
+      <div class="convite-selo">${ic('sparkles','ic-sm')} Em desenvolvimento dedicado</div>
+    </div>
+  `;
+}
+
+// ── Parceiros — convite caprichado ──
+function expandidoParceiros() {
+  return `
+    <div class="convite-hero">
+      <div class="convite-icone">${ic('handshake', 'ic-xl')}</div>
+      <div class="convite-titulo">Parceiros Guide</div>
+      <div class="convite-texto">${marcarPalavras('Estamos reunindo fornecedores e prestadores de confiança para facilitar cada etapa da sua reforma. Em breve, tudo o que você precisa em um só lugar.')}</div>
+      <div class="convite-selo">${ic('sparkles','ic-sm')} Em desenvolvimento dedicado</div>
+    </div>
+  `;
+}
+
+// ── Glossário + Quiz ──
+function expandidoGlossario() {
+  return `
+    <div class="modal-eyebrow">${ic('book-open')} Glossário</div>
+    <div class="modal-titulo">Fale a língua do seu projeto</div>
+    <div class="tab-switch">
+      <button class="tab-btn ${glossarioAba==='termos'?'ativa':''}" data-aba="termos">${ic('book-open','ic-sm')} Termos</button>
+      <button class="tab-btn ${glossarioAba==='quiz'?'ativa':''}" data-aba="quiz">${ic('help-circle','ic-sm')} Quiz</button>
+    </div>
+    <div id="glossario-conteudo">${glossarioAba === 'termos' ? renderTermos() : renderQuiz()}</div>
+  `;
+}
+
+function renderTermos() {
+  return `<div class="glossario-grid">${glossario.map((g,i) => `
+    <div class="flip-card" data-id="${g.id||i}">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">${g.termo}</div>
+        <div class="flip-face flip-back">${g.explicacao}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderQuiz() {
+  if (quizIndex >= QUIZ.length) {
+    return `
+      <div class="quiz-card" style="text-align:center;">
+        <div style="color:var(--gold);margin-bottom:12px;">${ic('trophy','ic-xl')}</div>
+        <div class="quiz-pergunta">Você acertou ${quizAcertos} de ${QUIZ.length}!</div>
+        <div class="quiz-feedback">Agora você já fala a língua do seu projeto. A Guide está aqui para guiar cada passo.</div>
+        <button class="card-cta" id="btn-quiz-reiniciar" style="margin-top:16px;">Refazer quiz ${ic('arrow-right')}</button>
+      </div>
+    `;
+  }
+  const q = QUIZ[quizIndex];
+  return `
+    <div class="quiz-card">
+      <div class="quiz-progresso">Pergunta ${quizIndex+1} de ${QUIZ.length}</div>
+      <div class="quiz-pergunta">${q.pergunta}</div>
+      ${q.opcoes.map((op,i) => `<button class="quiz-opcao" data-i="${i}">${op}</button>`).join('')}
+      <div class="quiz-feedback" id="quiz-feedback" style="display:none;"></div>
+    </div>
+  `;
+}
+
+function ligarGlossario() {
+  document.querySelectorAll('#modal-inner .tab-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      glossarioAba = b.dataset.aba;
+      document.getElementById('modal-inner').innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoGlossario();
+      ligarGlossario();
+      icons();
+    });
+  });
+  document.querySelectorAll('#modal-inner .flip-card').forEach(c => c.addEventListener('click', () => c.classList.toggle('flipped')));
+  ligarQuizOpcoes();
+}
+
+function ligarQuizOpcoes() {
+  document.querySelectorAll('#modal-inner .quiz-opcao').forEach(b => {
+    b.addEventListener('click', () => {
+      if (b.disabled) return;
+      const opcoes = document.querySelectorAll('#modal-inner .quiz-opcao');
+      opcoes.forEach(o => o.disabled = true);
+      const i = parseInt(b.dataset.i, 10);
+      const q = QUIZ[quizIndex];
+      const feedback = document.getElementById('quiz-feedback');
+      if (i === q.correta) {
+        b.classList.add('correta');
+        quizAcertos++;
+        feedback.textContent = 'Isso mesmo! ' + q.opcoes[q.correta] + '.';
+      } else {
+        b.classList.add('errada');
+        opcoes[q.correta].classList.add('correta');
+        feedback.textContent = 'A resposta certa é: ' + q.opcoes[q.correta] + '.';
+      }
+      feedback.style.display = 'block';
+      setTimeout(() => {
+        quizIndex++;
+        document.getElementById('glossario-conteudo').innerHTML = renderQuiz();
+        ligarQuizOpcoes();
+        const reiniciar = document.getElementById('btn-quiz-reiniciar');
+        if (reiniciar) reiniciar.addEventListener('click', () => { quizIndex = 0; quizAcertos = 0; document.getElementById('glossario-conteudo').innerHTML = renderQuiz(); ligarQuizOpcoes(); });
+        icons();
+      }, 1400);
+    });
+  });
+}
+
+// ── Seu diário ──
+function expandidoDiario() {
+  return `
+    <div class="modal-eyebrow">${ic('notebook-pen')} Seu diário</div>
+    <div class="modal-titulo">Como você está se sentindo hoje?</div>
+    <div class="humor-explicacao">Este é o seu espaço para registrar como você se sente ao longo de toda a jornada — da compra à entrega das chaves. A cada momento importante, deixe aqui uma marca do que está sentindo.</div>
+    <div class="humor-emocional">${marcarPalavras('Registrar suas emoções e revisitá-las depois tem um poder real: quando você olha para trás e percebe que superou a ansiedade de uma fase, isso te motiva a seguir em frente. Acompanhar esse ciclo é acompanhar a construção não só do seu lar, mas da sua própria história com ele.')}</div>
+    <div class="humor-opcoes" id="humor-opcoes">
+      ${HUMORES.map(h => `<div class="humor-btn" data-humor="${h.key}">${ic(h.icon,'ic-lg')}<span>${h.label}</span></div>`).join('')}
+    </div>
+    <div class="humor-historico-titulo">Seu histórico</div>
+    <div id="humor-historico">${renderHumorHistorico()}</div>
+  `;
+}
+
+function renderHumorHistorico() {
+  if (!humores.length) return `<div class="card-convite">Nenhum registro ainda — comece hoje.</div>`;
+  return humores.map(h => {
+    const info = HUMORES.find(x => x.key === h.humor) || HUMORES[2];
+    return `<div class="humor-hist-item">${ic(info.icon,'ic-sm')} <span>${info.label}</span><span class="hi-data">${formatarData(h.registrado_em)}</span></div>`;
+  }).join('');
+}
+
+function ligarDiario() {
+  document.querySelectorAll('#humor-opcoes .humor-btn').forEach(b => {
+    b.addEventListener('click', async () => {
+      popElastic(b);
+      const humor = b.dataset.humor;
+      const { error } = await sb.from('diario_humor').insert({ projeto_id: projeto.id, humor });
+      if (error) { toast('Não foi possível registrar agora.'); console.error(error); return; }
+      humores.unshift({ humor, registrado_em: new Date().toISOString() });
+      document.getElementById('humor-historico').innerHTML = renderHumorHistorico();
+      icons();
+      renderBento();
+      toast('Registrado — obrigado por compartilhar.');
+    });
+  });
+}
+
+// ── Mural de imagens ──
+function expandidoMural() {
+  return `
+    <div class="modal-eyebrow">${ic('images')} Mural de imagens</div>
+    <div class="modal-titulo">A memória viva da sua conquista</div>
+    <p class="farol">${marcarPalavras('Fotografe cada passo desta jornada: as paredes cruas, a primeira parede pintada, o dia da mudança. Um dia você vai olhar para trás e ver, foto por foto, como transformou um espaço vazio no seu lar.')}</p>
+    <div class="mural-form">
+      <input type="text" class="input-generico" id="mural-legenda" placeholder="Uma legenda para este momento...">
+      <label class="mural-upload-btn">${ic('image-plus','ic-sm')} Adicionar foto<input type="file" accept="image/*" id="mural-input-arquivo" style="display:none;"></label>
+    </div>
+    <div class="mural-grid" id="mural-grid">${renderMuralGrid()}</div>
+  `;
+}
+
+function renderMuralGrid() {
+  if (!mural.length) return `<div class="card-convite">${marcarPalavras('Nenhuma foto ainda — comece registrando o primeiro momento.')}</div>`;
+  return mural.map(f => `
+    <div class="mural-item">
+      <img src="${f.url}">
+      <div class="mural-item-corpo">
+        <div class="mural-item-legenda">${f.legenda || 'Sem legenda'}</div>
+        <div class="mural-item-data">${formatarData(f.criado_em)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function ligarMural() {
+  const input = document.getElementById('mural-input-arquivo');
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    toast('Enviando foto...');
+    const legenda = document.getElementById('mural-legenda').value.trim();
+    const seguro = file.name.replace(/[^\w.\-]/g, '_');
+    const path = `mural/${projeto.id}/${Date.now()}_${seguro}`;
+    const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type });
+    if (upErr) { toast('Não foi possível enviar a foto.'); console.error(upErr); return; }
+    const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
+    const { data, error } = await sb.from('mural_fotos').insert({ projeto_id: projeto.id, url: urlData.publicUrl, legenda: legenda || null }).select().single();
+    if (error) { toast('Não foi possível salvar a foto.'); console.error(error); return; }
+    mural.unshift(data);
+    document.getElementById('mural-grid').innerHTML = renderMuralGrid();
+    document.getElementById('mural-legenda').value = '';
+    input.value = '';
+    renderBento();
+    toast('Foto adicionada ao mural.');
+  });
+}
+
+// ── Conta e ajuda ──
+function expandidoAjuda() {
+  const dados = bfDados() || {};
+  const temPrazo = dados['tem-prazo'];
+  return `
+    <div class="modal-eyebrow">${ic('settings')} Conta e ajuda</div>
+    <div class="modal-titulo">Tudo sobre sua conta</div>
+    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('badge-check','ic-sm')} Plano contratado</div><div class="conta-bloco-corpo">${projeto.plano || 'Fale com a Guide para confirmar seu plano.'}</div></div>
+    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('calendar','ic-sm')} Prazos</div><div class="conta-bloco-corpo">${temPrazo ? `Data limite: ${dados['prazo-data'] || '—'}${dados['prazo-motivo'] ? ' · ' + dados['prazo-motivo'] : ''}` : 'Nenhum prazo específico registrado.'}</div></div>
+    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('life-buoy','ic-sm')} Central de ajuda</div><div class="conta-bloco-corpo">Dúvidas sobre qualquer etapa? Fale direto com a equipe Guide pelos canais abaixo.</div></div>
+    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('shield-check','ic-sm')} Política e privacidade</div><div class="conta-bloco-corpo">Seus dados de briefing, diário e mural são privados entre você e a Guide — nunca compartilhados com terceiros.</div></div>
+    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('mail','ic-sm')} Contato</div><div class="conta-bloco-corpo"><a href="mailto:contato@guidearquitetura.com.br">contato@guidearquitetura.com.br</a><br><a href="https://instagram.com/guidearquitetura" target="_blank" rel="noopener">@guidearquitetura</a></div></div>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────
+// HEADER
+// ─────────────────────────────────────────────────────────────
+
+function ligarHeader() {
+  document.getElementById('btn-inicio').addEventListener('click', () => { fecharExpandido(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  const painelNotif = document.getElementById('painel-notif');
+  document.getElementById('btn-notif').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const pendencia = calcularPendencia();
+    painelNotif.innerHTML = pendencia
+      ? `<div class="dropdown-item" style="cursor:default;">${ic('bell-ring','ic-sm')} ${pendencia}</div>`
+      : `<div class="dropdown-vazio">${ic('bell-off','ic-sm')} Nenhuma novidade por enquanto.</div>`;
+    icons();
+    fecharOutrosPaineis(painelNotif);
+    painelNotif.classList.toggle('vis');
+  });
+
+  const painelPerfil = document.getElementById('painel-perfil');
+  document.getElementById('btn-perfil').addEventListener('click', (e) => {
+    e.stopPropagation();
+    painelPerfil.innerHTML = `
+      <div class="dropdown-perfil-nome">${projeto.nome_cliente || 'Cliente Guide'}</div>
+      <div class="dropdown-perfil-email">${usuarioAtual.email}</div>
+      <div class="dropdown-sep"></div>
+      <button class="dropdown-item" id="item-conta-ajuda">${ic('life-buoy','ic-sm')} Conta e ajuda</button>
+      <button class="dropdown-item" onclick="fazerLogout()">${ic('log-out','ic-sm')} Sair</button>
+    `;
+    icons();
+    fecharOutrosPaineis(painelPerfil);
+    painelPerfil.classList.toggle('vis');
+    document.getElementById('item-conta-ajuda').addEventListener('click', () => { painelPerfil.classList.remove('vis'); abrirDeNav('ajuda', document.getElementById('btn-perfil')); });
+  });
+
+  document.getElementById('btn-config').addEventListener('click', () => abrirDeNav('ajuda', document.getElementById('btn-config')));
+
+  document.addEventListener('click', () => { painelNotif.classList.remove('vis'); painelPerfil.classList.remove('vis'); });
+}
+function fecharOutrosPaineis(exceto) {
+  document.querySelectorAll('.dropdown-panel').forEach(p => { if (p !== exceto) p.classList.remove('vis'); });
 }
 
 async function fazerLogout() {
   const { error } = await sb.auth.signOut();
-  if (error) {
-    mostrarErro('Erro ao sair. Tente novamente.');
-    return;
-  }
+  if (error) { toast('Erro ao sair. Tente novamente.'); return; }
   window.location.href = '/login';
 }
 
-function mostrarErro(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('vis');
-  setTimeout(() => toast.classList.remove('vis'), 4000);
+// ─────────────────────────────────────────────────────────────
+// EFEITOS DE REFINAMENTO
+// ─────────────────────────────────────────────────────────────
+
+function initEfeitos() {
+  const suportaHover = window.matchMedia('(hover: hover)').matches;
+  if (suportaHover) {
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--x', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--y', (e.clientY - r.top) + 'px');
+      });
+    });
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+      const alvoInterativo = e.target.closest('.card, button, a, .humor-btn, .flip-card, .quiz-opcao');
+      ring.classList.toggle('on-interactive', !!alvoInterativo);
+    });
+    (function loop() {
+      rx += (mx - rx) * 0.15; ry += (my - ry) * 0.15;
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(loop);
+    })();
+  } else {
+    document.getElementById('cursor-dot').style.display = 'none';
+    document.getElementById('cursor-ring').style.display = 'none';
+  }
 }
 
 // Iniciar

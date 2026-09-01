@@ -713,6 +713,16 @@ html,body{background:var(--black);color:var(--off);font-family:"Outfit",sans-ser
     </div>
     <div class="upload-preview" id="refs-prev"></div>
   </div>
+  <div style="margin-top:20px;">
+    <label class="campo-label" style="font-size:11px;color:var(--muted);">Fotos do seu apartamento hoje (como ele está agora, sem reforma)</label>
+    <div class="upload-area" style="margin-top:6px;">
+      <input type="file" accept="image/*" multiple onchange="handleUpload(this,'apartamento-bruto-prev')">
+      <span class="upload-icon">🖼</span>
+      <div class="upload-txt">Envie fotos do apartamento atual</div>
+      <div class="upload-sub">Até 10 imagens · JPG ou PNG</div>
+    </div>
+    <div class="upload-preview" id="apartamento-bruto-prev"></div>
+  </div>
 </div>
 </div>
 <div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(9)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(11)">Próximo →</button></div>

@@ -239,6 +239,66 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
         </div>
         <button class="btn-salvar" onclick="salvarDados()">Salvar Dados</button>
       </div>
+
+      <div class="secao">
+        <div class="secao-titulo">Prazos das etapas</div>
+        <div class="secao-desc">Data prevista de entrega/próxima emissão de cada etapa. Aparece para o cliente no card "Meu Projeto", ao lado do ícone de calendário de cada fase.</div>
+        <div class="campo-row">
+          <div class="campo">
+            <label class="campo-label">Briefing</label>
+            <input type="date" class="campo-input" id="prazo-briefing">
+          </div>
+          <div class="campo">
+            <label class="campo-label">Layout</label>
+            <input type="date" class="campo-input" id="prazo-layout">
+          </div>
+        </div>
+        <div class="campo-row">
+          <div class="campo">
+            <label class="campo-label">Imagens 3D</label>
+            <input type="date" class="campo-input" id="prazo-imagens">
+          </div>
+          <div class="campo">
+            <label class="campo-label">Executivo</label>
+            <input type="date" class="campo-input" id="prazo-executivo">
+          </div>
+        </div>
+        <div class="campo">
+          <label class="campo-label">Obra</label>
+          <input type="date" class="campo-input" id="prazo-obra">
+        </div>
+        <button class="btn-salvar" onclick="salvarPrazos()">Salvar Prazos</button>
+      </div>
+
+      <div class="secao">
+        <div class="secao-titulo">Progresso da obra</div>
+        <div class="secao-desc">% de avanço da obra — alimenta o anel "Obra" no card "Meu Projeto" do cliente. Só aparece para o cliente quando a etapa atual chegar em Obra.</div>
+        <div class="campo">
+          <label class="campo-label">Progresso (%)</label>
+          <input type="number" min="0" max="100" class="campo-input" id="obra-progresso-pct">
+        </div>
+        <button class="btn-salvar" onclick="salvarObraProgresso()">Salvar Progresso da Obra</button>
+      </div>
+
+      <div class="secao">
+        <div class="secao-titulo">Revisões por etapa</div>
+        <div class="secao-desc">Quantas revisões o cliente já solicitou em cada etapa. Aparece no card "Sua Trajetória" com um limite visual de 2 por etapa.</div>
+        <div class="campo-row">
+          <div class="campo">
+            <label class="campo-label">Layout</label>
+            <input type="number" min="0" class="campo-input" id="revisao-layout">
+          </div>
+          <div class="campo">
+            <label class="campo-label">Imagens 3D</label>
+            <input type="number" min="0" class="campo-input" id="revisao-imagens">
+          </div>
+        </div>
+        <div class="campo">
+          <label class="campo-label">Executivo</label>
+          <input type="number" min="0" class="campo-input" id="revisao-executivo">
+        </div>
+        <button class="btn-salvar" onclick="salvarRevisoes()">Salvar Revisões</button>
+      </div>
     </div>
 
     <!-- ABA AMBIENTES -->
@@ -407,6 +467,17 @@ function preencherDados() {
   document.getElementById('dado-plano').value = projeto.plano || '';
   document.getElementById('dado-endereco').value = projeto.endereco || '';
   document.getElementById('etapa-select').value = projeto.etapa_atual || 1;
+  const prazos = projeto.prazos_etapas || {};
+  ['briefing','layout','imagens','executivo','obra'].forEach(id => {
+    const el = document.getElementById('prazo-' + id);
+    if (el) el.value = prazos[id] || '';
+  });
+  document.getElementById('obra-progresso-pct').value = projeto.obra_progresso_pct || 0;
+  const revisoes = projeto.revisoes_por_etapa || {};
+  ['layout','imagens','executivo'].forEach(id => {
+    const el = document.getElementById('revisao-' + id);
+    if (el) el.value = revisoes[id] || 0;
+  });
 }
 
 // TROCAR ABA
@@ -583,6 +654,38 @@ async function salvarDados() {
   projeto = { ...projeto, ...updates };
   preencherDados();
   mostrarToast('Dados salvos!', 'sucesso');
+}
+
+async function salvarPrazos() {
+  const prazos = {};
+  ['briefing','layout','imagens','executivo','obra'].forEach(id => {
+    const v = document.getElementById('prazo-' + id).value;
+    if (v) prazos[id] = v;
+  });
+  const { error } = await sb.from('projetos').update({ prazos_etapas: prazos }).eq('id', projetoId);
+  if (error) { mostrarToast('Erro ao salvar prazos', 'erro'); console.error(error); return; }
+  projeto.prazos_etapas = prazos;
+  mostrarToast('Prazos salvos!', 'sucesso');
+}
+
+async function salvarObraProgresso() {
+  const pct = Math.max(0, Math.min(100, parseInt(document.getElementById('obra-progresso-pct').value, 10) || 0));
+  const { error } = await sb.from('projetos').update({ obra_progresso_pct: pct }).eq('id', projetoId);
+  if (error) { mostrarToast('Erro ao salvar progresso da obra', 'erro'); console.error(error); return; }
+  projeto.obra_progresso_pct = pct;
+  mostrarToast('Progresso da obra salvo!', 'sucesso');
+}
+
+async function salvarRevisoes() {
+  const revisoes = {};
+  ['layout','imagens','executivo'].forEach(id => {
+    const v = parseInt(document.getElementById('revisao-' + id).value, 10);
+    revisoes[id] = isNaN(v) || v < 0 ? 0 : v;
+  });
+  const { error } = await sb.from('projetos').update({ revisoes_por_etapa: revisoes }).eq('id', projetoId);
+  if (error) { mostrarToast('Erro ao salvar revisões', 'erro'); console.error(error); return; }
+  projeto.revisoes_por_etapa = revisoes;
+  mostrarToast('Revisões salvas!', 'sucesso');
 }
 
 async function salvarEtapa() {

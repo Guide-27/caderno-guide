@@ -1,0 +1,6 @@
+# servidor local de desenvolvimento (não faz parte do site)
+.devserver.ps1
+
+# imagens de origem não usadas pelo site (mantidas localmente para referência)
+assets/character-1.jpg
+assets/planta-fundo.jpeg
