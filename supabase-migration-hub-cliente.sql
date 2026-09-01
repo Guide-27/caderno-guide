@@ -202,6 +202,13 @@ create policy "cliente gerencia seus palpites" on palpites_ambiente for all
   with check (exists (select 1 from projetos p where p.id = palpites_ambiente.projeto_id and p.email = auth.email()));
 
 -- ─── Seed do glossário (conteúdo editorial — pode editar/expandir pelo Table Editor) ───
+-- Remove duplicatas de `termo` antes de criar a constraint única (idempotente: não faz nada
+-- se não houver duplicatas). Mantém a linha mais antiga (menor id) de cada termo repetido.
+delete from glossario_termos a
+using glossario_termos b
+where a.termo = b.termo
+  and a.id > b.id;
+
 -- Constraint única em `termo` para o ON CONFLICT funcionar em reexecuções desta migração.
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'glossario_termos_termo_key') then
