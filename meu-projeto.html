@@ -1859,7 +1859,12 @@ function montarPromessas(dados) {
 // 1.1 — imagens de referência em carrossel navegável (controle manual, não a esteira da capa)
 function blocoReferencias(dados) {
   const refs = (dados._uploads && dados._uploads['refs-prev']) || [];
-  if (!refs.length) return '';
+  if (!refs.length) {
+    return `
+      <div class="traj-bloco-titulo">${ic('image','ic-sm')} Imagens de referência</div>
+      <div class="card-convite">${ic('image-plus','ic-sm')} Você ainda não enviou fotos de referência no seu briefing. Assim que enviar, elas aparecem aqui.</div>
+    `;
+  }
   const slides = refs.map(r => `<div class="ref-slide"><img src="${r.url}" alt="" loading="lazy"></div>`).join('');
   const dots = refs.map((_, i) => `<span class="ref-dot ${i === 0 ? 'ativo' : ''}" data-i="${i}"></span>`).join('');
   return `
@@ -1876,7 +1881,12 @@ function blocoReferencias(dados) {
 // 1.2 — estilo arquitetônico escolhido (seção nobre, própria)
 function blocoEstilo(dados) {
   const estilos = comoLista(dados['estilo']).map(k => ESTILOS[k] || k).filter(Boolean);
-  if (!estilos.length) return '';
+  if (!estilos.length) {
+    return `
+      <div class="traj-bloco-titulo">${ic('drafting-compass','ic-sm')} Estilo arquitetônico</div>
+      <div class="card-convite">${ic('sparkles','ic-sm')} Seu estilo ainda não foi definido no briefing. Complete essa etapa para vermos isso aqui.</div>
+    `;
+  }
   const selos = estilos.map(nome => `
     <div class="estilo-selo">
       <div class="estilo-selo-icone">${ic('gem','ic-md')}</div>
@@ -1897,7 +1907,12 @@ function blocoPaleta(dados) {
     const blocos = pal.cores.map((c, i) => `<div class="pp-bloco" style="flex:${larguras[i % larguras.length]};background:${c}"></div>`).join('');
     return `<div class="pp-grupo"><div class="pp-linha">${blocos}</div><div class="pp-nome">${pal.nome}</div></div>`;
   }).join('');
-  if (!grupos) return '';
+  if (!grupos) {
+    return `
+      <div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>
+      <div class="card-convite">${ic('palette','ic-sm')} Sua paleta de cores ainda não foi escolhida no briefing.</div>
+    `;
+  }
   return `
     <div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>
     <div class="paleta-poetica">${grupos}</div>
