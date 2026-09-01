@@ -418,6 +418,34 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .modal-eyebrow { font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; display:flex; align-items:center; gap:6px; }
 .modal-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-2xl); color: var(--white); margin-bottom: 20px; max-width: 80%; }
 
+/* "Meu Projeto" expandido — accordion Abertura / Instrução, acima das fases */
+.mp-acc-item { margin-bottom: 14px; }
+.mp-acc-head, .mp-instr-btn {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md);
+  padding: 13px 16px; cursor: pointer; font-family: 'Outfit', sans-serif;
+  color: var(--white); transition: all .2s;
+}
+.mp-acc-head:hover, .mp-instr-btn:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.06); }
+.mp-instr-btn { margin-bottom: 14px; font-size: var(--fs-sm); font-weight: 500; }
+.mp-acc-head-txt { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 500; }
+.mp-acc-head svg:first-child, .mp-instr-btn svg:first-child { color: var(--gold); }
+.mp-acc-head svg:last-child, .mp-instr-btn svg:last-child { color: var(--muted); transition: transform .3s; flex-shrink: 0; }
+.mp-acc-head.aberto svg:last-child, .mp-instr-btn.aberto svg:last-child { transform: rotate(180deg); color: var(--gold); }
+
+.mp-acc-body { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .45s cubic-bezier(.22,.9,.32,1), opacity .35s; }
+.mp-acc-body.aberto { max-height: 2600px; opacity: 1; }
+.mp-acc-body-inner { padding: 16px 4px 4px; }
+.mp-acc-body-inner p { font-size: var(--fs-sm); color: var(--off); line-height: 1.7; margin-bottom: 14px; }
+.mp-acc-body-inner p:last-child { margin-bottom: 0; }
+
+.mp-instr-lista { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
+.mp-instr-fase { display: flex; gap: 14px; }
+.mp-instr-fase-icone { width: 38px; height: 38px; border-radius: var(--r-sm); background: var(--gold-dim); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--gold); flex-shrink: 0; }
+.mp-instr-fase-nome { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); margin-bottom: 5px; }
+.mp-instr-fase-texto { font-size: var(--fs-sm); color: var(--off); line-height: 1.65; }
+.mp-instr-fechamento { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; padding-top: 16px; border-top: 1px solid var(--border2); }
+
 /* fases (Meu Projeto expandido) — CARTÕES QUE EMPILHAM ao rolar (sticky + fundo opaco) */
 .fases-pilha { position: relative; }
 .fase-item {
@@ -1632,7 +1660,7 @@ function conteudoExpandido(key) {
 
 function ligarEventosExpandido(key) {
   document.querySelectorAll('#modal-inner .card-cta').forEach(b => b.addEventListener('click', () => popElastic(b)));
-  if (key === 'hero') ativarPilhaFases();
+  if (key === 'hero') { ligarAcordeaoHero(); ativarPilhaFases(); }
   if (key === 'chaves') ligarChaves();
   if (key === 'glossario') ligarGlossario();
   if (key === 'diario') ligarDiario();
@@ -1760,11 +1788,15 @@ function ativarPilhaFases() {
   const TOPO = 14;
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-  // posição natural de cada folha (medida com o sticky desligado — senão o offsetTop mente)
+  // posição natural de cada folha, relativa ao topo REAL do conteúdo rolável de #modal-inner
+  // (não ao offsetParent — se houver algo acima de .fases-pilha, como o accordion de
+  // Abertura/Instrução, o offsetTop sozinho mentiria sobre a origem)
   const naturais = folhas.map(f => {
     const antes = f.style.position;
     f.style.position = 'static';
-    const y = f.offsetTop;
+    const rf = f.getBoundingClientRect();
+    const rc = caixa.getBoundingClientRect();
+    const y = (rf.top - rc.top) + caixa.scrollTop;
     f.style.position = antes;
     return y;
   });
@@ -1783,12 +1815,78 @@ function ativarPilhaFases() {
 }
 
 // ── Meu Projeto ──
+
+// texto editorial fixo (Abertura + Instrução) — não depende de dado dinâmico do cliente,
+// só o próprio estado de accordion (aberto/fechado)
+const MP_INSTRUCAO_FASES = [
+  { n: 1, nome: 'Briefing', icon: 'message-square', texto: 'A nossa primeira conversa, e a mais importante de todas. Você responde, no seu ritmo, perguntas sobre como imagina cada ambiente, seu estilo, sua paleta de cores, quem mora com você, sua rotina e até o seu momento de orçamento. Não existe resposta certa — existe a sua verdade, e é isso que a gente quer ouvir. Tudo o que você compartilha aqui vira a base de todo o projeto.' },
+  { n: 2, nome: 'Layout', icon: 'layout-grid', texto: 'Com base no que você nos contou, desenhamos as primeiras alternativas para o seu espaço: a vista de cima da planta, a disposição dos móveis, a circulação entre os ambientes. Você recebe as opções organizadas por ambiente e nos conta como se sentiu em relação a cada uma — o que gostou, o que ajustaria, o que ainda tem dúvida. Se precisar de ajustes, você tem até duas rodadas de revisão, sem custo, até chegarmos no layout que é a sua cara. Quando você aprova, avançamos para a próxima fase.' },
+  { n: 3, nome: 'Imagens', icon: 'image', texto: 'Aqui o projeto ganha cor, luz e atmosfera. Você vê imagens realistas geradas, mostrando como cada ambiente vai parecer de verdade — além das imagens técnicas do programa, que são a referência exata do que será construído, e uma planta humanizada com a visão geral do espaço. Você aprova ambiente por ambiente, e pode deixar comentários, inclusive em áudio, se preferir falar em vez de escrever. Assim como no Layout, há espaço para revisão antes da aprovação final.' },
+  { n: 4, nome: 'Executivo', icon: 'file-text', texto: 'Esta é a fase em que o seu projeto vira o Guia completo da sua obra: orientações, boas práticas para o dia a dia da execução, a ordem recomendada de cada etapa, os revestimentos e materiais escolhidos, o projeto de teto e iluminação, os detalhes de marcenaria e as vistas técnicas de cada parede. É o documento que você vai seguir do início ao fim, sem dúvidas sobre o que fazer em cada momento.' },
+  { n: 5, nome: 'Obra', icon: 'hard-hat', texto: 'Com o Guia em mãos, é hora de tirar o projeto do papel. Aqui você tem uma ferramenta própria para acompanhar toda a execução: realizar e comparar orçamentos e propostas de prestadores, controlar o financeiro da obra (parcelas, valores pagos e pendentes), acompanhar um checklist de etapas e contratações, e ficar de olho no calendário de vencimentos. Tudo pensado para você conduzir a sua reforma com organização e tranquilidade, até o dia da entrega.' },
+];
+
+function conteudoAberturaInstrucao() {
+  const abertura = [
+    'Seja muito bem-vindo(a) ao coração da sua jornada. Este é o espaço onde o seu projeto ganha vida, do primeiro sonho até o dia em que você abre a porta do seu novo lar.',
+    'E o melhor: tudo acontece aqui, de forma digital, dentro da plataforma. Sem correria, sem papelada, sem depender de reuniões presenciais para cada decisão. Você acompanha, escolhe e aprova cada etapa de onde estiver, no seu tempo — com todo o cuidado e a organização que o seu sonho merece.',
+    'Seu projeto acontece em cinco fases, uma depois da outra. Cada uma tem o seu propósito, o seu prazo e o seu cuidado, e você acompanha tudo por aqui: em qual fase estamos, o que já foi concluído e o que vem pela frente. Nada de surpresas — a cada passo, você sabe exatamente onde está e para onde vamos.',
+  ].map(p => `<p>${marcarPalavras(p)}</p>`).join('');
+
+  const instrucao = `
+    <div class="mp-instr-lista">
+      ${MP_INSTRUCAO_FASES.map(f => `
+        <div class="mp-instr-fase">
+          <div class="mp-instr-fase-icone">${ic(f.icon, 'ic-md')}</div>
+          <div class="mp-instr-fase-corpo">
+            <div class="mp-instr-fase-nome">${f.n}. ${f.nome}</div>
+            <div class="mp-instr-fase-texto">${f.texto}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <p class="mp-instr-fechamento">${marcarPalavras('Cada etapa é liberada no seu momento certo, seguindo o cronograma do seu projeto. Assim que uma fase for liberada, ela se abre aqui para você. Por enquanto, aproveite para conhecer o restante do seu painel: há muito para explorar enquanto a sua jornada avança.')}</p>
+  `;
+
+  return `
+    <div class="mp-acc-item">
+      <button class="mp-acc-head aberto" data-acc-toggle="abertura">
+        <span class="mp-acc-head-txt">${ic('sparkles', 'ic-sm')} Boas-vindas</span>
+        ${ic('chevron-down', 'ic-sm')}
+      </button>
+      <div class="mp-acc-body aberto" id="acc-body-abertura"><div class="mp-acc-body-inner">${abertura}</div></div>
+    </div>
+
+    <button class="mp-instr-btn" data-acc-toggle="instrucao">
+      <span class="mp-acc-head-txt">${ic('book-open', 'ic-sm')} Instrução</span>
+      ${ic('chevron-down', 'ic-sm')}
+    </button>
+    <div class="mp-acc-item">
+      <div class="mp-acc-body" id="acc-body-instrucao"><div class="mp-acc-body-inner">${instrucao}</div></div>
+    </div>
+  `;
+}
+
+// abre/fecha as seções acima — cada uma independente, o cliente pode alternar a qualquer momento
+function ligarAcordeaoHero() {
+  document.querySelectorAll('#modal-inner [data-acc-toggle]').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const id = trigger.dataset.accToggle;
+      const body = document.getElementById('acc-body-' + id);
+      if (!body) return;
+      const abrindo = !body.classList.contains('aberto');
+      body.classList.toggle('aberto', abrindo);
+      trigger.classList.toggle('aberto', abrindo);
+    });
+  });
+}
+
 function expandidoHero() {
   const { num } = infoFaseAtiva();
   const videos = projeto.videos_explicativos || {};
   return `
     <div class="modal-eyebrow">${ic('layout-dashboard')} Meu Projeto</div>
     <div class="modal-titulo">Acompanhe cada fase</div>
+    ${conteudoAberturaInstrucao()}
     <div class="fases-pilha" id="fases-pilha">
       ${FASES.map(f => renderFaseItem(f, num, videos)).join('')}
     </div>
