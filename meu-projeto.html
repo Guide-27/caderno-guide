@@ -517,7 +517,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .humor-hist-item { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); color: var(--off); padding: 9px 0; border-bottom: 1px solid var(--border2); }
 .humor-hist-item .hi-data { margin-left: auto; color: var(--muted); font-size: var(--fs-2xs); }
 
-.farol { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: var(--fs-serif); color: var(--gold-light); line-height: 1.6; margin-bottom: 20px; }
+.farol { font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.65; margin-bottom: 20px; }
 
 .form-input, .input-generico { width: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 11px 14px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); margin-bottom: 10px; }
 
@@ -570,13 +570,28 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .sonhou-capa-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(8,8,10,0.25), rgba(8,8,10,0.55)); border-radius: var(--r-md); }
 .sonhou-capa-cta { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--gold-light); background: rgba(8,8,10,0.7); border: 1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 7px 14px; text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
 
-/* mockup "carregando" — gradiente em movimento, usado nas seções que dependem do
-   briefing (imagens/texturas/moodboard) enquanto ele ainda não foi concluído */
-.fx-grad { width: 100%; border-radius: var(--r-md); border: 1px solid var(--border2); margin-bottom: 20px;
-  background: linear-gradient(120deg, #17140f, #2c2617, #4a3d21, #2c2617, #17140f);
-  background-size: 300% 300%; animation: sonhouGrad 9s ease infinite; }
-@keyframes sonhouGrad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-@media (prefers-reduced-motion: reduce) { .fx-grad { animation: none; background-position: 50% 50%; } }
+/* mockups "ainda não preenchido" — MESMO FORMATO do conteúdo real (slide, selo, bloco de
+   cor, item de textura, peça de moodboard), só que em vidro: glassmorfismo + a paleta de
+   cor da própria página, com um sheen dourado sutil passando por cima. Usados nas seções
+   que dependem do briefing (imagens/estilo/paleta/texturas/moodboard) enquanto ele não
+   foi concluído — nunca a tela toda de uma vez, só a peça que falta. */
+.skel { background: var(--glass2); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); border: 1px solid var(--border2); position: relative; overflow: hidden; }
+.skel::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, var(--skel-sheen, rgba(226,185,59,0.16)) 50%, transparent 65%); background-size: 220% 100%; animation: skelSheen 2.8s ease-in-out infinite; }
+@keyframes skelSheen { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } }
+.skel-icone-wrap { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(245,244,240,0.22); }
+.skel-linha { position: relative; height: 9px; border-radius: var(--r-pill); overflow: hidden; background: var(--glass2); border: 1px solid var(--border2); }
+.skel-linha::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgba(226,185,59,0.16) 50%, transparent 65%); background-size: 220% 100%; animation: skelSheen 2.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .skel-linha::after { animation: none; } }
+.skel-linha-sm { width: 64px; }
+.skel-linha-lg { width: 130px; margin-top: 7px; }
+/* peças de moodboard flutuam sobre um fundo claro — vidro branco em vez de dourado */
+.mb-peca.skel { background: rgba(255,255,255,0.12); backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%); border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 22px rgba(0,0,0,0.22); padding: 0; --skel-sheen: rgba(255,255,255,0.4); }
+/* ajustes de tamanho/cor por contexto — o resto da forma vem da classe real (slide/selo/bloco) */
+.ref-slide.skel { height: 140px; }
+.textura-item.skel { height: 84px; }
+.estilo-selo.skel { background: var(--glass2); border-color: var(--border2); }
+.estilo-selo.skel .estilo-selo-icone { background: var(--glass2); border-color: var(--border2); color: rgba(245,244,240,0.3); }
 .promessa-nota { font-size: var(--fs-xs); color: var(--muted); margin-top: 14px; display: flex; align-items: center; gap: 6px; }
 .promessa-nota svg { color: var(--gold); flex-shrink: 0; }
 
@@ -607,7 +622,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .pp-grupo { flex: 1; min-width: 200px; }
 .pp-linha { display: flex; gap: 4px; height: 46px; border-radius: var(--r-sm); overflow: hidden; }
 .pp-bloco { border-radius: 4px; }
-.pp-nome { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: var(--fs-md); color: var(--gold-light); margin-top: 8px; }
+.pp-nome { font-family: 'Outfit', sans-serif; font-weight: 500; font-size: var(--fs-sm); color: var(--gold-light); margin-top: 8px; }
 
 /* — 1.4 texturas (preenchimento por material, distinto da paleta) — */
 .textura-legenda { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 2px 0 12px; }
@@ -714,7 +729,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .insta-comp-desc { font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; margin-top: 4px; }
 .insta-preview { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .insta-story { position: relative; width: 150px; height: 267px; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--gold-mid); background: linear-gradient(165deg, #2a2418, #17130a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.insta-story-frase { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 20px; color: var(--gold-light); }
+.insta-story-frase { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: var(--gold-light); }
 .insta-story-board { color: rgba(226,185,59,0.5); }
 .insta-watermark { position: absolute; bottom: 10px; right: 10px; display: flex; align-items: center; gap: 4px; font-family: 'Sora', sans-serif; font-size: var(--fs-2xs); color: rgba(245,244,240,0.75); letter-spacing: .04em; }
 .insta-watermark svg { color: var(--gold); }
@@ -1819,10 +1834,44 @@ function renderFaseItem(f, numAtual, videos) {
 // util: normaliza um campo que pode vir como array, escalar ou vazio
 function comoLista(v) { return Array.isArray(v) ? v : (v || v === 0 ? [v] : []); }
 
-// placeholder de gradiente em movimento — usado nos mockups (imagens/texturas/moodboard)
-// enquanto o briefing correspondente ainda não foi concluído
-function placeholderShimmer(altura) {
-  return `<div class="fx-grad" style="height:${altura || 120}px"></div>`;
+// ── mockups "ainda não preenchido" — mesmo formato do conteúdo real, em vidro (glassmorfismo) ──
+// cada um reaproveita a classe/dimensão real da peça (slide, selo, bloco de cor, item de
+// textura, peça de moodboard) e só troca o preenchimento por uma superfície de vidro com
+// sheen dourado — nunca um bloco genérico solto.
+
+function skelSlide() { return `<div class="ref-slide skel"><div class="skel-icone-wrap">${ic('image','ic-lg')}</div></div>`; }
+function placeholderReferencias() {
+  return `<div class="ref-carrossel"><div class="ref-viewport"><div class="ref-track">${skelSlide()}${skelSlide()}${skelSlide()}</div></div></div>`;
+}
+
+function placeholderEstilo() {
+  return `<div class="estilo-selos">
+    <div class="estilo-selo skel">
+      <div class="estilo-selo-icone">${ic('gem','ic-md')}</div>
+      <div class="estilo-selo-txt"><div class="skel-linha skel-linha-sm"></div><div class="skel-linha skel-linha-lg"></div></div>
+    </div>
+  </div>`;
+}
+
+function placeholderPaleta() {
+  const larguras = [1.7, 1, 1.35, 0.85];
+  const blocos = larguras.map(w => `<div class="pp-bloco skel" style="flex:${w}"></div>`).join('');
+  return `<div class="paleta-poetica"><div class="pp-grupo"><div class="pp-linha">${blocos}</div><div class="skel-linha skel-linha-sm" style="margin-top:8px;"></div></div></div>`;
+}
+
+function placeholderTexturas() {
+  const item = () => `<div class="textura-item skel"><div class="skel-icone-wrap">${ic('layers','ic-md')}</div></div>`;
+  return `<div class="textura-row">${item()}${item()}${item()}${item()}</div>`;
+}
+
+function placeholderMoodboard() {
+  const POS = [
+    { l: 8,  t: 8,  w: 30, r: -2, ar: '4/5' }, { l: 44, t: 4,  w: 26, r: 2,  ar: '1' },
+    { l: 66, t: 20, w: 22, r: -3, ar: '1' },   { l: 16, t: 44, w: 28, r: 3,  ar: '4/5' },
+    { l: 48, t: 46, w: 30, r: -2, ar: '1' },   { l: 30, t: 72, w: 24, r: 2,  ar: '1' },
+  ];
+  const pecas = POS.map(p => `<div class="mb-peca skel" style="left:${p.l}%;top:${p.t}%;width:${p.w}%;aspect-ratio:${p.ar};transform:rotate(${p.r}deg);"></div>`).join('');
+  return `<div class="moodboard-palco"><div class="moodboard-fundo"></div>${pecas}</div>`;
 }
 
 // parse dos moradores/pets a partir das chaves planas mb-N-*  (pet tem espécie/porte/raça)
@@ -1886,7 +1935,7 @@ function blocoReferencias(dados, completo) {
   if (!refs.length) {
     const corpo = completo
       ? `<div class="card-convite">${ic('image-plus','ic-sm')} Você ainda não enviou fotos de referência no seu briefing. Assim que enviar, elas aparecem aqui.</div>`
-      : placeholderShimmer(160);
+      : placeholderReferencias();
     return `<div class="traj-bloco-titulo">${ic('image','ic-sm')} Imagens de referência</div>${corpo}`;
   }
   const slides = refs.map(r => `<div class="ref-slide"><img src="${r.url}" alt="" loading="lazy"></div>`).join('');
@@ -1903,13 +1952,13 @@ function blocoReferencias(dados, completo) {
 }
 
 // 1.2 — estilo arquitetônico escolhido (seção nobre, própria)
-function blocoEstilo(dados) {
+function blocoEstilo(dados, completo) {
   const estilos = comoLista(dados['estilo']).map(k => ESTILOS[k] || k).filter(Boolean);
   if (!estilos.length) {
-    return `
-      <div class="traj-bloco-titulo">${ic('drafting-compass','ic-sm')} Estilo arquitetônico</div>
-      <div class="card-convite">${ic('sparkles','ic-sm')} Seu estilo ainda não foi definido no briefing. Complete essa etapa para vermos isso aqui.</div>
-    `;
+    const corpo = completo
+      ? `<div class="card-convite">${ic('sparkles','ic-sm')} Seu estilo ainda não foi definido no briefing. Complete essa etapa para vermos isso aqui.</div>`
+      : placeholderEstilo();
+    return `<div class="traj-bloco-titulo">${ic('drafting-compass','ic-sm')} Estilo arquitetônico</div>${corpo}`;
   }
   const selos = estilos.map(nome => `
     <div class="estilo-selo">
@@ -1923,7 +1972,7 @@ function blocoEstilo(dados) {
 }
 
 // 1.3 — paleta de cores (só cores, blocos de tamanhos variados, nomes poéticos)
-function blocoPaleta(dados) {
+function blocoPaleta(dados, completo) {
   const paletaKeys = comoLista(dados['paleta']);
   const larguras = [1.7, 1, 1.35, 0.85];
   const grupos = paletaKeys.map(k => {
@@ -1932,10 +1981,10 @@ function blocoPaleta(dados) {
     return `<div class="pp-grupo"><div class="pp-linha">${blocos}</div><div class="pp-nome">${pal.nome}</div></div>`;
   }).join('');
   if (!grupos) {
-    return `
-      <div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>
-      <div class="card-convite">${ic('palette','ic-sm')} Sua paleta de cores ainda não foi escolhida no briefing.</div>
-    `;
+    const corpo = completo
+      ? `<div class="card-convite">${ic('palette','ic-sm')} Sua paleta de cores ainda não foi escolhida no briefing.</div>`
+      : placeholderPaleta();
+    return `<div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>${corpo}`;
   }
   return `
     <div class="traj-bloco-titulo">${ic('droplet','ic-sm')} Paleta de cores</div>
@@ -1949,7 +1998,7 @@ function blocoTexturas(dados, completo) {
   let chaves = [];
   estilos.forEach(e => { (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!chaves.includes(t)) chaves.push(t); }); });
   if (!chaves.length) {
-    if (!completo) return `<div class="traj-bloco-titulo">${ic('layers','ic-sm')} Texturas e materiais</div>${placeholderShimmer(110)}`;
+    if (!completo) return `<div class="traj-bloco-titulo">${ic('layers','ic-sm')} Texturas e materiais</div>${placeholderTexturas()}`;
     chaves = ['madeira', 'linho', 'pedra', 'verde'];
   }
   chaves = chaves.slice(0, 6);
@@ -1991,7 +2040,7 @@ function montarMoodboard(dados, completo) {
   const texKeys = [];
   estilos.forEach(e => (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!texKeys.includes(t)) texKeys.push(t); }));
 
-  if (!completo && !refs.length && !cores.length && !texKeys.length) return placeholderShimmer(360);
+  if (!completo && !refs.length && !cores.length && !texKeys.length) return placeholderMoodboard();
 
   // cluster compacto e centrado, poucas peças maiores, rotação mínima (clean, não "quadro de avisos")
   const POS = [
@@ -2125,8 +2174,8 @@ function expandidoSonhou() {
     <div class="modal-titulo">O sonho, guardado em detalhes</div>
     ${banner}
     ${blocoReferencias(dados, completo)}
-    ${blocoEstilo(dados)}
-    ${blocoPaleta(dados)}
+    ${blocoEstilo(dados, completo)}
+    ${blocoPaleta(dados, completo)}
     ${blocoTexturas(dados, completo)}
     ${blocoPlanta()}
     ${blocoMoodboard}
