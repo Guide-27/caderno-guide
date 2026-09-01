@@ -570,6 +570,16 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .sonhou-capa-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, rgba(8,8,10,0.25), rgba(8,8,10,0.55)); border-radius: var(--r-md); }
 .sonhou-capa-cta { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--gold-light); background: rgba(8,8,10,0.7); border: 1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 7px 14px; text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
 
+/* mockup "carregando" — gradiente em movimento, usado nas seções que dependem do
+   briefing (imagens/texturas/moodboard) enquanto ele ainda não foi concluído */
+.fx-grad { width: 100%; border-radius: var(--r-md); border: 1px solid var(--border2); margin-bottom: 20px;
+  background: linear-gradient(120deg, #17140f, #2c2617, #4a3d21, #2c2617, #17140f);
+  background-size: 300% 300%; animation: sonhouGrad 9s ease infinite; }
+@keyframes sonhouGrad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@media (prefers-reduced-motion: reduce) { .fx-grad { animation: none; background-position: 50% 50%; } }
+.promessa-nota { font-size: var(--fs-xs); color: var(--muted); margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+.promessa-nota svg { color: var(--gold); flex-shrink: 0; }
+
 /* — 1.1 imagens de referência: carrossel manual —
    passa o mouse sobre o carrossel e rola: a rolagem do mouse vira rolagem LATERAL das imagens,
    sem descer a página; tirando o mouse de cima, a rolagem vertical do modal volta ao normal. */
@@ -966,6 +976,14 @@ const PROMESSAS_FAMILIA = {
   pet:       { icon:'paw-print', p:'Um cantinho pensado também para {pet}.', v:'A sua família tem quatro patas também. {petCap} faz parte do projeto.' },
   moradores: { icon:'users',     p:'Um lar que abraça as {moradores} pessoas desta casa.', v:'Vocês são {moradores}. Cada rotina foi considerada no desenho dos espaços.' },
 };
+
+// promessas GENÉRICAS — mostradas em "As nossas promessas para você" enquanto o briefing
+// ainda não foi concluído (não dependem de nenhuma resposta específica).
+const PROMESSAS_GENERICAS = [
+  { icon:'heart-handshake', p:'Cada decisão do seu projeto nasce de um cuidado genuíno.', v:'Não usamos fórmulas prontas. Ouvimos primeiro, desenhamos depois — sempre pensando em você.' },
+  { icon:'compass',         p:'Você nunca caminha sozinho(a) nessa jornada.',              v:'Do primeiro rascunho à entrega das chaves, a Guide segue ao seu lado em cada etapa.' },
+  { icon:'sparkles',        p:'O seu jeito de viver vai guiar cada escolha do projeto.',    v:'Assim que contar pra gente como sonha o seu lar, tudo o que vier depois carrega a sua cara.' },
+];
 
 // componentes genéricos do moodboard — subir manualmente em assets/o-que-voce-sonhou/moodboard/
 const MOODBOARD_COMPONENTES = [
@@ -1801,6 +1819,12 @@ function renderFaseItem(f, numAtual, videos) {
 // util: normaliza um campo que pode vir como array, escalar ou vazio
 function comoLista(v) { return Array.isArray(v) ? v : (v || v === 0 ? [v] : []); }
 
+// placeholder de gradiente em movimento — usado nos mockups (imagens/texturas/moodboard)
+// enquanto o briefing correspondente ainda não foi concluído
+function placeholderShimmer(altura) {
+  return `<div class="fx-grad" style="height:${altura || 120}px"></div>`;
+}
+
 // parse dos moradores/pets a partir das chaves planas mb-N-*  (pet tem espécie/porte/raça)
 function parseMembros(dados) {
   const membros = {};
@@ -1857,13 +1881,13 @@ function montarPromessas(dados) {
 }
 
 // 1.1 — imagens de referência em carrossel navegável (controle manual, não a esteira da capa)
-function blocoReferencias(dados) {
+function blocoReferencias(dados, completo) {
   const refs = (dados._uploads && dados._uploads['refs-prev']) || [];
   if (!refs.length) {
-    return `
-      <div class="traj-bloco-titulo">${ic('image','ic-sm')} Imagens de referência</div>
-      <div class="card-convite">${ic('image-plus','ic-sm')} Você ainda não enviou fotos de referência no seu briefing. Assim que enviar, elas aparecem aqui.</div>
-    `;
+    const corpo = completo
+      ? `<div class="card-convite">${ic('image-plus','ic-sm')} Você ainda não enviou fotos de referência no seu briefing. Assim que enviar, elas aparecem aqui.</div>`
+      : placeholderShimmer(160);
+    return `<div class="traj-bloco-titulo">${ic('image','ic-sm')} Imagens de referência</div>${corpo}`;
   }
   const slides = refs.map(r => `<div class="ref-slide"><img src="${r.url}" alt="" loading="lazy"></div>`).join('');
   const dots = refs.map((_, i) => `<span class="ref-dot ${i === 0 ? 'ativo' : ''}" data-i="${i}"></span>`).join('');
@@ -1920,11 +1944,14 @@ function blocoPaleta(dados) {
 }
 
 // 1.4 — texturas (preenchimento por PADRÃO/material, distinto da paleta), coerentes com o estilo
-function blocoTexturas(dados) {
+function blocoTexturas(dados, completo) {
   const estilos = comoLista(dados['estilo']);
   let chaves = [];
   estilos.forEach(e => { (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!chaves.includes(t)) chaves.push(t); }); });
-  if (!chaves.length) chaves = ['madeira', 'linho', 'pedra', 'verde'];
+  if (!chaves.length) {
+    if (!completo) return `<div class="traj-bloco-titulo">${ic('layers','ic-sm')} Texturas e materiais</div>${placeholderShimmer(110)}`;
+    chaves = ['madeira', 'linho', 'pedra', 'verde'];
+  }
   chaves = chaves.slice(0, 6);
   const genericos = ['textura-1.jpg', 'textura-2.jpg']
     .map(f => `<div class="textura-item"><img src="/assets/o-que-voce-sonhou/moodboard/${f}" alt="" onerror="this.parentElement.remove()"></div>`).join('');
@@ -1955,7 +1982,7 @@ function blocoPlanta() {
 
 // 3.2 — moodboard: flat-lay editorial (referência: amostras de material fotografadas sobre
 // fundo neutro, levemente sobrepostas, rotação mínima). Vegetação/mobiliário como acentos atrás.
-function montarMoodboard(dados) {
+function montarMoodboard(dados, completo) {
   const refs = (dados._uploads && dados._uploads['refs-prev']) || [];
   const paletaKeys = comoLista(dados['paleta']);
   const cores = [];
@@ -1963,6 +1990,8 @@ function montarMoodboard(dados) {
   const estilos = comoLista(dados['estilo']);
   const texKeys = [];
   estilos.forEach(e => (TEXTURAS_POR_ESTILO[e] || []).forEach(t => { if (!texKeys.includes(t)) texKeys.push(t); }));
+
+  if (!completo && !refs.length && !cores.length && !texKeys.length) return placeholderShimmer(360);
 
   // cluster compacto e centrado, poucas peças maiores, rotação mínima (clean, não "quadro de avisos")
   const POS = [
@@ -2069,20 +2098,52 @@ function expandidoSonhou() {
     `;
   }
 
-  // ── ESTADO PREENCHIDO ──
-  const promessas = montarPromessas(dados);
+  // ── ESTADO PREENCHIDO / EM ANDAMENTO ──
+  // "completo" = briefing efetivamente enviado. Enquanto isso não acontece, os blocos que
+  // dependem de conteúdo visual (imagens/texturas/moodboard/promessas) mostram um estado
+  // de espera em vez de ficarem quebrados ou vazios.
+  const completo = !!(briefing && briefing.status === 'enviado');
+
+  const banner = !completo ? `
+    <p class="farol">${marcarPalavras("Para uma experiência completa neste painel, primeiramente é necessário concluir a etapa de briefing, que nos permite conhecer um pouco mais de você. Conclua a etapa de briefing no card ao lado 'Meu Projeto' e depois venha conferir.")}</p>
+  ` : '';
+
+  const promessas = completo ? montarPromessas(dados) : [];
 
   const blocoMoodboard = `
     <div class="traj-bloco-titulo">${ic('layout-panel-left','ic-sm')} O painel dos seus sonhos</div>
     <div class="moodboard-legenda">Um moodboard montado com as suas referências, cores, texturas e o clima do seu estilo.</div>
-    ${montarMoodboard(dados)}
+    ${montarMoodboard(dados, completo)}
   `;
 
-  const blocoPromessas = promessas.length ? `
+  const blocoPromessas = completo
+    ? (promessas.length ? renderPromessaCards(promessas) : '')
+    : renderPromessaCards(PROMESSAS_GENERICAS) + `<div class="promessa-nota">${ic('info','ic-sm')} Venha conferir novamente após o preenchimento do briefing.</div>`;
+
+  return `
+    <div class="modal-eyebrow">${ic('heart')} O que você sonhou</div>
+    <div class="modal-titulo">O sonho, guardado em detalhes</div>
+    ${banner}
+    ${blocoReferencias(dados, completo)}
+    ${blocoEstilo(dados)}
+    ${blocoPaleta(dados)}
+    ${blocoTexturas(dados, completo)}
+    ${blocoPlanta()}
+    ${blocoMoodboard}
+    ${blocoPromessas}
+    ${montarPalpites(dados)}
+    ${blocoCompartilhar()}
+  `;
+}
+
+// cartões de promessa (flip: frente = promessa / verso = o porquê) — usados tanto para as
+// promessas reais (derivadas do briefing) quanto para as genéricas (briefing em andamento)
+function renderPromessaCards(lista) {
+  return `
     <div class="traj-bloco-titulo">${ic('sparkles','ic-sm')} As nossas promessas para você</div>
     <div class="promessa-legenda">Toque em cada uma para ver o cuidado por trás dela.</div>
     <div class="promessa-grid">
-      ${promessas.map((pr, i) => `
+      ${lista.map((pr, i) => `
         <div class="promessa-card reveal" style="transition-delay:${i * 70}ms">
           <div class="promessa-inner">
             <div class="promessa-face promessa-front">
@@ -2096,20 +2157,6 @@ function expandidoSonhou() {
           </div>
         </div>`).join('')}
     </div>
-  ` : '';
-
-  return `
-    <div class="modal-eyebrow">${ic('heart')} O que você sonhou</div>
-    <div class="modal-titulo">O sonho, guardado em detalhes</div>
-    ${blocoReferencias(dados)}
-    ${blocoEstilo(dados)}
-    ${blocoPaleta(dados)}
-    ${blocoTexturas(dados)}
-    ${blocoPlanta()}
-    ${blocoMoodboard}
-    ${blocoPromessas}
-    ${montarPalpites(dados)}
-    ${blocoCompartilhar()}
   `;
 }
 
