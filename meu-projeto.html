@@ -418,26 +418,39 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .modal-eyebrow { font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; display:flex; align-items:center; gap:6px; }
 .modal-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-2xl); color: var(--white); margin-bottom: 20px; max-width: 80%; }
 
-/* "Meu Projeto" expandido — accordion Abertura / Instrução, acima das fases */
-.mp-acc-item { margin-bottom: 14px; }
-.mp-acc-head, .mp-instr-btn {
-  display: flex; align-items: center; justify-content: space-between; width: 100%;
-  background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md);
-  padding: 13px 16px; cursor: pointer; font-family: 'Outfit', sans-serif;
-  color: var(--white); transition: all .2s;
+/* "Meu Projeto" expandido — UMA cápsula única (Abertura): a primeira frase fica sempre
+   visível no cabeçalho/botão; o corpo revela o restante do texto com continuidade e, dentro
+   dele, o botão "Instrução" com o detalhamento — tudo recolhe junto quando a cápsula fecha. */
+.mp-capsula { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 20px; }
+.mp-capsula-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;
+  background: transparent; border: none; cursor: pointer; padding: 15px 18px;
+  font-family: 'Outfit', sans-serif; color: var(--white); text-align: left; transition: background .2s;
 }
-.mp-acc-head:hover, .mp-instr-btn:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.06); }
-.mp-instr-btn { margin-bottom: 14px; font-size: var(--fs-sm); font-weight: 500; }
-.mp-acc-head-txt { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 500; }
-.mp-acc-head svg:first-child, .mp-instr-btn svg:first-child { color: var(--gold); }
-.mp-acc-head svg:last-child, .mp-instr-btn svg:last-child { color: var(--muted); transition: transform .3s; flex-shrink: 0; }
-.mp-acc-head.aberto svg:last-child, .mp-instr-btn.aberto svg:last-child { transform: rotate(180deg); color: var(--gold); }
+.mp-capsula-toggle:hover { background: rgba(255,255,255,0.03); }
+.mp-capsula-frase { font-size: var(--fs-sm); font-weight: 500; line-height: 1.5; }
+.mp-capsula-toggle svg { color: var(--gold); flex-shrink: 0; transition: transform .3s; }
+.mp-capsula-toggle.aberto svg { transform: rotate(180deg); }
 
-.mp-acc-body { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .45s cubic-bezier(.22,.9,.32,1), opacity .35s; }
-.mp-acc-body.aberto { max-height: 2600px; opacity: 1; }
-.mp-acc-body-inner { padding: 16px 4px 4px; }
-.mp-acc-body-inner p { font-size: var(--fs-sm); color: var(--off); line-height: 1.7; margin-bottom: 14px; }
-.mp-acc-body-inner p:last-child { margin-bottom: 0; }
+.mp-capsula-corpo { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .45s cubic-bezier(.22,.9,.32,1), opacity .35s; }
+.mp-capsula-corpo.aberto { max-height: 3200px; opacity: 1; }
+.mp-capsula-corpo-inner { padding: 0 18px 18px; }
+.mp-capsula-corpo-inner p { font-size: var(--fs-sm); color: var(--off); line-height: 1.7; margin-bottom: 14px; }
+
+.mp-instr-btn {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  background: var(--card2); border: 1px solid var(--border2); border-radius: var(--r-sm);
+  padding: 11px 15px; cursor: pointer; font-family: 'Outfit', sans-serif;
+  color: var(--gold-light); font-size: var(--fs-sm); font-weight: 500; transition: all .2s; margin-top: 4px;
+}
+.mp-instr-btn:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.05); }
+.mp-instr-btn-txt { display: flex; align-items: center; gap: 8px; }
+.mp-instr-btn svg { color: var(--gold); transition: transform .3s; flex-shrink: 0; }
+.mp-instr-btn.aberto svg { transform: rotate(180deg); }
+
+.mp-instr-body { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .45s cubic-bezier(.22,.9,.32,1), opacity .35s; }
+.mp-instr-body.aberto { max-height: 2600px; opacity: 1; }
+.mp-instr-body-inner { padding-top: 16px; }
 
 .mp-instr-lista { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
 .mp-instr-fase { display: flex; gap: 14px; }
@@ -446,26 +459,37 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .mp-instr-fase-texto { font-size: var(--fs-sm); color: var(--off); line-height: 1.65; }
 .mp-instr-fechamento { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; padding-top: 16px; border-top: 1px solid var(--border2); }
 
-/* fases (Meu Projeto expandido) — CARTÕES QUE EMPILHAM ao rolar (sticky + fundo opaco) */
+/* fases (Meu Projeto expandido) — CARTÕES QUE EMPILHAM ao rolar (sticky + fundo opaco).
+   Hierarquia de destaque: futura (neutra) < concluída (verde) < atual (dourado — a mais
+   forte, "fundo amarelinho"), todas seguindo o mesmo padrão de vidro tingido usado no
+   resto do painel (rgba da cor sobre --glass2), em vez de cores soltas fora do padrão. */
 .fases-pilha { position: relative; }
 .fase-item {
   position: sticky; top: 14px;
   display: flex; gap: 16px;
   border: 1px solid var(--border2); border-radius: var(--r-md); padding: 18px; margin-bottom: 16px;
-  background: linear-gradient(155deg, #1c1c22, #131317);
+  background: linear-gradient(155deg, var(--card2), var(--dark));
   box-shadow: 0 -10px 30px rgba(0,0,0,.45);
   will-change: transform, filter;
 }
-.fase-item.atual { border-color: var(--gold-mid); background: linear-gradient(155deg, #241f13, #17130a); }
-.fase-item.concluida { border-color: rgba(80,200,120,0.28); background: linear-gradient(155deg, #16211a, #121712); }
+.fase-item.atual {
+  border-color: var(--gold);
+  background: linear-gradient(155deg, rgba(201,162,39,0.16), var(--glass2) 60%);
+  box-shadow: 0 -10px 30px rgba(0,0,0,.45), 0 0 26px rgba(201,162,39,0.10);
+}
+.fase-item.concluida {
+  border-color: var(--green-mid);
+  background: linear-gradient(155deg, rgba(80,200,120,0.11), var(--glass2) 60%);
+}
 .fase-icone { width: 40px; height: 40px; border-radius: var(--r-sm); background: var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0; color: var(--gold); }
-.fase-item.concluida .fase-icone { color: var(--green); }
+.fase-item.atual .fase-icone { background: var(--gold-dim); }
+.fase-item.concluida .fase-icone { background: var(--green-dim); color: var(--green); }
 .fase-corpo { flex: 1; min-width: 0; }
 .fase-nome-linha { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .fase-nome { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-md); color:var(--white); }
 .fase-status-tag { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.06em; padding:3px 9px; border-radius:var(--r-pill); color:var(--muted); border:1px solid var(--border2); }
-.fase-item.atual .fase-status-tag { color: var(--gold-light); border-color: var(--gold-mid); }
-.fase-item.concluida .fase-status-tag { color: var(--green); border-color: rgba(80,200,120,0.3); }
+.fase-item.atual .fase-status-tag { color: var(--gold-light); border-color: var(--gold-mid); background: var(--gold-dim); }
+.fase-item.concluida .fase-status-tag { color: var(--green); border-color: var(--green-mid); background: var(--green-dim); }
 /* hierarquia (item 1): explicação da etapa é a mais destacada */
 .fase-explicacao { font-size: var(--fs-base); color: var(--off); line-height: 1.65; margin: 10px 0; }
 .fase-acolhimento { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 8px 0; }
@@ -1826,12 +1850,17 @@ const MP_INSTRUCAO_FASES = [
   { n: 5, nome: 'Obra', icon: 'hard-hat', texto: 'Com o Guia em mãos, é hora de tirar o projeto do papel. Aqui você tem uma ferramenta própria para acompanhar toda a execução: realizar e comparar orçamentos e propostas de prestadores, controlar o financeiro da obra (parcelas, valores pagos e pendentes), acompanhar um checklist de etapas e contratações, e ficar de olho no calendário de vencimentos. Tudo pensado para você conduzir a sua reforma com organização e tranquilidade, até o dia da entrega.' },
 ];
 
+// primeira frase fica sempre visível no botão da cápsula (fechada ou aberta); o restante
+// só aparece dentro do corpo recolhível, continuando o mesmo texto sem repeti-la
+const MP_ABERTURA_PRIMEIRA_FRASE = 'Seja muito bem-vindo(a) ao coração da sua jornada.';
+const MP_ABERTURA_RESTANTE = [
+  'Este é o espaço onde o seu projeto ganha vida, do primeiro sonho até o dia em que você abre a porta do seu novo lar.',
+  'E o melhor: tudo acontece aqui, de forma digital, dentro da plataforma. Sem correria, sem papelada, sem depender de reuniões presenciais para cada decisão. Você acompanha, escolhe e aprova cada etapa de onde estiver, no seu tempo — com todo o cuidado e a organização que o seu sonho merece.',
+  'Seu projeto acontece em cinco fases, uma depois da outra. Cada uma tem o seu propósito, o seu prazo e o seu cuidado, e você acompanha tudo por aqui: em qual fase estamos, o que já foi concluído e o que vem pela frente. Nada de surpresas — a cada passo, você sabe exatamente onde está e para onde vamos.',
+];
+
 function conteudoAberturaInstrucao() {
-  const abertura = [
-    'Seja muito bem-vindo(a) ao coração da sua jornada. Este é o espaço onde o seu projeto ganha vida, do primeiro sonho até o dia em que você abre a porta do seu novo lar.',
-    'E o melhor: tudo acontece aqui, de forma digital, dentro da plataforma. Sem correria, sem papelada, sem depender de reuniões presenciais para cada decisão. Você acompanha, escolhe e aprova cada etapa de onde estiver, no seu tempo — com todo o cuidado e a organização que o seu sonho merece.',
-    'Seu projeto acontece em cinco fases, uma depois da outra. Cada uma tem o seu propósito, o seu prazo e o seu cuidado, e você acompanha tudo por aqui: em qual fase estamos, o que já foi concluído e o que vem pela frente. Nada de surpresas — a cada passo, você sabe exatamente onde está e para onde vamos.',
-  ].map(p => `<p>${marcarPalavras(p)}</p>`).join('');
+  const restante = MP_ABERTURA_RESTANTE.map(p => `<p>${marcarPalavras(p)}</p>`).join('');
 
   const instrucao = `
     <div class="mp-instr-lista">
@@ -1848,20 +1877,23 @@ function conteudoAberturaInstrucao() {
   `;
 
   return `
-    <div class="mp-acc-item">
-      <button class="mp-acc-head aberto" data-acc-toggle="abertura">
-        <span class="mp-acc-head-txt">${ic('sparkles', 'ic-sm')} Boas-vindas</span>
+    <div class="mp-capsula">
+      <button class="mp-capsula-toggle aberto" data-acc-toggle="abertura">
+        <span class="mp-capsula-frase">${MP_ABERTURA_PRIMEIRA_FRASE}</span>
         ${ic('chevron-down', 'ic-sm')}
       </button>
-      <div class="mp-acc-body aberto" id="acc-body-abertura"><div class="mp-acc-body-inner">${abertura}</div></div>
-    </div>
-
-    <button class="mp-instr-btn" data-acc-toggle="instrucao">
-      <span class="mp-acc-head-txt">${ic('book-open', 'ic-sm')} Instrução</span>
-      ${ic('chevron-down', 'ic-sm')}
-    </button>
-    <div class="mp-acc-item">
-      <div class="mp-acc-body" id="acc-body-instrucao"><div class="mp-acc-body-inner">${instrucao}</div></div>
+      <div class="mp-capsula-corpo aberto" id="acc-body-abertura">
+        <div class="mp-capsula-corpo-inner">
+          ${restante}
+          <button class="mp-instr-btn" data-acc-toggle="instrucao">
+            <span class="mp-instr-btn-txt">${ic('book-open', 'ic-sm')} Instrução</span>
+            ${ic('chevron-down', 'ic-sm')}
+          </button>
+          <div class="mp-instr-body" id="acc-body-instrucao">
+            <div class="mp-instr-body-inner">${instrucao}</div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
