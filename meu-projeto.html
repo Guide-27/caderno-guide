@@ -524,31 +524,47 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-item { border-bottom: 1px solid var(--border2); padding: 18px 0; }
 .marco-item:last-child { border-bottom: none; }
 .marco-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-/* toggle on/off vertical, cápsula em glassmorfismo — a "bolha" sobe com efeito liquid glass
-   quando o marco é marcado como concluído; clicar alterna o estado (grava a data de hoje /
-   limpa a data), com efeito de squish no clique. */
+/* toggle on/off vertical, cápsula em liquid glass — maior e mais "fun" (a sensação deve ser
+   a de concluir um passo grande): reflexo de luz correndo pela borda, bolha com brilho e
+   sombra internos, sobe com um leve estouro elástico ao marcar concluído. Clicar alterna o
+   estado (grava a data de hoje / limpa) com squish no clique; inclina sutilmente em 3D
+   seguindo o mouse (ver ativarTiltToggles). */
 .marco-toggle {
-  width: 22px; height: 40px; border-radius: var(--r-pill); flex-shrink: 0; padding: 3px;
+  width: 28px; height: 52px; border-radius: var(--r-pill); flex-shrink: 0; padding: 4px;
   display: flex; align-items: flex-end; justify-content: center;
-  background: rgba(255,255,255,0.05); backdrop-filter: blur(6px) saturate(140%); -webkit-backdrop-filter: blur(6px) saturate(140%);
-  border: 1px solid var(--border2); cursor: pointer; transition: background .3s, border-color .3s;
+  background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 40%, rgba(0,0,0,0.16) 100%);
+  backdrop-filter: blur(8px) saturate(160%); -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), inset 0 -6px 10px rgba(0,0,0,0.25), 0 3px 8px rgba(0,0,0,0.3);
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .18s ease-out, background .35s, border-color .35s, box-shadow .35s;
+  transform-style: preserve-3d; will-change: transform;
 }
-.marco-toggle:hover { border-color: var(--gold-mid); }
-.marco-toggle.ativo { background: linear-gradient(180deg, rgba(201,162,39,0.24), rgba(201,162,39,0.07)); border-color: var(--gold-mid); }
+/* aro de luz correndo pela borda — reforça o reflexo do "vidro líquido" nas extremidades */
+.marco-toggle::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(200deg, rgba(255,255,255,0.4) 0%, transparent 20%, transparent 80%, rgba(255,255,255,0.12) 100%);
+}
+.marco-toggle:hover { border-color: rgba(255,255,255,0.3); }
+.marco-toggle.ativo {
+  background: linear-gradient(160deg, rgba(226,185,59,0.34), rgba(201,162,39,0.08) 45%, rgba(0,0,0,0.18) 100%);
+  border-color: rgba(226,185,59,0.42);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), inset 0 -6px 10px rgba(0,0,0,0.2), 0 3px 10px rgba(0,0,0,0.3), 0 0 18px rgba(201,162,39,0.28);
+}
 .marco-toggle-bolha {
-  width: 16px; height: 16px; border-radius: 50%;
-  background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.95), rgba(245,244,240,0.55) 45%, rgba(190,190,190,0.25) 100%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.85);
-  transition: transform .35s cubic-bezier(.34,1.56,.64,1), background .3s, box-shadow .3s;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 24%, rgba(255,255,255,0.98), rgba(245,244,240,0.6) 42%, rgba(190,190,190,0.28) 100%);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 3px rgba(255,255,255,0.9), inset 0 -3px 5px rgba(120,120,120,0.25);
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1), background .35s, box-shadow .35s;
 }
 .marco-toggle.ativo .marco-toggle-bolha {
-  transform: translateY(-18px);
-  background: radial-gradient(circle at 32% 26%, #fff8e0, var(--gold-light) 45%, var(--gold) 100%);
-  box-shadow: 0 2px 10px rgba(201,162,39,0.55), inset 0 1px 2px rgba(255,255,255,0.9);
+  transform: translateY(-24px);
+  background: radial-gradient(circle at 30% 24%, #fffaf0, var(--gold-light) 42%, var(--gold) 100%);
+  box-shadow: 0 3px 12px rgba(201,162,39,0.6), inset 0 1px 3px rgba(255,255,255,0.95), inset 0 -3px 5px rgba(150,110,10,0.3);
 }
-.marco-toggle:active .marco-toggle-bolha { transform: scale(0.82); }
-.marco-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-18px) scale(0.82); }
-@media (prefers-reduced-motion: reduce) { .marco-toggle-bolha { transition: background .3s; } }
+.marco-toggle:active .marco-toggle-bolha { transform: scale(0.8); }
+.marco-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-24px) scale(0.8); }
+@media (prefers-reduced-motion: reduce) { .marco-toggle, .marco-toggle-bolha { transition: background .3s, box-shadow .3s; } }
 .marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
@@ -1198,8 +1214,8 @@ const MARCOS_DEF = [
     conforto:'',
     detalhe:'As plantas técnicas mostram exatamente como o seu apartamento foi construído: por onde passam as instalações elétricas e hidráulicas, a estrutura das paredes e as medidas reais de cada ambiente. Esse material é entregue pela construtora e é importante para uma reforma mais segura e precisa.' },
   { campo:'assembleia_em', nome:'Assembleia de instalação do condomínio', icon:'users',
-    explicacao:'A assembleia de instalação é o encontro em que o seu condomínio nasce oficialmente. Convocada pela construtora, é nela que os moradores elegem o primeiro síndico, aprovam a convenção e o regimento interno — as regras que vão reger a vida no prédio, inclusive os horários e condições para fazer obra na sua unidade.',
-    conforto:'Participar, mesmo que seja a primeira vez lidando com isso, ajuda você a entender o que pode e o que não pode, e já sair dali sabendo como agendar a sua reforma dentro das regras do condomínio.',
+    explicacao:'O encontro em que o seu condomínio nasce oficialmente, com as regras que vão valer para a sua reforma.',
+    conforto:'',
     detalhe:'A assembleia de instalação é o encontro em que o seu condomínio nasce oficialmente. Convocada pela construtora, é nela que os moradores elegem o primeiro síndico, aprovam a convenção e o regimento interno — as regras que vão reger a vida no prédio, inclusive os horários e condições para fazer obra na sua unidade.\n\nParticipar, mesmo que seja a primeira vez lidando com isso, ajuda você a entender o que pode e o que não pode, e já sair dali sabendo como agendar a sua reforma dentro das regras do condomínio.' },
   { campo:'inicio_reforma_em', nome:'Início da reforma', icon:'hammer', semDetalhe:true,
     explicacao:'O ponto de virada: seu apartamento começa a se transformar no lar que você imaginou.',
@@ -2687,6 +2703,7 @@ function ligarChaves() {
       const ativo = btn.classList.contains('ativo');
       salvarMarcoFixo(btn.dataset.campo, ativo ? null : new Date().toISOString());
     });
+    ativarTiltToggle(btn);
   });
 
   // instrução detalhada de cada marco fixo (accordion "+")
@@ -2726,6 +2743,21 @@ function ligarMarcoCustomCard(card) {
     card.classList.toggle('feito', !ativo);
     salvarMarcoPersonalizado(card);
   });
+  ativarTiltToggle(toggle);
+}
+
+// inclinação 3D sutil ao passar o mouse sobre o toggle — o JS só mede a posição do mouse,
+// quem inclina e suaviza é a transição CSS do próprio .marco-toggle
+function ativarTiltToggle(el) {
+  if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const forca = 14; // graus — acima de 15 já exagera
+  el.addEventListener('mousemove', (ev) => {
+    const r = el.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / r.width - .5;
+    const y = (ev.clientY - r.top) / r.height - .5;
+    el.style.transform = `perspective(700px) rotateY(${x * forca}deg) rotateX(${-y * forca}deg) translateZ(12px)`;
+  });
+  el.addEventListener('mouseleave', () => { el.style.transform = ''; });
 }
 
 async function salvarMarcoPersonalizado(card) {
