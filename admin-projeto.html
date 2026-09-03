@@ -299,6 +299,18 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
         </div>
         <button class="btn-salvar" onclick="salvarRevisoes()">Salvar Revisões</button>
       </div>
+
+      <div class="secao">
+        <div class="secao-titulo">Rumo às chaves — Revistoria</div>
+        <div class="secao-desc">Marque quando ficar pendência registrada na Vistoria da unidade — o marco "Revistoria" só aparece para o cliente quando esta opção estiver marcada.</div>
+        <div class="campo">
+          <label class="campo-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="revistoria-necessaria" style="width:16px;height:16px;">
+            Revistoria necessária
+          </label>
+        </div>
+        <button class="btn-salvar" onclick="salvarRevistoriaNecessaria()">Salvar</button>
+      </div>
     </div>
 
     <!-- ABA AMBIENTES -->
@@ -416,6 +428,7 @@ else { console.error('Biblioteca Supabase não carregou.'); }
 // Estado
 let projetoId = null;
 let projeto = null;
+let marcosPosChaves = null;
 let ambientes = [];
 let layoutAmbienteAtivo = null;
 let imagensAmbienteAtivo = null;
@@ -454,6 +467,7 @@ async function inicializar() {
   await carregarBriefing();
   await carregarExecutivo();
   await carregarObra();
+  await carregarMarcosPosChaves();
 
   document.getElementById('loading-geral').style.display = 'none';
   document.getElementById('editor').style.display = 'block';
@@ -686,6 +700,23 @@ async function salvarRevisoes() {
   if (error) { mostrarToast('Erro ao salvar revisões', 'erro'); console.error(error); return; }
   projeto.revisoes_por_etapa = revisoes;
   mostrarToast('Revisões salvas!', 'sucesso');
+}
+
+// "Rumo às chaves" — marcos_pos_chaves é uma tabela própria (não faz parte de `projetos`)
+async function carregarMarcosPosChaves() {
+  const { data } = await sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projetoId).maybeSingle();
+  marcosPosChaves = data || null;
+  const chk = document.getElementById('revistoria-necessaria');
+  if (chk) chk.checked = !!(marcosPosChaves && marcosPosChaves.revistoria_necessaria);
+}
+
+async function salvarRevistoriaNecessaria() {
+  const marcado = document.getElementById('revistoria-necessaria').checked;
+  const payload = { projeto_id: projetoId, revistoria_necessaria: marcado, atualizado_em: new Date().toISOString() };
+  const { data, error } = await sb.from('marcos_pos_chaves').upsert(payload, { onConflict: 'projeto_id' }).select().single();
+  if (error) { mostrarToast('Erro ao salvar', 'erro'); console.error(error); return; }
+  marcosPosChaves = data;
+  mostrarToast('Salvo!', 'sucesso');
 }
 
 async function salvarEtapa() {

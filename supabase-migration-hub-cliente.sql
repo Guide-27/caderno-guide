@@ -84,6 +84,35 @@ drop policy if exists "arquiteto gerencia marcos" on marcos_pos_chaves;
 create policy "arquiteto gerencia marcos" on marcos_pos_chaves for all
   using (exists (select 1 from arquitetos a where a.email = auth.email()));
 
+-- novos marcos fixos (ordem completa: Vistoria da unidade → Revistoria → Entrega das
+-- chaves → Manual do proprietário → Plantas técnicas → Assembleia de instalação → Início
+-- da reforma). `revistoria_necessaria` é a flag que decide se o marco condicional
+-- "Revistoria" aparece — marcada pelo arquiteto quando fica pendência na Vistoria.
+alter table marcos_pos_chaves add column if not exists revistoria_em timestamptz;
+alter table marcos_pos_chaves add column if not exists revistoria_necessaria boolean default false;
+alter table marcos_pos_chaves add column if not exists manual_proprietario_em timestamptz;
+alter table marcos_pos_chaves add column if not exists plantas_tecnicas_em timestamptz;
+
+-- marcos personalizados: o cliente pode acrescentar quantos quiser (título, descrição, data),
+-- independentes dos marcos fixos acima. Mesma regra de acesso do resto de "Rumo às chaves".
+create table if not exists marcos_personalizados (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade,
+  titulo text,
+  descricao text,
+  data timestamptz,
+  ordem int default 0,
+  criado_em timestamptz default now()
+);
+alter table marcos_personalizados enable row level security;
+drop policy if exists "cliente gerencia marcos personalizados" on marcos_personalizados;
+create policy "cliente gerencia marcos personalizados" on marcos_personalizados for all
+  using (exists (select 1 from projetos p where p.id = marcos_personalizados.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = marcos_personalizados.projeto_id and p.email = auth.email()));
+drop policy if exists "arquiteto le marcos personalizados" on marcos_personalizados;
+create policy "arquiteto le marcos personalizados" on marcos_personalizados for select
+  using (exists (select 1 from arquitetos a where a.email = auth.email()));
+
 -- ─── 3. Glossário — conteúdo editorial, não depende do cliente ───
 create table if not exists glossario_termos (
   id uuid primary key default gen_random_uuid(),

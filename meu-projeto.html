@@ -520,22 +520,51 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .timeline-rodape { margin-top: 22px; font-family:'Outfit',sans-serif; font-weight: 500; font-style: normal; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.6; }
 
 /* rumo às chaves */
+.chaves-intro { font-size: var(--fs-sm); color: var(--off); line-height: 1.7; margin-bottom: 22px; }
 .marco-item { border-bottom: 1px solid var(--border2); padding: 18px 0; }
 .marco-item:last-child { border-bottom: none; }
 .marco-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .marco-check { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--muted2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
 .marco-item.feito .marco-check { background: var(--green); border-color: var(--green); color: var(--black); }
-.marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); }
+.marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
-.marco-conforto { color: var(--gold-light); font-style: italic; font-family:'Cormorant Garamond',serif; font-size: var(--fs-md); margin: 0 0 10px 38px; line-height: 1.5; }
+/* frase de conforto — dourado, sem serifa/itálico (mesma tipografia de .farol) */
+.marco-conforto { color: var(--gold-light); font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); margin: 0 0 10px 38px; line-height: 1.65; }
 .marco-data-wrap { display: flex; align-items: center; gap: 10px; margin-left: 38px; }
 .marco-data-wrap input[type=date] {
   background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm);
   padding: 8px 10px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm);
 }
-.marco-obra-link { margin: 14px 0 0 38px; font-size: var(--fs-sm); }
-.marco-obra-link a { color: var(--gold-light); display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
+
+/* "+" ao lado do nome — expande a instrução detalhada de cada marco (exceto Início da reforma) */
+.marco-mais { background: transparent; border: 1px solid var(--border2); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--gold); cursor: pointer; flex-shrink: 0; transition: all .2s; }
+.marco-mais:hover { border-color: var(--gold-mid); background: var(--gold-dim); }
+.marco-mais svg { transition: transform .3s; }
+.marco-mais.aberto svg { transform: rotate(45deg); }
+.marco-detalhe-body { max-height: 0; overflow: hidden; opacity: 0; margin-left: 38px; transition: max-height .4s cubic-bezier(.22,.9,.32,1), opacity .3s; }
+.marco-detalhe-body.aberto { max-height: 1200px; opacity: 1; }
+.marco-detalhe-inner { padding-top: 4px; }
+.marco-detalhe-inner p { font-size: var(--fs-sm); color: var(--off); line-height: 1.7; margin-bottom: 12px; }
+.marco-detalhe-inner p:last-child { margin-bottom: 0; }
+
+/* CTA de destaque para o Acompanhamento de Obra (marco "Início da reforma") */
+.marco-obra-cta { margin: 14px 0 0 38px; padding: 16px; border-radius: var(--r-md); background: var(--gold-dim); border: 1px solid var(--border); }
+.marco-obra-intro { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; margin-bottom: 12px; }
+.marco-obra-btn { width: 100%; justify-content: center; animation: pulsarOuro 2.4s ease-in-out infinite; }
+@keyframes pulsarOuro { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,.38); } 50% { box-shadow: 0 0 0 9px rgba(201,162,39,0); } }
+@media (prefers-reduced-motion: reduce) { .marco-obra-btn { animation: none; } }
+
+/* marcos personalizados — mesmo padrão visual, campos editáveis pelo cliente */
+.marco-custom-titulo { flex: 1; background: transparent; border: none; border-bottom: 1px dashed var(--border2); font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); padding: 2px 0; }
+.marco-custom-titulo:focus { outline: none; border-color: var(--gold-mid); color: var(--white); }
+.marco-custom-titulo::placeholder { color: var(--muted); font-weight: 400; }
+.marco-custom-del { background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 4px; border-radius: var(--r-sm); flex-shrink: 0; transition: color .2s; }
+.marco-custom-del:hover { color: var(--red); }
+.marco-custom-desc { display: block; width: calc(100% - 38px); margin: 6px 0 10px 38px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 12px; color: var(--off); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); line-height: 1.5; resize: vertical; min-height: 52px; }
+.marco-custom-desc::placeholder { color: var(--muted); }
+.marco-add-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--glass2); border: 1px dashed var(--border2); border-radius: var(--r-pill); padding: 12px; margin-top: 16px; color: var(--gold); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); font-weight: 500; cursor: pointer; transition: all .2s; }
+.marco-add-btn:hover { border-color: var(--gold-mid); background: var(--gold-dim); border-style: solid; }
 
 /* glossário + quiz */
 .tab-switch { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -1121,20 +1150,44 @@ const QUIZ = [
   { pergunta:'Drywall é...', opcoes:['Um tipo de piso','Placas de gesso para construir paredes e forros de forma rápida','Um software de projeto','Um tipo de tinta'], correta:1 },
 ];
 
+// cada marco: nome, explicação e conforto ficam sempre visíveis; `detalhe` é a instrução
+// completa, atrás do ícone "+" (accordion) — exceto em "Início da reforma", que não tem "+".
+// `condicional` marca o único marco que só aparece quando `marcos.revistoria_necessaria` é true.
 const MARCOS_DEF = [
-  { campo:'vistoria_em', nome:'Vistoria', icon:'clipboard-check',
+  { campo:'vistoria_em', nome:'Vistoria da unidade', icon:'clipboard-check',
     explicacao:'É quando você visita o imóvel para conferir se está tudo conforme o combinado, antes de receber as chaves. Anote qualquer detalhe.',
-    conforto:'Não se preocupe em ser exigente aqui — é o momento certo para isso. Estamos com você.' },
+    conforto:'Não se preocupe em ser exigente aqui — é o momento certo para isso. Estamos com você.',
+    detalhe:'A vistoria é a sua chance de conferir, com calma, se o imóvel está exatamente como foi combinado, antes de aceitar as chaves. Vá com tempo e, se possível, leve alguém de confiança para olhar com você.\n\nO que vale observar: portas e janelas abrindo sem dificuldade, torneiras e ralos funcionando sem vazamento, tomadas testadas, paredes e tetos sem rachaduras ou manchas de umidade, e os acabamentos condizentes com o que foi vendido.\n\nLeve o celular e fotografe tudo que parecer fora do combinado — cada detalhe anotado aqui vira um pedido formal de ajuste antes da entrega.' },
+  { campo:'revistoria_em', nome:'Revistoria', icon:'repeat', condicional:true,
+    explicacao:'O retorno para conferir se os ajustes pendentes da vistoria foram realmente feitos.',
+    conforto:'Você já sabe exatamente o que checar — é a sua própria lista da vez anterior.',
+    detalhe:'Se algum ponto da vistoria ficou pendente, a revistoria é o retorno para conferir se os ajustes foram realmente feitos. É tranquilo — você já sabe exatamente o que checar, porque é a sua própria lista da vez anterior.\n\nLeve as anotações e fotos da primeira vistoria e confira item por item. Só siga para a entrega das chaves quando estiver de fato satisfeito(a).' },
   { campo:'entrega_chaves_em', nome:'Entrega das chaves', icon:'key',
     explicacao:'O grande dia. As chaves do seu imóvel finalmente são suas.',
-    conforto:'Respire fundo e aproveite. Este momento é a prova de que você chegou até aqui.' },
-  { campo:'assembleia_em', nome:'Assembleia geral de condomínio', icon:'users',
-    explicacao:'A reunião onde os moradores definem regras, taxas e o funcionamento do condomínio. Participar ajuda a entender o que pode e o que não pode na sua obra.',
-    conforto:'Parece burocrático, mas é aqui que você conhece as regras que vão facilitar sua reforma. Vá com calma e pergunte à vontade.' },
-  { campo:'inicio_reforma_em', nome:'Início da reforma', icon:'hammer',
+    conforto:'Respire fundo e aproveite. Este momento é a prova de que você chegou até aqui.',
+    detalhe:'O grande dia. Aqui você assina os documentos finais e recebe oficialmente as chaves do seu imóvel. Antes de sair, confirme se recebeu toda a documentação combinada em contrato.\n\nÉ comum sentir uma mistura de alívio e ansiedade nesse momento. É normal — e é a prova de que essa etapa longa finalmente se completou.' },
+  { campo:'manual_proprietario_em', nome:'Recebimento do manual do proprietário', icon:'book-open',
+    explicacao:'O guia oficial do seu imóvel, com especificações técnicas, garantias e orientações de uso.',
+    conforto:'Guarde esse documento com carinho — ele acompanha você por muito tempo.',
+    detalhe:'O manual do proprietário é o guia oficial do seu imóvel: reúne as especificações técnicas do prédio, os prazos de garantia de cada item (elétrica, hidráulica, acabamentos) e as orientações de uso e manutenção. Guarde esse documento com carinho — ele acompanha você por muito tempo, inclusive na hora de planejar a sua reforma.' },
+  { campo:'plantas_tecnicas_em', nome:'Recebimento das plantas técnicas', icon:'ruler',
+    explicacao:'O material técnico que mostra exatamente como o seu apartamento foi construído.',
+    conforto:'É a base técnica que a Guide usa para desenhar sua reforma com segurança.',
+    detalhe:'As plantas técnicas mostram exatamente como o seu apartamento foi construído: por onde passam as instalações elétricas e hidráulicas, a estrutura das paredes e as medidas reais de cada ambiente. Esse material é essencial — é a base técnica que a Guide usa para desenhar sua reforma com segurança.' },
+  { campo:'assembleia_em', nome:'Assembleia de instalação do condomínio', icon:'users',
+    explicacao:'A assembleia de instalação é o encontro em que o seu condomínio nasce oficialmente. Convocada pela construtora, é nela que os moradores elegem o primeiro síndico, aprovam a convenção e o regimento interno — as regras que vão reger a vida no prédio, inclusive os horários e condições para fazer obra na sua unidade.',
+    conforto:'Participar, mesmo que seja a primeira vez lidando com isso, ajuda você a entender o que pode e o que não pode, e já sair dali sabendo como agendar a sua reforma dentro das regras do condomínio.',
+    detalhe:'A assembleia de instalação é o encontro em que o seu condomínio nasce oficialmente. Convocada pela construtora, é nela que os moradores elegem o primeiro síndico, aprovam a convenção e o regimento interno — as regras que vão reger a vida no prédio, inclusive os horários e condições para fazer obra na sua unidade.\n\nParticipar, mesmo que seja a primeira vez lidando com isso, ajuda você a entender o que pode e o que não pode, e já sair dali sabendo como agendar a sua reforma dentro das regras do condomínio.' },
+  { campo:'inicio_reforma_em', nome:'Início da reforma', icon:'hammer', semDetalhe:true,
     explicacao:'O ponto de virada: seu apartamento começa a se transformar no lar que você imaginou.',
     conforto:'A ansiedade é natural. A partir daqui, cada dia te aproxima do resultado final.' },
 ];
+
+// respeita a visibilidade condicional: "Revistoria" só entra na lista/contagem quando
+// o arquiteto marcar que ela é necessária (pendência registrada na Vistoria)
+function marcosVisiveis() {
+  return MARCOS_DEF.filter(m => !m.condicional || (marcos && marcos.revistoria_necessaria));
+}
 
 // ─────────────────────────────────────────────────────────────
 // ESTADO GLOBAL
@@ -1146,6 +1199,7 @@ let briefing = null;
 let statusAmbientes = {};
 let ambientesFaseAtiva = [];
 let marcos = null;
+let marcosPersonalizados = [];
 let glossario = [];
 let comunidade = [];
 let parceiros = [];
@@ -1222,7 +1276,7 @@ async function inicializar() {
 
   const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
 
-  const [bf, marcosRow, gloss, comum, parc, hums, muralRows, palpRows] = await Promise.all([
+  const [bf, marcosRow, gloss, comum, parc, hums, muralRows, palpRows, marcosPersRows] = await Promise.all([
     tentar(sb.from('briefing_respostas').select('dados, status').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('glossario_termos').select('*').order('ordem', { ascending: true }), []),
@@ -1231,9 +1285,11 @@ async function inicializar() {
     tentar(sb.from('diario_humor').select('*').eq('projeto_id', projeto.id).order('registrado_em', { ascending: false }).limit(40), []),
     tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []),
     tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
+    tentar(sb.from('marcos_personalizados').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []),
   ]);
   briefing = bf;
   marcos = marcosRow;
+  marcosPersonalizados = marcosPersRows || [];
   glossario = gloss && gloss.length ? gloss : GLOSSARIO_PADRAO;
   const empreendimento = (bfDados()||{})['empreendimento'];
   comunidade = empreendimento ? await tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', empreendimento).order('criado_em', { ascending: false }), []) : comum;
@@ -1403,7 +1459,7 @@ function contarDecisoes() {
   if (briefing && briefing.status === 'enviado') n++;
   n += Math.max(0, (projeto.etapa_atual || 1) - 1);
   n += Object.values(statusAmbientes || {}).filter(s => s === 'aprovado').length;
-  if (marcos) n += MARCOS_DEF.filter(m => marcos[m.campo]).length;
+  if (marcos) n += marcosVisiveis().filter(m => marcos[m.campo]).length;
   return n;
 }
 
@@ -1532,12 +1588,13 @@ function fechadoChaves() {
       <div class="card-corpo"><div class="card-convite">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu. Assim que a obra avançar, cada marco aparece aqui.')}</div></div>
     `;
   }
-  const feitos = MARCOS_DEF.filter(m => marcos[m.campo]).length;
+  const visiveis = marcosVisiveis();
+  const feitos = visiveis.filter(m => marcos[m.campo]).length;
   return `
     <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
-    <div class="card-titulo">${feitos} de ${MARCOS_DEF.length} marcos cumpridos</div>
+    <div class="card-titulo">${feitos} de ${visiveis.length} marcos cumpridos</div>
     <div class="card-corpo"><div class="mini-timeline">
-      ${MARCOS_DEF.map(m => `<div class="mini-timeline-item"><span class="dot" style="background:${marcos[m.campo] ? 'var(--green)' : 'var(--muted2)'}"></span>${m.nome}</div>`).join('')}
+      ${visiveis.map(m => `<div class="mini-timeline-item"><span class="dot" style="background:${marcos[m.campo] ? 'var(--green)' : 'var(--muted2)'}"></span>${m.nome}</div>`).join('')}
     </div></div>
   `;
 }
@@ -1684,7 +1741,7 @@ function conteudoExpandido(key) {
 
 function ligarEventosExpandido(key) {
   document.querySelectorAll('#modal-inner .card-cta').forEach(b => b.addEventListener('click', () => popElastic(b)));
-  if (key === 'hero') { ligarAcordeaoHero(); ativarPilhaFases(); }
+  if (key === 'hero') { ligarAccordionsGenericos(); ativarPilhaFases(); }
   if (key === 'chaves') ligarChaves();
   if (key === 'glossario') ligarGlossario();
   if (key === 'diario') ligarDiario();
@@ -1898,8 +1955,9 @@ function conteudoAberturaInstrucao() {
   `;
 }
 
-// abre/fecha as seções acima — cada uma independente, o cliente pode alternar a qualquer momento
-function ligarAcordeaoHero() {
+// abre/fecha qualquer seção com [data-acc-toggle] + #acc-body-<id> dentro do modal aberto —
+// reaproveitado por "Meu Projeto" (Abertura/Instrução) e "Rumo às chaves" (instrução por marco)
+function ligarAccordionsGenericos() {
   document.querySelectorAll('#modal-inner [data-acc-toggle]').forEach(trigger => {
     trigger.addEventListener('click', () => {
       const id = trigger.dataset.accToggle;
@@ -2510,33 +2568,75 @@ function expandidoGui() {
 }
 
 // ── Rumo às chaves ──
+
+// quebra o texto de instrução (com \n\n entre parágrafos) em <p> separados
+function paragrafos(texto) {
+  return texto.split('\n\n').map(p => `<p>${p}</p>`).join('');
+}
+
+function renderMarcoFixo(m) {
+  const val = marcos && marcos[m.campo];
+  const temDetalhe = !m.semDetalhe;
+  const idAcc = 'marco-' + m.campo;
+  return `
+    <div class="marco-item ${val ? 'feito' : ''}">
+      <div class="marco-topo">
+        <div class="marco-check">${ic('check','ic-sm')}</div>
+        <div class="marco-nome">${m.nome}</div>
+        ${temDetalhe ? `<button class="marco-mais" data-acc-toggle="${idAcc}" aria-label="Ver instrução detalhada de ${m.nome}">${ic('plus','ic-sm')}</button>` : ''}
+      </div>
+      <div class="marco-explicacao">${m.explicacao}</div>
+      <div class="marco-conforto">${m.conforto}</div>
+      <div class="marco-data-wrap">
+        ${ic('calendar','ic-sm')}
+        <input type="date" class="marco-data-input" data-campo="${m.campo}" value="${paraInputDate(val)}">
+      </div>
+      ${temDetalhe ? `<div class="marco-detalhe-body" id="acc-body-${idAcc}"><div class="marco-detalhe-inner">${paragrafos(m.detalhe)}</div></div>` : ''}
+      ${m.campo === 'inicio_reforma_em' ? `
+        <div class="marco-obra-cta">
+          <p class="marco-obra-intro">${marcarPalavras('Agora siga pelo acompanhamento da obra, onde poderá acompanhar cada etapa dentro do seu cronograma.')}</p>
+          <a href="/obra"><button class="btn-primario marco-obra-btn">${ic('arrow-right','ic-sm')} Ir para o Acompanhamento de Obra</button></a>
+        </div>` : ''}
+    </div>
+  `;
+}
+
+function renderMarcoCustom(c) {
+  const id = (c && c.id) ? c.id : ('novo-' + Math.random().toString(36).slice(2, 9));
+  const titulo = c ? (c.titulo || '') : '';
+  const descricao = c ? (c.descricao || '') : '';
+  const dataVal = c ? c.data : null;
+  return `
+    <div class="marco-item marco-custom ${dataVal ? 'feito' : ''}" data-marco-id="${id}">
+      <div class="marco-topo">
+        <div class="marco-check">${ic('check','ic-sm')}</div>
+        <input type="text" class="marco-custom-titulo" placeholder="Nome deste marco..." value="${titulo.replace(/"/g,'&quot;')}">
+        <button class="marco-custom-del" aria-label="Remover marco" title="Remover">${ic('trash-2','ic-sm')}</button>
+      </div>
+      <textarea class="marco-custom-desc" placeholder="Uma breve descrição, se quiser...">${descricao}</textarea>
+      <div class="marco-data-wrap">
+        ${ic('calendar','ic-sm')}
+        <input type="date" class="marco-custom-data" value="${paraInputDate(dataVal)}">
+      </div>
+    </div>
+  `;
+}
+
 function expandidoChaves() {
   return `
     <div class="modal-eyebrow">${ic('key')} Rumo às chaves</div>
     <div class="modal-titulo">O caminho até a virada da chave</div>
     <p class="farol">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu.')}</p>
-    ${MARCOS_DEF.map((m,i) => {
-      const val = marcos && marcos[m.campo];
-      return `
-        <div class="marco-item ${val ? 'feito':''}">
-          <div class="marco-topo">
-            <div class="marco-check">${ic('check','ic-sm')}</div>
-            <div class="marco-nome">${m.nome}</div>
-          </div>
-          <div class="marco-explicacao">${m.explicacao}</div>
-          <div class="marco-conforto">${m.conforto}</div>
-          <div class="marco-data-wrap">
-            ${ic('calendar','ic-sm')}
-            <input type="date" class="marco-data-input" data-campo="${m.campo}" value="${paraInputDate(val)}">
-          </div>
-          ${m.campo === 'inicio_reforma_em' ? `<div class="marco-obra-link"><a href="/obra">Agora siga pelo acompanhamento da obra, onde poderá acompanhar cada etapa dentro do seu cronograma. ${ic('arrow-right','ic-sm')}</a></div>` : ''}
-        </div>
-      `;
-    }).join('')}
+    <p class="chaves-intro">${marcarPalavras('Aqui você acompanha, um a um, os marcos do processo de entrega do seu imóvel — e se planeja com tranquilidade para cada um deles. Preencha as datas conforme os agendamentos combinados com a construtora e, se quiser, acrescente outras atividades ou marcos que façam sentido para a sua jornada.')}</p>
+    ${marcosVisiveis().map(renderMarcoFixo).join('')}
+    ${marcosPersonalizados.map(renderMarcoCustom).join('')}
+    ${renderMarcoCustom(null)}
+    <button class="marco-add-btn" id="btn-add-marco">${ic('plus','ic-md')} Adicionar um marco seu</button>
   `;
 }
 
 function ligarChaves() {
+  // marcos fixos — cada mudança de data re-renderiza (atualiza o check e a contagem)
   document.querySelectorAll('#modal-inner .marco-data-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       const campo = inp.dataset.campo;
@@ -2552,6 +2652,68 @@ function ligarChaves() {
       icons();
     });
   });
+
+  // instrução detalhada de cada marco fixo (accordion "+")
+  ligarAccordionsGenericos();
+
+  // marcos personalizados — salvam sem re-render (evita perder o que está sendo digitado
+  // em outros campos); o "+" duplica o mesmo template para o cliente adicionar mais um
+  document.querySelectorAll('#modal-inner .marco-custom').forEach(ligarMarcoCustomCard);
+  const btnAdd = document.getElementById('btn-add-marco');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = renderMarcoCustom(null).trim();
+      const novoEl = wrapper.firstElementChild;
+      btnAdd.parentElement.insertBefore(novoEl, btnAdd);
+      ligarMarcoCustomCard(novoEl);
+      icons();
+    });
+  }
+}
+
+function ligarMarcoCustomCard(card) {
+  const salvar = () => salvarMarcoPersonalizado(card);
+  card.querySelector('.marco-custom-titulo').addEventListener('change', salvar);
+  card.querySelector('.marco-custom-desc').addEventListener('change', salvar);
+  card.querySelector('.marco-custom-data').addEventListener('change', salvar);
+  card.querySelector('.marco-custom-del').addEventListener('click', () => excluirMarcoPersonalizado(card));
+}
+
+async function salvarMarcoPersonalizado(card) {
+  const idAtual = card.dataset.marcoId;
+  const titulo = card.querySelector('.marco-custom-titulo').value.trim();
+  const descricao = card.querySelector('.marco-custom-desc').value.trim();
+  const dataInput = card.querySelector('.marco-custom-data').value;
+  const dataIso = dataInput ? new Date(dataInput).toISOString() : null;
+  if (!titulo && !descricao && !dataIso) return; // nada pra salvar ainda
+
+  const ehNovo = idAtual.startsWith('novo-');
+  if (ehNovo) {
+    const { data, error } = await sb.from('marcos_personalizados').insert({ projeto_id: projeto.id, titulo, descricao, data: dataIso }).select().single();
+    if (error) { toast('Não foi possível salvar este marco agora.'); console.error(error); return; }
+    card.dataset.marcoId = data.id;
+    marcosPersonalizados.push(data);
+    toast('Marco adicionado.');
+  } else {
+    const { error } = await sb.from('marcos_personalizados').update({ titulo, descricao, data: dataIso }).eq('id', idAtual);
+    if (error) { toast('Não foi possível salvar agora.'); console.error(error); return; }
+    const idx = marcosPersonalizados.findIndex(m => m.id === idAtual);
+    if (idx > -1) marcosPersonalizados[idx] = { ...marcosPersonalizados[idx], titulo, descricao, data: dataIso };
+    toast('Marco atualizado.');
+  }
+  card.classList.toggle('feito', !!dataIso);
+}
+
+async function excluirMarcoPersonalizado(card) {
+  const idAtual = card.dataset.marcoId;
+  if (!idAtual.startsWith('novo-')) {
+    const { error } = await sb.from('marcos_personalizados').delete().eq('id', idAtual);
+    if (error) { toast('Não foi possível remover agora.'); console.error(error); return; }
+    marcosPersonalizados = marcosPersonalizados.filter(m => m.id !== idAtual);
+  }
+  card.remove();
+  toast('Marco removido.');
 }
 
 // ── Guiders (comunidade) — convite caprichado ──
