@@ -568,7 +568,24 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 /* mesmo toggle na CAPA de "Rumo às chaves" — mostra de relance se todos os marcos
    visíveis já foram concluídos (só liga quando todos estão feitos) */
 .chaves-capa-toggle-wrap { position: absolute; top: 18px; right: 18px; z-index: 1; }
-.chaves-capa-toggle { transform-origin: center; }
+/* na capa o toggle é um ícone do card (não um controle miúdo) — maior e com mais
+   definição: borda mais presente, vidro menos diluído, aro de luz mais nítido */
+.chaves-capa-toggle {
+  transform-origin: center;
+  width: 36px; height: 68px; padding: 5px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03) 40%, rgba(0,0,0,0.22) 100%);
+  border: 1.5px solid rgba(255,255,255,0.22);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.32), inset 0 -8px 14px rgba(0,0,0,0.3), 0 6px 16px rgba(0,0,0,0.4);
+}
+.chaves-capa-toggle::before { background: linear-gradient(200deg, rgba(255,255,255,0.5) 0%, transparent 22%, transparent 78%, rgba(255,255,255,0.16) 100%); }
+.chaves-capa-toggle.ativo {
+  background: linear-gradient(160deg, rgba(226,185,59,0.4), rgba(201,162,39,0.1) 45%, rgba(0,0,0,0.22) 100%);
+  border-color: rgba(226,185,59,0.5);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -8px 14px rgba(0,0,0,0.25), 0 6px 16px rgba(0,0,0,0.4), 0 0 22px rgba(201,162,39,0.32);
+}
+.chaves-capa-toggle .marco-toggle-bolha { width: 26px; height: 26px; }
+.chaves-capa-toggle.ativo .marco-toggle-bolha { transform: translateY(-32px); }
+.chaves-capa-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-32px) scale(0.8); }
 .marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
@@ -1380,7 +1397,28 @@ function renderBento() {
   });
   icons();
   iniciarParticulasHero();
-  ativarTiltToggle(document.querySelector('.chaves-capa-toggle'));
+  const capaToggle = document.querySelector('.chaves-capa-toggle');
+  ativarTiltToggle(capaToggle);
+  ativarImaBolhaVertical(capaToggle);
+}
+
+// "ímã" na bolha do toggle da capa — ao passar o mouse, a bolha é puxada para cima,
+// nunca para os lados nem para baixo, sempre dentro do curso da própria cápsula
+// (adaptado do efeito "ímã no cursor": aqui só o eixo Y importa, e só o sentido de subir)
+function ativarImaBolhaVertical(toggleEl) {
+  if (!toggleEl || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const bolha = toggleEl.querySelector('.marco-toggle-bolha');
+  if (!bolha) return;
+  const limite = 10; // px extras de atração, além do deslocamento do estado ligado/desligado
+  toggleEl.addEventListener('mousemove', (ev) => {
+    const r = toggleEl.getBoundingClientRect();
+    const cy = r.top + r.height / 2;
+    const dy = (ev.clientY - cy) / (r.height / 2); // -1 no topo … 1 na base
+    const forca = Math.max(0, -dy); // só atrai quando o mouse está acima do centro da cápsula
+    const base = toggleEl.classList.contains('ativo') ? -32 : 0;
+    bolha.style.transform = `translateY(${base - forca * limite}px)`;
+  });
+  toggleEl.addEventListener('mouseleave', () => { bolha.style.transform = ''; });
 }
 
 // PARTÍCULAS QUE FOGEM DO MOUSE — fundo do card "Meu Projeto".
@@ -1640,10 +1678,7 @@ function fechadoChaves() {
     <div class="chaves-capa-toggle-wrap">
       <button type="button" class="marco-toggle chaves-capa-toggle ${todosFeitos ? 'ativo' : ''}" tabindex="-1" aria-hidden="true" title="${feitos} de ${visiveis.length} marcos concluídos"><span class="marco-toggle-bolha"></span></button>
     </div>
-    <div class="card-titulo">${feitos} de ${visiveis.length} marcos cumpridos</div>
-    <div class="card-corpo"><div class="mini-timeline">
-      ${visiveis.map(m => `<div class="mini-timeline-item"><span class="dot" style="background:${marcos[m.campo] ? 'var(--green)' : 'var(--muted2)'}"></span>${m.nome}</div>`).join('')}
-    </div></div>
+    <div class="card-titulo">O caminho até a virada da chave</div>
   `;
 }
 
