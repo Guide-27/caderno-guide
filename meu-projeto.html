@@ -565,6 +565,10 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-toggle:active .marco-toggle-bolha { transform: scale(0.8); }
 .marco-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-24px) scale(0.8); }
 @media (prefers-reduced-motion: reduce) { .marco-toggle, .marco-toggle-bolha { transition: background .3s, box-shadow .3s; } }
+/* mesmo toggle na CAPA de "Rumo às chaves" — mostra de relance se todos os marcos
+   visíveis já foram concluídos (só liga quando todos estão feitos) */
+.chaves-capa-toggle-wrap { position: absolute; top: 18px; right: 18px; z-index: 1; }
+.chaves-capa-toggle { transform-origin: center; }
 .marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
@@ -1376,6 +1380,7 @@ function renderBento() {
   });
   icons();
   iniciarParticulasHero();
+  ativarTiltToggle(document.querySelector('.chaves-capa-toggle'));
 }
 
 // PARTÍCULAS QUE FOGEM DO MOUSE — fundo do card "Meu Projeto".
@@ -1629,8 +1634,12 @@ function fechadoChaves() {
   }
   const visiveis = marcosVisiveis();
   const feitos = visiveis.filter(m => marcos[m.campo]).length;
+  const todosFeitos = visiveis.length > 0 && feitos === visiveis.length;
   return `
     <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
+    <div class="chaves-capa-toggle-wrap">
+      <button type="button" class="marco-toggle chaves-capa-toggle ${todosFeitos ? 'ativo' : ''}" tabindex="-1" aria-hidden="true" title="${feitos} de ${visiveis.length} marcos concluídos"><span class="marco-toggle-bolha"></span></button>
+    </div>
     <div class="card-titulo">${feitos} de ${visiveis.length} marcos cumpridos</div>
     <div class="card-corpo"><div class="mini-timeline">
       ${visiveis.map(m => `<div class="mini-timeline-item"><span class="dot" style="background:${marcos[m.campo] ? 'var(--green)' : 'var(--muted2)'}"></span>${m.nome}</div>`).join('')}
