@@ -524,8 +524,31 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-item { border-bottom: 1px solid var(--border2); padding: 18px 0; }
 .marco-item:last-child { border-bottom: none; }
 .marco-topo { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.marco-check { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--muted2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; }
-.marco-item.feito .marco-check { background: var(--green); border-color: var(--green); color: var(--black); }
+/* toggle on/off vertical, cápsula em glassmorfismo — a "bolha" sobe com efeito liquid glass
+   quando o marco é marcado como concluído; clicar alterna o estado (grava a data de hoje /
+   limpa a data), com efeito de squish no clique. */
+.marco-toggle {
+  width: 22px; height: 40px; border-radius: var(--r-pill); flex-shrink: 0; padding: 3px;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(255,255,255,0.05); backdrop-filter: blur(6px) saturate(140%); -webkit-backdrop-filter: blur(6px) saturate(140%);
+  border: 1px solid var(--border2); cursor: pointer; transition: background .3s, border-color .3s;
+}
+.marco-toggle:hover { border-color: var(--gold-mid); }
+.marco-toggle.ativo { background: linear-gradient(180deg, rgba(201,162,39,0.24), rgba(201,162,39,0.07)); border-color: var(--gold-mid); }
+.marco-toggle-bolha {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, rgba(255,255,255,0.95), rgba(245,244,240,0.55) 45%, rgba(190,190,190,0.25) 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.85);
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), background .3s, box-shadow .3s;
+}
+.marco-toggle.ativo .marco-toggle-bolha {
+  transform: translateY(-18px);
+  background: radial-gradient(circle at 32% 26%, #fff8e0, var(--gold-light) 45%, var(--gold) 100%);
+  box-shadow: 0 2px 10px rgba(201,162,39,0.55), inset 0 1px 2px rgba(255,255,255,0.9);
+}
+.marco-toggle:active .marco-toggle-bolha { transform: scale(0.82); }
+.marco-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-18px) scale(0.82); }
+@media (prefers-reduced-motion: reduce) { .marco-toggle-bolha { transition: background .3s; } }
 .marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
@@ -1171,9 +1194,9 @@ const MARCOS_DEF = [
     conforto:'Guarde esse documento com carinho — ele acompanha você por muito tempo.',
     detalhe:'O manual do proprietário é o guia oficial do seu imóvel: reúne as especificações técnicas do prédio, os prazos de garantia de cada item (elétrica, hidráulica, acabamentos) e as orientações de uso e manutenção. Guarde esse documento com carinho — ele acompanha você por muito tempo, inclusive na hora de planejar a sua reforma.' },
   { campo:'plantas_tecnicas_em', nome:'Recebimento das plantas técnicas', icon:'ruler',
-    explicacao:'O material técnico que mostra exatamente como o seu apartamento foi construído.',
-    conforto:'É a base técnica que a Guide usa para desenhar sua reforma com segurança.',
-    detalhe:'As plantas técnicas mostram exatamente como o seu apartamento foi construído: por onde passam as instalações elétricas e hidráulicas, a estrutura das paredes e as medidas reais de cada ambiente. Esse material é essencial — é a base técnica que a Guide usa para desenhar sua reforma com segurança.' },
+    explicacao:'O material técnico que mostra como o seu apartamento foi construído.',
+    conforto:'',
+    detalhe:'As plantas técnicas mostram exatamente como o seu apartamento foi construído: por onde passam as instalações elétricas e hidráulicas, a estrutura das paredes e as medidas reais de cada ambiente. Esse material é entregue pela construtora e é importante para uma reforma mais segura e precisa.' },
   { campo:'assembleia_em', nome:'Assembleia de instalação do condomínio', icon:'users',
     explicacao:'A assembleia de instalação é o encontro em que o seu condomínio nasce oficialmente. Convocada pela construtora, é nela que os moradores elegem o primeiro síndico, aprovam a convenção e o regimento interno — as regras que vão reger a vida no prédio, inclusive os horários e condições para fazer obra na sua unidade.',
     conforto:'Participar, mesmo que seja a primeira vez lidando com isso, ajuda você a entender o que pode e o que não pode, e já sair dali sabendo como agendar a sua reforma dentro das regras do condomínio.',
@@ -2581,12 +2604,12 @@ function renderMarcoFixo(m) {
   return `
     <div class="marco-item ${val ? 'feito' : ''}">
       <div class="marco-topo">
-        <div class="marco-check">${ic('check','ic-sm')}</div>
+        <button type="button" class="marco-toggle ${val ? 'ativo' : ''}" data-campo="${m.campo}" aria-label="Marcar ${m.nome} como concluído" aria-pressed="${val ? 'true' : 'false'}"><span class="marco-toggle-bolha"></span></button>
         <div class="marco-nome">${m.nome}</div>
         ${temDetalhe ? `<button class="marco-mais" data-acc-toggle="${idAcc}" aria-label="Ver instrução detalhada de ${m.nome}">${ic('plus','ic-sm')}</button>` : ''}
       </div>
       <div class="marco-explicacao">${m.explicacao}</div>
-      <div class="marco-conforto">${m.conforto}</div>
+      ${m.conforto ? `<div class="marco-conforto">${m.conforto}</div>` : ''}
       <div class="marco-data-wrap">
         ${ic('calendar','ic-sm')}
         <input type="date" class="marco-data-input" data-campo="${m.campo}" value="${paraInputDate(val)}">
@@ -2609,7 +2632,7 @@ function renderMarcoCustom(c) {
   return `
     <div class="marco-item marco-custom ${dataVal ? 'feito' : ''}" data-marco-id="${id}">
       <div class="marco-topo">
-        <div class="marco-check">${ic('check','ic-sm')}</div>
+        <button type="button" class="marco-toggle ${dataVal ? 'ativo' : ''}" aria-label="Marcar como concluído" aria-pressed="${dataVal ? 'true' : 'false'}"><span class="marco-toggle-bolha"></span></button>
         <input type="text" class="marco-custom-titulo" placeholder="Nome deste marco..." value="${titulo.replace(/"/g,'&quot;')}">
         <button class="marco-custom-del" aria-label="Remover marco" title="Remover">${ic('trash-2','ic-sm')}</button>
       </div>
@@ -2635,21 +2658,34 @@ function expandidoChaves() {
   `;
 }
 
+// grava a data de um marco fixo (usado pelo input de data e pelo toggle) e re-renderiza
+// a lista (atualiza o toggle, o check do item e a contagem no card fechado)
+async function salvarMarcoFixo(campo, valorIso) {
+  const payload = { projeto_id: projeto.id, [campo]: valorIso, atualizado_em: new Date().toISOString() };
+  const { data, error } = await sb.from('marcos_pos_chaves').upsert(payload, { onConflict: 'projeto_id' }).select().single();
+  if (error) { toast('Não foi possível salvar agora.'); console.error(error); return; }
+  marcos = data;
+  toast(valorIso ? 'Marco concluído!' : 'Marco desmarcado.');
+  renderBento();
+  document.getElementById('modal-inner').innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoChaves();
+  ligarChaves();
+  icons();
+}
+
 function ligarChaves() {
-  // marcos fixos — cada mudança de data re-renderiza (atualiza o check e a contagem)
+  // marcos fixos — cada mudança de data re-renderiza (atualiza o toggle e a contagem)
   document.querySelectorAll('#modal-inner .marco-data-input').forEach(inp => {
-    inp.addEventListener('change', async () => {
-      const campo = inp.dataset.campo;
+    inp.addEventListener('change', () => {
       const valor = inp.value ? new Date(inp.value).toISOString() : null;
-      const payload = { projeto_id: projeto.id, [campo]: valor, atualizado_em: new Date().toISOString() };
-      const { data, error } = await sb.from('marcos_pos_chaves').upsert(payload, { onConflict: 'projeto_id' }).select().single();
-      if (error) { toast('Não foi possível salvar esta data agora.'); console.error(error); return; }
-      marcos = data;
-      toast('Data salva.');
-      renderBento();
-      document.getElementById('modal-inner').innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoChaves();
-      ligarChaves();
-      icons();
+      salvarMarcoFixo(inp.dataset.campo, valor);
+    });
+  });
+
+  // toggle capsule ao lado do nome — clique alterna concluído/pendente (grava hoje / limpa)
+  document.querySelectorAll('#modal-inner .marco-toggle[data-campo]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ativo = btn.classList.contains('ativo');
+      salvarMarcoFixo(btn.dataset.campo, ativo ? null : new Date().toISOString());
     });
   });
 
@@ -2678,6 +2714,18 @@ function ligarMarcoCustomCard(card) {
   card.querySelector('.marco-custom-desc').addEventListener('change', salvar);
   card.querySelector('.marco-custom-data').addEventListener('change', salvar);
   card.querySelector('.marco-custom-del').addEventListener('click', () => excluirMarcoPersonalizado(card));
+
+  // toggle capsule — clique marca hoje / limpa a data, e já salva
+  const toggle = card.querySelector('.marco-toggle');
+  const dataInput = card.querySelector('.marco-custom-data');
+  toggle.addEventListener('click', () => {
+    const ativo = toggle.classList.contains('ativo');
+    dataInput.value = ativo ? '' : new Date().toISOString().slice(0, 10);
+    toggle.classList.toggle('ativo', !ativo);
+    toggle.setAttribute('aria-pressed', String(!ativo));
+    card.classList.toggle('feito', !ativo);
+    salvarMarcoPersonalizado(card);
+  });
 }
 
 async function salvarMarcoPersonalizado(card) {
