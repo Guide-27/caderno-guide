@@ -609,6 +609,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-detalhe-inner p:last-child { margin-bottom: 0; }
 
 /* CTA de destaque para o Acompanhamento de Obra (marco "Início da reforma") */
+.marco-vistoria-cta { margin: 14px 0 0 38px; }
 .marco-obra-cta { margin: 14px 0 0 38px; padding: 16px; border-radius: var(--r-md); background: var(--gold-dim); border: 1px solid var(--border); }
 .marco-obra-intro { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; margin-bottom: 12px; }
 .marco-obra-btn { width: 100%; justify-content: center; animation: pulsarOuro 2.4s ease-in-out infinite; }
@@ -2675,6 +2676,14 @@ function renderMarcoFixo(m) {
         <input type="date" class="marco-data-input" data-campo="${m.campo}" value="${paraInputDate(val)}">
       </div>
       ${temDetalhe ? `<div class="marco-detalhe-body" id="acc-body-${idAcc}"><div class="marco-detalhe-inner">${paragrafos(m.detalhe)}</div></div>` : ''}
+      ${m.campo === 'vistoria_em' ? `
+        <div class="marco-vistoria-cta">
+          <a href="/vistoria"><button class="card-cta">${ic('clipboard-check','ic-sm')} Abrir checklist de vistoria</button></a>
+        </div>` : ''}
+      ${m.campo === 'revistoria_em' ? `
+        <div class="marco-vistoria-cta">
+          <a href="/vistoria?modo=revistoria"><button class="card-cta">${ic('list-checks','ic-sm')} Conferir pendências da revistoria</button></a>
+        </div>` : ''}
       ${m.campo === 'inicio_reforma_em' ? `
         <div class="marco-obra-cta">
           <p class="marco-obra-intro">${marcarPalavras('Agora siga pelo acompanhamento da obra, onde poderá acompanhar cada etapa dentro do seu cronograma.')}</p>

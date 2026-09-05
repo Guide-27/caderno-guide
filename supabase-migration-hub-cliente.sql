@@ -230,6 +230,28 @@ create policy "cliente gerencia seus palpites" on palpites_ambiente for all
   using (exists (select 1 from projetos p where p.id = palpites_ambiente.projeto_id and p.email = auth.email()))
   with check (exists (select 1 from projetos p where p.id = palpites_ambiente.projeto_id and p.email = auth.email()));
 
+-- ─── 10. Vistoria (tela dedicada /vistoria, aberta pelo marco "Vistoria da unidade") ───
+-- Um registro por projeto. Tudo em jsonb: `itens` = { "<subitemId>": {status, obs, fotos:[url],
+-- resolucao} }; `personalizados` = [ {id, categoria, titulo, status, obs, fotos:[]} ]; `avaliacoes`
+-- = { pintura:1..5, piso, esquadrias, metragem, acabamento, resumo }; `nota_geral` texto livre.
+-- `resolucao` (dentro de itens) é preenchida no modo revistoria. Fotos vão no bucket
+-- projetos-imagens (pasta vistoria/<projeto_id>/...). Privado do cliente — SEM política para
+-- arquiteto, então nunca aparece no painel admin.
+create table if not exists vistorias (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade unique,
+  itens jsonb default '{}'::jsonb,
+  personalizados jsonb default '[]'::jsonb,
+  avaliacoes jsonb default '{}'::jsonb,
+  nota_geral text,
+  atualizado_em timestamptz default now()
+);
+alter table vistorias enable row level security;
+drop policy if exists "cliente gerencia sua vistoria" on vistorias;
+create policy "cliente gerencia sua vistoria" on vistorias for all
+  using (exists (select 1 from projetos p where p.id = vistorias.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = vistorias.projeto_id and p.email = auth.email()));
+
 -- ─── Seed do glossário (conteúdo editorial — pode editar/expandir pelo Table Editor) ───
 -- Remove duplicatas de `termo` antes de criar a constraint única (idempotente: não faz nada
 -- se não houver duplicatas). Mantém a linha mais antiga (menor id) de cada termo repetido.

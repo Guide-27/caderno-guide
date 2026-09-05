@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vistoria da unidade — Guide Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Sora:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#969488; --muted2:#4a4845;
+  --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
+  --green:#50C878; --green-dim:rgba(80,200,120,0.10); --green-mid:rgba(80,200,120,0.30);
+  --alerta:#E8853A; --alerta-dim:rgba(232,133,58,0.12); --alerta-mid:rgba(232,133,58,0.4);
+  --red:#DC5A5A; --red-dim:rgba(220,90,90,0.10);
+  --glass:rgba(255,255,255,0.055); --glass2:rgba(255,255,255,0.035);
+  --fs-2xs:10px; --fs-xs:11.5px; --fs-sm:12.5px; --fs-base:14px; --fs-md:16px; --fs-lg:19px; --fs-xl:22px; --fs-2xl:26px;
+  --r-sm:12px; --r-md:16px; --r-lg:24px; --r-xl:28px; --r-pill:999px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { background:var(--black); color:var(--off); font-family:'Outfit',sans-serif; font-weight:300; -webkit-font-smoothing:antialiased; }
+h1,h2,h3,.titulo,.categoria-nome,.bloco-titulo,.sub-rotulo,.estrela-q,.info-modal-titulo { font-family:'Sora',sans-serif; }
+svg.lucide { display:inline-block; vertical-align:-3px; stroke-width:1.8; width:18px; height:18px; }
+svg.lucide.ic-sm { width:14px; height:14px; } svg.lucide.ic-md { width:18px; height:18px; }
+svg.lucide.ic-lg { width:22px; height:22px; } svg.lucide.ic-xl { width:28px; height:28px; }
+
+.bg-gradient { position:fixed; inset:0; z-index:0; background:linear-gradient(120deg,#08080a,#1c1608,#0a0a0c,#140f06,#08080a); background-size:340% 340%; animation:grad 34s ease-in-out infinite; }
+@keyframes grad { 0%{background-position:0% 40%;} 50%{background-position:100% 60%;} 100%{background-position:0% 40%;} }
+.noise { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.025; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size:200px; }
+
+/* TOP BAR */
+.top-bar { position:fixed; top:16px; left:16px; right:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:300;
+  background:var(--glass); backdrop-filter:blur(32px) saturate(160%); -webkit-backdrop-filter:blur(32px) saturate(160%);
+  border:1px solid rgba(255,255,255,0.1); border-radius:var(--r-pill); padding:8px 10px 8px 20px; min-height:56px; }
+.top-logo img { height:30px; display:block; }
+.top-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-sm); color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.btn-voltar { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px solid var(--border2); border-radius:var(--r-pill); padding:9px 16px; color:var(--muted); font-family:'Outfit',sans-serif; font-size:var(--fs-sm); cursor:pointer; transition:all .2s; text-decoration:none; }
+.btn-voltar:hover { color:var(--gold); border-color:var(--gold-mid); }
+
+.main { max-width:860px; margin:0 auto; padding:96px 20px 100px; position:relative; z-index:2; }
+
+/* HEADER */
+.pagina-eyebrow { font-size:var(--fs-2xs); font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+.pagina-titulo { font-family:'Sora',sans-serif; font-weight:700; font-size:var(--fs-2xl); color:var(--white); line-height:1.15; margin-bottom:8px; }
+.pagina-sub { font-size:var(--fs-base); color:var(--muted); line-height:1.6; margin-bottom:24px; max-width:640px; }
+
+/* TOOLBAR PDF */
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:26px; }
+.btn-pdf { display:inline-flex; align-items:center; gap:8px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:11px 16px; color:var(--off); font-family:'Outfit',sans-serif; font-size:var(--fs-sm); font-weight:500; cursor:pointer; transition:all .2s; }
+.btn-pdf:hover { border-color:var(--gold-mid); background:var(--gold-dim); color:var(--gold-light); }
+.btn-pdf svg { color:var(--gold); }
+
+/* BLOCO RECOLHÍVEL (guia / o que levar) */
+.bloco { background:var(--glass2); backdrop-filter:blur(18px) saturate(140%); -webkit-backdrop-filter:blur(18px) saturate(140%); border:1px solid var(--border2); border-radius:var(--r-lg); margin-bottom:16px; overflow:hidden; }
+.bloco-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; background:transparent; border:none; cursor:pointer; padding:18px 20px; text-align:left; font-family:'Outfit',sans-serif; color:var(--white); transition:background .2s; }
+.bloco-toggle:hover { background:rgba(255,255,255,0.03); }
+.bloco-toggle-txt { display:flex; align-items:center; gap:10px; }
+.bloco-toggle-txt .bti { width:34px; height:34px; border-radius:var(--r-sm); background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.bloco-titulo { font-weight:600; font-size:var(--fs-md); color:var(--white); }
+.bloco-toggle > svg.lucide { color:var(--gold); transition:transform .3s; flex-shrink:0; }
+.bloco-toggle.aberto > svg.lucide { transform:rotate(180deg); }
+.bloco-corpo { max-height:0; overflow:hidden; opacity:0; transition:max-height .5s cubic-bezier(.22,.9,.32,1), opacity .35s; }
+.bloco-corpo.aberto { max-height:4000px; opacity:1; }
+.bloco-corpo-inner { padding:0 20px 22px; }
+.bloco-corpo-inner p { font-size:var(--fs-sm); color:var(--off); line-height:1.75; margin-bottom:14px; }
+.bloco-corpo-inner p:last-child { margin-bottom:0; }
+
+/* O QUE LEVAR — lista */
+.levar-lista { display:flex; flex-direction:column; gap:12px; }
+.levar-item { display:flex; gap:12px; }
+.levar-item-icone { width:32px; height:32px; border-radius:var(--r-sm); background:var(--glass2); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.levar-item-nome { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-sm); color:var(--white); margin-bottom:3px; }
+.levar-item-porque { font-size:var(--fs-sm); color:var(--muted); line-height:1.55; }
+
+/* CHECKLIST */
+.checklist-titulo { font-family:'Sora',sans-serif; font-weight:700; font-size:var(--fs-xl); color:var(--white); margin:32px 0 6px; }
+.checklist-desc { font-size:var(--fs-sm); color:var(--muted); line-height:1.6; margin-bottom:20px; }
+.categoria { background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-lg); margin-bottom:16px; overflow:hidden; }
+.categoria-head { display:flex; align-items:center; gap:12px; padding:16px 18px; border-bottom:1px solid var(--border2); }
+.categoria-icone { width:38px; height:38px; border-radius:var(--r-sm); background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.categoria-nome { font-weight:600; font-size:var(--fs-md); color:var(--white); flex:1; }
+.categoria-progresso { font-size:var(--fs-2xs); color:var(--muted); text-transform:uppercase; letter-spacing:.05em; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-pill); padding:4px 11px; white-space:nowrap; }
+.categoria-progresso.completa { color:var(--green); border-color:var(--green-mid); background:var(--green-dim); }
+.categoria-corpo { padding:6px 18px 14px; }
+
+.subitem { padding:16px 0; border-bottom:1px solid var(--border2); }
+.subitem:last-child { border-bottom:none; }
+.sub-topo { display:flex; align-items:flex-start; gap:8px; margin-bottom:12px; }
+.sub-rotulo { font-weight:500; font-size:var(--fs-base); color:var(--off); flex:1; line-height:1.4; }
+.sub-info-btn { background:transparent; border:1px solid var(--border2); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:var(--gold); cursor:pointer; flex-shrink:0; transition:all .2s; }
+.sub-info-btn:hover { border-color:var(--gold-mid); background:var(--gold-dim); }
+
+/* controle de status 3 estados */
+.status-seg { display:inline-flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.status-btn { display:inline-flex; align-items:center; gap:6px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-pill); padding:7px 13px; color:var(--muted); font-family:'Outfit',sans-serif; font-size:var(--fs-xs); cursor:pointer; transition:all .18s; }
+.status-btn:hover { border-color:rgba(255,255,255,0.2); }
+.status-btn.sel[data-status="ok"] { color:var(--green); border-color:var(--green-mid); background:var(--green-dim); }
+.status-btn.sel[data-status="pendencia"] { color:var(--alerta); border-color:var(--alerta-mid); background:var(--alerta-dim); }
+.status-btn.sel[data-status="na"] { color:var(--off); border-color:rgba(255,255,255,0.25); background:rgba(255,255,255,0.06); }
+
+/* observação + fotos */
+.sub-obs { display:block; width:100%; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:9px 12px; color:var(--off); font-family:'Outfit',sans-serif; font-size:var(--fs-sm); line-height:1.5; resize:vertical; min-height:44px; margin-bottom:10px; }
+.sub-obs:focus { outline:none; border-color:var(--gold-mid); }
+.sub-obs::placeholder { color:var(--muted2); }
+.sub-fotos { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.sub-foto-thumb { position:relative; width:56px; height:56px; border-radius:var(--r-sm); overflow:hidden; border:1px solid var(--border2); }
+.sub-foto-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.sub-foto-del { position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%; background:rgba(8,8,10,0.8); border:none; color:var(--off); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.sub-foto-add { display:inline-flex; align-items:center; gap:6px; background:transparent; border:1px dashed var(--border2); border-radius:var(--r-sm); padding:8px 12px; color:var(--muted); font-family:'Outfit',sans-serif; font-size:var(--fs-xs); cursor:pointer; transition:all .2s; }
+.sub-foto-add:hover { border-color:var(--gold-mid); color:var(--gold-light); }
+.sub-foto-add svg { color:var(--gold); }
+
+/* resolução (modo revistoria) */
+.resolucao-seg { display:inline-flex; gap:6px; margin-bottom:10px; }
+.resolucao-btn { display:inline-flex; align-items:center; gap:6px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-pill); padding:7px 14px; color:var(--muted); font-family:'Outfit',sans-serif; font-size:var(--fs-xs); cursor:pointer; transition:all .18s; }
+.resolucao-btn.sel[data-res="resolvido"] { color:var(--green); border-color:var(--green-mid); background:var(--green-dim); }
+.resolucao-btn.sel[data-res="nao_resolvido"] { color:var(--red); border-color:rgba(220,90,90,0.4); background:var(--red-dim); }
+
+/* adicionar subitem personalizado */
+.add-sub-btn { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px dashed var(--border2); border-radius:var(--r-pill); padding:9px 15px; margin-top:8px; color:var(--gold); font-family:'Outfit',sans-serif; font-size:var(--fs-xs); font-weight:500; cursor:pointer; transition:all .2s; }
+.add-sub-btn:hover { border-color:var(--gold-mid); background:var(--gold-dim); border-style:solid; }
+.sub-titulo-input { flex:1; background:transparent; border:none; border-bottom:1px dashed var(--border2); font-family:'Sora',sans-serif; font-weight:500; font-size:var(--fs-base); color:var(--off); padding:2px 0; }
+.sub-titulo-input:focus { outline:none; border-color:var(--gold-mid); color:var(--white); }
+.sub-titulo-input::placeholder { color:var(--muted); font-weight:400; }
+.sub-del { background:transparent; border:none; color:var(--muted); cursor:pointer; padding:4px; border-radius:var(--r-sm); flex-shrink:0; transition:color .2s; }
+.sub-del:hover { color:var(--red); }
+
+/* AVALIAÇÃO ESTRELAS */
+.avaliacao { background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-lg); padding:22px; margin:28px 0 16px; }
+.avaliacao-titulo { font-family:'Sora',sans-serif; font-weight:700; font-size:var(--fs-lg); color:var(--white); margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.avaliacao-titulo svg { color:var(--gold); }
+.avaliacao-desc { font-size:var(--fs-sm); color:var(--muted); line-height:1.6; margin-bottom:20px; }
+.estrela-item { padding:14px 0; border-bottom:1px solid var(--border2); }
+.estrela-item:last-child { border-bottom:none; }
+.estrela-q { font-weight:500; font-size:var(--fs-sm); color:var(--off); margin-bottom:10px; }
+.estrela-row { display:inline-flex; gap:6px; }
+.estrela { background:transparent; border:none; cursor:pointer; color:var(--muted2); padding:0; transition:transform .15s, color .2s; }
+.estrela:hover { transform:scale(1.15); }
+.estrela.on { color:var(--gold); }
+.estrela svg { width:26px; height:26px; fill:currentColor; }
+
+/* NOTA GERAL */
+.nota-geral { background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-lg); padding:22px; margin-bottom:16px; }
+.nota-geral-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-md); color:var(--white); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.nota-geral-titulo svg { color:var(--gold); }
+.nota-geral textarea { width:100%; background:var(--card2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:12px 14px; color:var(--off); font-family:'Outfit',sans-serif; font-size:var(--fs-sm); line-height:1.6; resize:vertical; min-height:90px; }
+.nota-geral textarea:focus { outline:none; border-color:var(--gold-mid); }
+
+/* INTEGRAÇÕES */
+.integra { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:28px; }
+@media (max-width:640px) { .integra { grid-template-columns:1fr; } }
+.integra-card { background:linear-gradient(160deg,rgba(201,162,39,0.09),var(--glass2) 70%); border:1px solid var(--gold-mid); border-radius:var(--r-lg); padding:20px; text-align:center; }
+.integra-icone { width:48px; height:48px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:var(--gold); }
+.integra-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-base); color:var(--white); margin-bottom:8px; }
+.integra-texto { font-size:var(--fs-xs); color:var(--muted); line-height:1.6; margin-bottom:16px; }
+.integra-btn { display:inline-flex; align-items:center; gap:7px; background:var(--gold); color:var(--black); border:none; border-radius:var(--r-sm); padding:10px 16px; font-family:'Outfit',sans-serif; font-size:var(--fs-sm); font-weight:600; cursor:pointer; transition:transform .2s, box-shadow .2s; text-decoration:none; }
+.integra-btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(201,162,39,0.24); }
+
+/* MODAL INFO */
+.info-modal-overlay { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(8,8,10,0.6); backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .25s; }
+.info-modal-overlay.vis { opacity:1; pointer-events:auto; }
+.info-modal-card { max-width:480px; width:100%; background:rgba(20,20,24,0.98); border:1px solid var(--gold-mid); border-radius:var(--r-xl); padding:28px; box-shadow:0 30px 80px rgba(0,0,0,0.55); transform:translateY(10px) scale(.98); transition:transform .25s; max-height:80vh; overflow-y:auto; }
+.info-modal-overlay.vis .info-modal-card { transform:translateY(0) scale(1); }
+.info-modal-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.info-modal-icone { width:38px; height:38px; border-radius:var(--r-sm); background:var(--gold-dim); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.info-modal-titulo { font-weight:600; font-size:var(--fs-md); color:var(--white); flex:1; }
+.info-modal-close { background:transparent; border:1px solid var(--border2); color:var(--muted); border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; }
+.info-modal-close:hover { color:var(--gold); border-color:var(--gold); }
+.info-modal-texto { font-size:var(--fs-sm); color:var(--off); line-height:1.75; }
+
+/* TOAST + loading */
+.toast { position:fixed; bottom:20px; left:20px; background:rgba(20,20,24,0.96); backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:var(--r-sm); padding:13px 18px; font-size:var(--fs-sm); color:var(--off); z-index:1000; opacity:0; pointer-events:none; transition:opacity .3s; display:flex; align-items:center; gap:8px; }
+.toast.vis { opacity:1; }
+.toast svg { color:var(--gold); }
+.loading { text-align:center; padding:80px 20px; color:var(--muted); }
+.spinner { display:inline-block; width:24px; height:24px; border:2px solid var(--border2); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; margin-bottom:12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.vazio-msg { text-align:center; padding:40px 20px; color:var(--muted); font-size:var(--fs-sm); line-height:1.7; }
+
+/* área offscreen para gerar PDF */
+#pdf-stage { position:fixed; left:-9999px; top:0; width:794px; background:#fff; }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+<div class="noise"></div>
+
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+    <a href="/meu-projeto" class="top-logo"><img src="/assets/logo-guide.svg" alt="Guide Arquitetura"></a>
+    <span class="top-titulo" id="top-titulo">Vistoria</span>
+  </div>
+  <a href="/meu-projeto" class="btn-voltar"><i data-lucide="arrow-left"></i> Voltar</a>
+</div>
+
+<div class="main" id="main">
+  <div class="loading"><div class="spinner"></div><div>Carregando sua vistoria...</div></div>
+</div>
+
+<div class="info-modal-overlay" id="info-modal">
+  <div class="info-modal-card">
+    <div class="info-modal-head">
+      <div class="info-modal-icone"><i data-lucide="info"></i></div>
+      <div class="info-modal-titulo" id="info-modal-titulo"></div>
+      <button class="info-modal-close" id="info-modal-close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="info-modal-texto" id="info-modal-texto"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="pdf-stage"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const BUCKET = 'projetos-imagens';
+
+function icons() { if (window.lucide && lucide.createIcons) lucide.createIcons(); }
+function ic(nome, cls) { return `<i data-lucide="${nome}" class="${cls||''}"></i>`; }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const MODO_REVISTORIA = new URLSearchParams(location.search).get('modo') === 'revistoria';
+
+// ─────────────────────────────────────────────────────────────
+// CONTEÚDO EDITORIAL
+// ─────────────────────────────────────────────────────────────
+const GUIA_TEXTO = [
+  'A vistoria é o momento em que você vê o seu apartamento pela primeira vez, de perto, antes de receber as chaves. É a sua chance de conferir, com calma e no detalhe, se tudo foi entregue conforme o combinado — e de pedir ajustes à construtora antes de assinar o recebimento.',
+  'Como costuma ser o dia: você chega no horário agendado e é recebido por alguém da equipe da construtora, geralmente um engenheiro ou técnico. Em muitos empreendimentos, você recebe equipamentos de segurança, como capacete, antes de subir, porque áreas comuns do prédio ainda podem estar em acabamento. Então você é levado até a sua unidade e faz a inspeção, item por item, acompanhado dessa pessoa.',
+  'Um detalhe que quase ninguém sabe: na vistoria, a energia elétrica normalmente ainda não está ligada — a conexão é feita por você depois de receber as chaves. Por isso, nos pontos elétricos você confere a presença e o estado (tomadas, interruptores, tampas), e não se acendem.',
+  'Vá sem pressa. Cada coisa que você apontar agora, a construtora corrige antes de você assumir o imóvel. Depois de assinar, resolver vira responsabilidade sua. Respire fundo e confira tudo com carinho — este guia é para você não esquecer de nada.',
+];
+
+const LEVAR = [
+  { icon:'file-text', nome:'Documento com foto, contrato e memorial descritivo', porque:'O memorial lista o que foi prometido (marca do piso, modelo da louça); é com ele que se confere se o entregue bate com o vendido.' },
+  { icon:'clipboard-check', nome:'Este checklist da Guide (impresso ou no celular)', porque:'Para seguir item por item, sem esquecer nada.' },
+  { icon:'smartphone', nome:'Celular carregado', porque:'Para fotografar cada problema e usar a lanterna.' },
+  { icon:'ruler', nome:'Trena (ou trena a laser)', porque:'Para medir os ambientes contra a planta.' },
+  { icon:'plug', nome:'Carregador pequeno ou testador de tomada', porque:'Para os pontos que já tiverem energia.' },
+  { icon:'pen-line', nome:'Fita crepe e caneta', porque:'Para marcar fisicamente cada defeito na parede ou no piso.' },
+  { icon:'droplet', nome:'Garrafa de água', porque:'Para testar ralos, caimento e estanqueidade.' },
+  { icon:'circle', nome:'Bolinha de gude (ou objeto redondo)', porque:'Para testar o nível do piso e o caimento para os ralos.' },
+  { icon:'users', nome:'Uma pessoa de confiança, se possível', porque:'Quatro olhos enxergam mais que dois.' },
+];
+
+const CHECKLIST = [
+  { id:'paredes', nome:'Paredes, tetos e forros', icon:'layers', subitens:[
+    { id:'paredes-fissuras', rotulo:'Fissuras e trincas', instrucao:'Passe os olhos por toda a parede e o teto, de perto. Fissuras são linhas finas como fio de cabelo; trincas são aberturas maiores, onde a unha encaixa. Dê atenção aos cantos, encontros de parede e ao redor de portas e janelas. Trincas fundas ou na diagonal podem ser mais sérias — registre com foto.' },
+    { id:'paredes-umidade', rotulo:'Manchas de umidade e mofo', instrucao:'Procure manchas escuras, esverdeadas ou amarronzadas, nos cantos, perto do teto e atrás de onde ficarão móveis. Mofo aparece como pontinhos pretos ou esverdeados agrupados, às vezes com cheiro de úmido. Encoste a mão: parede com umidade escondida fica fria e às vezes úmida ao toque. Em imóvel novo, isso indica infiltração ou impermeabilização malfeita.' },
+    { id:'paredes-pintura', rotulo:'Pintura — falhas e acabamento', instrucao:'Não olhe só de frente. Incline-se e olhe a superfície num ângulo raso, com a luz da janela ou a lanterna do celular rasante à parede — assim aparecem ondulações, bolhas, escorridos e retoques invisíveis de frente. Passe a mão para sentir textura irregular.' },
+    { id:'paredes-cobertura', rotulo:'Cobertura da tinta', instrucao:'Procure áreas onde a tinta está mais fina, falhada ou deixando ver o reboco. Cobertura irregular significa demão a menos.' },
+  ]},
+  { id:'pisos', nome:'Pisos', icon:'grid-2x2', subitens:[
+    { id:'pisos-oco', rotulo:'Som oco', instrucao:'Bata de leve com uma moeda, chave ou o nó do dedo em várias partes de cada piso. O som deve ser firme e cheio. Onde soar oco, como um tambor, marque com fita crepe: a peça não colou direito por baixo e pode soltar ou trincar com o tempo.' },
+    { id:'pisos-trincas', rotulo:'Peças trincadas, riscadas ou lascadas', instrucao:'Olhe peça por peça, com atenção aos cantos e bordas. Use a luz rasante para revelar riscos.' },
+    { id:'pisos-nivel', rotulo:'Nível do piso', instrucao:'Coloque uma bolinha de gude no chão em alguns pontos e veja se ela sai rolando sozinha. Um pouquinho é tolerável; se disparar, o piso está desnivelado, o que atrapalha móveis e, em área molhada, empoça água.' },
+    { id:'pisos-caimento', rotulo:'Caimento para ralos', instrucao:'Coloque a bolinha de gude perto do ralo (no box, área de serviço, varanda): ela deve rolar em direção ao ralo. Se ficar parada ou rolar para o lado oposto, o caimento está errado e a água vai empoçar.' },
+    { id:'pisos-rejunte', rotulo:'Rejunte', instrucao:'Veja se as linhas entre as peças estão retas, uniformes, preenchidas e sem falhas ou buracos. Rejunte falho deixa passar água e junta sujeira.' },
+    { id:'pisos-rodapes', rotulo:'Rodapés — alinhamento e quinas', instrucao:'Confira se os rodapés estão alinhados, retos e bem fixados, com atenção especial aos encontros das quinas: os cantos devem fechar certinho, sem vãos, sobras ou cortes tortos.' },
+  ]},
+  { id:'portas', nome:'Portas e janelas', icon:'door-open', subitens:[
+    { id:'portas-prumo', rotulo:'Prumo e fechamento das portas', instrucao:'Abra e feche cada porta devagar: deve deslizar sem raspar, sem ranger e sem bater no batente. Solte a porta no meio do movimento — ela não pode abrir ou fechar sozinha (sinal de porta torta ou fora de prumo). Teste fechadura, maçaneta e chave.' },
+    { id:'portas-janelas', rotulo:'Prumo e fechamento das janelas (inclusive de correr)', instrucao:'Portas e janelas de correr precisam estar no prumo e fechar 100%, sem ficar tortas nem deixar fresta em cima ou embaixo. Abra, feche e deslize: deve correr sem esforço, sem folga e travar direito.' },
+    { id:'portas-esquadria', rotulo:'Encaixe da esquadria na parede', instrucao:'Verifique se a esquadria foi bem encaixada na parede, sem vãos, frestas ou espaços entre o caixilho e a alvenaria. Confira a borracha de vedação em volta.' },
+    { id:'portas-estanqueidade', rotulo:'Estanqueidade das janelas', instrucao:'Jogue água no peitoril da janela, principalmente nos cantos. Confira se a água corre para fora (caimento correto) ou se acumula em alguma região, entra para dentro ou gera mancha de umidade na parte interna da parede.' },
+    { id:'portas-vidros', rotulo:'Vidros', instrucao:'Procure trincas, riscos e bolhas, com a luz batendo de lado.' },
+    { id:'portas-venezianas', rotulo:'Venezianas / persianas', instrucao:'Teste a abertura e o fechamento das venezianas ou persianas. Se forem automatizadas, teste o funcionamento do motor/comando (onde houver energia disponível).' },
+  ]},
+  { id:'hidraulica', nome:'Hidráulica', icon:'droplets', subitens:[
+    { id:'hidr-vazamento', rotulo:'Vazamento sob pias e bancadas', instrucao:'Onde houver água ligada, tampe a pia e encha até quase transbordar; depois solte tudo de uma vez. Enquanto escoa, olhe e passe a mão em todo o cano por baixo, procurando pingos nas conexões. Repita no tanque e na área de serviço. Vazamento pequeno, que só aparece com a pia cheia, vira mancha, mau cheiro e estraga a marcenaria depois.' },
+    { id:'hidr-ralos', rotulo:'Ralos e escoamento', instrucao:'Jogue água em cada ralo (box, área de serviço, varanda, banheiros) e veja se escoa rápido e por completo, sem retorno e sem empoçar.' },
+    { id:'hidr-descarga', rotulo:'Descarga', instrucao:'Onde houver água, acione a descarga e verifique se funciona, se veda depois e se não vaza pela base do vaso.' },
+    { id:'hidr-registros', rotulo:'Registros e torneiras', instrucao:'Onde houver água, veja se os registros giram sem emperrar e se torneiras e chuveiros abrem sem vazar pela base.' },
+    { id:'hidr-loucas', rotulo:'Louças e metais', instrucao:'Veja se vaso, pia, cuba e torneiras estão sem trincas, bem fixados (não balançam) e se o modelo bate com o memorial.' },
+  ]},
+  { id:'eletrica', nome:'Elétrica', icon:'zap', nota:'Energia geralmente desligada — confira presença e estado.', subitens:[
+    { id:'elet-tomadas', rotulo:'Tomadas e interruptores', instrucao:'Confira se todos os pontos previstos estão instalados, com tampas, retos e firmes (empurre de leve, não podem estar soltos).' },
+    { id:'elet-quadro', rotulo:'Quadro de disjuntores', instrucao:'Confira se está presente, fechado e com os disjuntores identificados por etiquetas.' },
+    { id:'elet-pontos-luz', rotulo:'Pontos de luz no teto', instrucao:'Veja se estão nas posições da planta e com a saída de fio protegida.' },
+    { id:'elet-interfone', rotulo:'Interfone, campainha, TV/internet', instrucao:'Confira se estão instalados nos lugares previstos, mesmo que ainda não funcionem.' },
+    { id:'elet-ar', rotulo:'Ponto de ar-condicionado (se aplicável)', instrucao:'Onde houver previsão de ar-condicionado, confira se o ponto de energia, o furo de passagem e o dreno estão presentes e nas posições corretas.' },
+  ]},
+  { id:'areas', nome:'Áreas específicas', icon:'layout-grid', subitens:[
+    { id:'areas-bancadas', rotulo:'Bancadas (cozinha, banheiro)', instrucao:'Passe a mão para sentir se estão niveladas, firmes e sem trincas; confira bordas e o rejunte com a parede.' },
+    { id:'areas-box', rotulo:'Box e áreas molhadas', instrucao:'Confira sinal de impermeabilização e caimento para o ralo (teste com água).' },
+    { id:'areas-sacada', rotulo:'Sacada / varanda', instrucao:'Balance de leve o guarda-corpo — deve estar firme e bem fixado (item de segurança). Confira piso e ralo.' },
+    { id:'areas-servico', rotulo:'Área de serviço', instrucao:'Confira os pontos de água e energia da máquina de lavar e o tanque.' },
+  ]},
+  { id:'contrato', nome:'Conferência contra o contrato', icon:'file-check', subitens:[
+    { id:'contr-metragem', rotulo:'Metragem dos ambientes', instrucao:'Meça largura, comprimento e pé-direito com a trena e compare com a planta. Metragem menor que a contratada é motivo de reclamação formal.' },
+    { id:'contr-acabamentos', rotulo:'Acabamentos e materiais', instrucao:'Confira contra o memorial descritivo, item por item — marca e modelo de piso, louças, metais, portas.' },
+    { id:'contr-inclusos', rotulo:'Itens inclusos', instrucao:'Confira itens vendidos como inclusos (aquecedor, automação, ar-condicionado, se previstos).' },
+  ]},
+];
+
+const STARS = [
+  { id:'pintura', q:'Como você avalia a qualidade da pintura?' },
+  { id:'piso', q:'Como você avalia o acabamento do piso?' },
+  { id:'esquadrias', q:'Portas e janelas atenderam sua expectativa?' },
+  { id:'metragem', q:'O tamanho dos ambientes ficou como você imaginava?' },
+  { id:'acabamento', q:'No geral, o acabamento foi o que você esperava?' },
+  { id:'resumo', q:'A entrega foi de acordo com o que você esperava?' },
+];
+
+const STATUS_DEF = [
+  { key:'ok', rotulo:'OK', icon:'check' },
+  { key:'pendencia', rotulo:'Pendência', icon:'alert-triangle' },
+  { key:'na', rotulo:'Não se aplica', icon:'minus' },
+];
+
+// mapa rápido subitemId → {rotulo, instrucao, categoriaNome}
+const SUBITEM_MAP = {};
+CHECKLIST.forEach(cat => cat.subitens.forEach(s => { SUBITEM_MAP[s.id] = { ...s, categoria: cat.nome }; }));
+
+// ─────────────────────────────────────────────────────────────
+// ESTADO
+// ─────────────────────────────────────────────────────────────
+let projeto = null, usuarioAtual = null;
+let estado = { itens: {}, personalizados: [], avaliacoes: {}, nota_geral: '' };
+let salvarTimer = null;
+
+function getItem(id) { return estado.itens[id] || {}; }
+function setItem(id, patch) { estado.itens[id] = { ...getItem(id), ...patch }; agendarSalvar(); }
+
+// ─────────────────────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────────────────────
+async function inicializar() {
+  if (!sb) { document.getElementById('main').innerHTML = '<div class="vazio-msg">Erro de conexão. Recarregue a página.</div>'; return; }
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = '/login'; return; }
+  usuarioAtual = data.session.user;
+
+  const { data: proj } = await sb.from('projetos').select('*').eq('email', usuarioAtual.email).single();
+  if (!proj) { document.getElementById('main').innerHTML = '<div class="vazio-msg">Não encontramos seu projeto. Fale com a Guide.</div>'; return; }
+  projeto = proj;
+
+  try {
+    const { data: v } = await sb.from('vistorias').select('*').eq('projeto_id', projeto.id).maybeSingle();
+    if (v) estado = { itens: v.itens || {}, personalizados: v.personalizados || [], avaliacoes: v.avaliacoes || {}, nota_geral: v.nota_geral || '' };
+  } catch (e) { console.warn('Tabela vistorias ainda não existe? Rode a migração.', e); }
+
+  document.getElementById('top-titulo').textContent = MODO_REVISTORIA ? 'Revistoria' : 'Vistoria da unidade';
+  render();
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────
+function render() {
+  document.getElementById('main').innerHTML = MODO_REVISTORIA ? renderRevistoria() : renderVistoria();
+  ligarEventos();
+  icons();
+}
+
+function renderVistoria() {
+  return `
+    <div class="pagina-eyebrow">${ic('clipboard-check','ic-sm')} Rumo às chaves</div>
+    <div class="pagina-titulo">Checklist de vistoria</div>
+    <div class="pagina-sub">Confira o seu apartamento item por item, no seu ritmo. Marque o que está certo, aponte as pendências, anote e fotografe — tudo fica salvo aqui.</div>
+
+    <div class="toolbar">
+      <button class="btn-pdf" id="pdf-pre">${ic('file-down','ic-sm')} PDF pré-vistoria (para levar)</button>
+      <button class="btn-pdf" id="pdf-resultado">${ic('file-check-2','ic-sm')} PDF de resultado (para a construtora)</button>
+    </div>
+
+    ${renderBlocoGuia()}
+    ${renderBlocoLevar()}
+
+    <div class="checklist-titulo">Checklist prático</div>
+    <div class="checklist-desc">Para cada item: marque o status, toque no ${ic('info','ic-sm')} para ver como conferir, e registre observação e foto quando precisar.</div>
+    ${CHECKLIST.map(renderCategoria).join('')}
+
+    ${renderAvaliacao()}
+    ${renderNotaGeral()}
+    ${renderIntegracoes()}
+  `;
+}
+
+function renderBlocoGuia() {
+  return `
+    <div class="bloco">
+      <button class="bloco-toggle" data-bloco="guia">
+        <span class="bloco-toggle-txt"><span class="bti">${ic('book-open','ic-sm')}</span><span class="bloco-titulo">Guia da vistoria</span></span>
+        ${ic('chevron-down','ic-sm')}
+      </button>
+      <div class="bloco-corpo" id="bloco-guia"><div class="bloco-corpo-inner">${GUIA_TEXTO.map(p => `<p>${p}</p>`).join('')}</div></div>
+    </div>`;
+}
+
+function renderBlocoLevar() {
+  return `
+    <div class="bloco">
+      <button class="bloco-toggle" data-bloco="levar">
+        <span class="bloco-toggle-txt"><span class="bti">${ic('backpack','ic-sm')}</span><span class="bloco-titulo">O que levar</span></span>
+        ${ic('chevron-down','ic-sm')}
+      </button>
+      <div class="bloco-corpo" id="bloco-levar"><div class="bloco-corpo-inner"><div class="levar-lista">
+        ${LEVAR.map(l => `
+          <div class="levar-item">
+            <div class="levar-item-icone">${ic(l.icon,'ic-sm')}</div>
+            <div><div class="levar-item-nome">${l.nome}</div><div class="levar-item-porque">${l.porque}</div></div>
+          </div>`).join('')}
+      </div></div></div>
+    </div>`;
+}
+
+function progressoCategoria(cat) {
+  const fixos = cat.subitens.map(s => s.id);
+  const custom = estado.personalizados.filter(p => p.categoria === cat.id);
+  const total = fixos.length + custom.length;
+  let feitos = fixos.filter(id => getItem(id).status).length;
+  feitos += custom.filter(p => p.status).length;
+  return { feitos, total };
+}
+
+function renderCategoria(cat) {
+  const { feitos, total } = progressoCategoria(cat);
+  const completa = total > 0 && feitos === total;
+  const custom = estado.personalizados.filter(p => p.categoria === cat.id);
+  return `
+    <div class="categoria">
+      <div class="categoria-head">
+        <div class="categoria-icone">${ic(cat.icon,'ic-md')}</div>
+        <div class="categoria-nome">${cat.nome}</div>
+        <div class="categoria-progresso ${completa ? 'completa' : ''}" data-prog="${cat.id}">${feitos} de ${total} verificados</div>
+      </div>
+      <div class="categoria-corpo">
+        ${cat.nota ? `<div class="checklist-desc" style="margin:8px 0 4px;">${ic('info','ic-sm')} ${cat.nota}</div>` : ''}
+        ${cat.subitens.map(s => renderSubitem(s, false)).join('')}
+        ${custom.map(p => renderSubitem(p, true)).join('')}
+        <button class="add-sub-btn" data-add-cat="${cat.id}">${ic('plus','ic-sm')} Adicionar item</button>
+      </div>
+    </div>`;
+}
+
+function renderStatusSeg(id, statusAtual) {
+  return `<div class="status-seg">${STATUS_DEF.map(s =>
+    `<button class="status-btn ${statusAtual === s.key ? 'sel' : ''}" data-status="${s.key}" data-sub="${id}">${ic(s.icon,'ic-sm')} ${s.rotulo}</button>`
+  ).join('')}</div>`;
+}
+
+function renderFotos(id, fotos) {
+  return `<div class="sub-fotos" data-fotos="${id}">
+    ${(fotos||[]).map(url => `<div class="sub-foto-thumb"><img src="${url}"><button class="sub-foto-del" data-del-foto="${url}" data-sub="${id}">${ic('x','ic-sm')}</button></div>`).join('')}
+    <label class="sub-foto-add">${ic('camera','ic-sm')} Foto<input type="file" accept="image/*" data-foto-input="${id}" style="display:none"></label>
+  </div>`;
+}
+
+function renderSubitem(s, ehCustom) {
+  const it = ehCustom ? s : getItem(s.id);
+  const status = it.status || null;
+  const obs = ehCustom ? (s.obs || '') : (it.obs || '');
+  const fotos = ehCustom ? (s.fotos || []) : (it.fotos || []);
+  const rotulo = ehCustom
+    ? `<input type="text" class="sub-titulo-input" data-titulo="${s.id}" placeholder="Nome do item..." value="${esc(s.titulo)}">`
+    : `<span class="sub-rotulo">${s.rotulo}</span>`;
+  const infoBtn = (!ehCustom && s.instrucao) ? `<button class="sub-info-btn" data-info="${s.id}" aria-label="Como conferir">${ic('info','ic-sm')}</button>` : '';
+  const delBtn = ehCustom ? `<button class="sub-del" data-del-sub="${s.id}" aria-label="Remover item">${ic('trash-2','ic-sm')}</button>` : '';
+  return `
+    <div class="subitem" data-subitem="${s.id}">
+      <div class="sub-topo">${rotulo}${infoBtn}${delBtn}</div>
+      ${renderStatusSeg(s.id, status)}
+      <textarea class="sub-obs" data-obs="${s.id}" placeholder="Observação (opcional)...">${esc(obs)}</textarea>
+      ${renderFotos(s.id, fotos)}
+    </div>`;
+}
+
+function renderAvaliacao() {
+  return `
+    <div class="avaliacao">
+      <div class="avaliacao-titulo">${ic('star','ic-md')} Sua avaliação da entrega</div>
+      <div class="avaliacao-desc">De 1 a 5 estrelas — a sua impressão geral sobre cada aspecto do apartamento.</div>
+      ${STARS.map(st => `
+        <div class="estrela-item">
+          <div class="estrela-q">${st.q}</div>
+          <div class="estrela-row" data-estrela="${st.id}">
+            ${[1,2,3,4,5].map(n => `<button class="estrela ${(estado.avaliacoes[st.id]||0) >= n ? 'on' : ''}" data-nota="${n}" aria-label="${n} estrela${n>1?'s':''}">${ic('star')}</button>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderNotaGeral() {
+  return `
+    <div class="nota-geral">
+      <div class="nota-geral-titulo">${ic('notebook-pen','ic-sm')} Sua nota geral da vistoria</div>
+      <textarea id="nota-geral-input" placeholder="Como foi? O que mais te marcou, o que ficou pendente, uma impressão geral...">${esc(estado.nota_geral)}</textarea>
+    </div>`;
+}
+
+function renderIntegracoes() {
+  return `
+    <div class="integra">
+      <div class="integra-card">
+        <div class="integra-icone">${ic('notebook-pen','ic-lg')}</div>
+        <div class="integra-titulo">Registre no seu diário</div>
+        <div class="integra-texto">Como foi ver seu apartamento pela primeira vez? Guarde esse momento no seu diário.</div>
+        <a class="integra-btn" href="/meu-projeto">${ic('arrow-right','ic-sm')} Abrir o diário</a>
+      </div>
+      <div class="integra-card">
+        <div class="integra-icone">${ic('users','ic-lg')}</div>
+        <div class="integra-titulo">Compartilhe na Comunidade</div>
+        <div class="integra-texto">Sua experiência, seu checklist e sua avaliação podem ajudar outros Guiders.</div>
+        <button class="integra-btn" id="btn-comunidade">${ic('share-2','ic-sm')} Compartilhar</button>
+      </div>
+    </div>`;
+}
+
+// ── MODO REVISTORIA ──
+function renderRevistoria() {
+  const pendencias = [];
+  CHECKLIST.forEach(cat => cat.subitens.forEach(s => {
+    if (getItem(s.id).status === 'pendencia') pendencias.push({ ...s, categoria: cat.nome, ehCustom: false });
+  }));
+  estado.personalizados.forEach(p => { if (p.status === 'pendencia') pendencias.push({ ...p, rotulo: p.titulo, categoria: nomeCat(p.categoria), ehCustom: true }); });
+
+  const corpo = pendencias.length ? pendencias.map(renderRevistoriaItem).join('') : `
+    <div class="vazio-msg">${ic('check-circle-2','ic-lg')}<br><br>Nenhuma pendência foi registrada na sua vistoria.<br>Se ainda não fez a vistoria, comece por ela primeiro.</div>`;
+
+  return `
+    <div class="pagina-eyebrow">${ic('repeat','ic-sm')} Rumo às chaves</div>
+    <div class="pagina-titulo">Revistoria — conferência de retorno</div>
+    <div class="pagina-sub">Aqui estão apenas os pontos que você marcou como pendência na vistoria. Confira, um a um, se foram realmente resolvidos.</div>
+    ${pendencias.length ? `<div class="toolbar"><button class="btn-pdf" id="pdf-revistoria">${ic('file-check-2','ic-sm')} PDF de status das pendências</button></div>` : ''}
+    ${corpo}
+  `;
+}
+function nomeCat(catId) { const c = CHECKLIST.find(x => x.id === catId); return c ? c.nome : 'Personalizado'; }
+
+function renderRevistoriaItem(s) {
+  const it = s.ehCustom ? s : getItem(s.id);
+  const res = it.resolucao || null;
+  const obs = s.ehCustom ? (s.obs || '') : (it.obs || '');
+  return `
+    <div class="categoria">
+      <div class="categoria-head">
+        <div class="categoria-icone" style="color:var(--alerta);background:var(--alerta-dim);border-color:var(--alerta-mid)">${ic('alert-triangle','ic-md')}</div>
+        <div class="categoria-nome" style="font-size:var(--fs-base)">${s.rotulo}<div style="font-size:var(--fs-2xs);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;font-family:'Outfit',sans-serif;font-weight:400">${s.categoria}</div></div>
+      </div>
+      <div class="categoria-corpo">
+        ${obs ? `<div class="checklist-desc" style="margin:10px 0">${ic('message-square','ic-sm')} Anotado na vistoria: “${esc(obs)}”</div>` : ''}
+        <div class="resolucao-seg" data-res-sub="${s.id}">
+          <button class="resolucao-btn ${res==='resolvido'?'sel':''}" data-res="resolvido" data-sub="${s.id}">${ic('check','ic-sm')} Resolvido</button>
+          <button class="resolucao-btn ${res==='nao_resolvido'?'sel':''}" data-res="nao_resolvido" data-sub="${s.id}">${ic('x','ic-sm')} Não resolvido</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// EVENTOS
+// ─────────────────────────────────────────────────────────────
+function ligarEventos() {
+  const main = document.getElementById('main');
+
+  // blocos recolhíveis
+  main.querySelectorAll('.bloco-toggle').forEach(btn => btn.addEventListener('click', () => {
+    const corpo = document.getElementById('bloco-' + btn.dataset.bloco);
+    const abrindo = !corpo.classList.contains('aberto');
+    corpo.classList.toggle('aberto', abrindo);
+    btn.classList.toggle('aberto', abrindo);
+  }));
+
+  // status
+  main.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', () => {
+    const sub = btn.dataset.sub, novo = btn.dataset.status;
+    const atualIgual = document.querySelector(`.status-btn.sel[data-sub="${sub}"]`)?.dataset.status === novo;
+    const val = atualIgual ? null : novo;
+    aplicarStatus(sub, val);
+    document.querySelectorAll(`.status-btn[data-sub="${sub}"]`).forEach(b => b.classList.toggle('sel', !atualIgual && b.dataset.status === novo));
+    atualizarProgresso();
+  }));
+
+  // observação
+  main.querySelectorAll('.sub-obs').forEach(t => t.addEventListener('change', () => aplicarObs(t.dataset.obs, t.value)));
+
+  // título de item personalizado
+  main.querySelectorAll('.sub-titulo-input').forEach(inp => inp.addEventListener('change', () => {
+    const p = estado.personalizados.find(x => x.id === inp.dataset.titulo);
+    if (p) { p.titulo = inp.value.trim(); agendarSalvar(); }
+  }));
+
+  // remover item personalizado
+  main.querySelectorAll('[data-del-sub]').forEach(btn => btn.addEventListener('click', () => {
+    estado.personalizados = estado.personalizados.filter(x => x.id !== btn.dataset.delSub);
+    agendarSalvar(); render();
+  }));
+
+  // adicionar item personalizado
+  main.querySelectorAll('[data-add-cat]').forEach(btn => btn.addEventListener('click', () => {
+    estado.personalizados.push({ id: 'c-' + Math.random().toString(36).slice(2,9), categoria: btn.dataset.addCat, titulo: '', status: null, obs: '', fotos: [] });
+    agendarSalvar(); render();
+  }));
+
+  // info modal
+  main.querySelectorAll('[data-info]').forEach(btn => btn.addEventListener('click', () => abrirInfo(btn.dataset.info)));
+
+  // fotos
+  main.querySelectorAll('[data-foto-input]').forEach(inp => inp.addEventListener('change', () => enviarFoto(inp)));
+  main.querySelectorAll('[data-del-foto]').forEach(btn => btn.addEventListener('click', () => removerFoto(btn.dataset.sub, btn.dataset.delFoto)));
+
+  // estrelas
+  main.querySelectorAll('[data-estrela]').forEach(row => row.querySelectorAll('.estrela').forEach(st => st.addEventListener('click', () => {
+    const grupo = row.dataset.estrela, nota = +st.dataset.nota;
+    estado.avaliacoes[grupo] = (estado.avaliacoes[grupo] === nota) ? 0 : nota;
+    row.querySelectorAll('.estrela').forEach(b => b.classList.toggle('on', +b.dataset.nota <= (estado.avaliacoes[grupo]||0)));
+    agendarSalvar();
+  })));
+
+  // nota geral
+  const nota = document.getElementById('nota-geral-input');
+  if (nota) nota.addEventListener('change', () => { estado.nota_geral = nota.value; agendarSalvar(); });
+
+  // resolução (revistoria)
+  main.querySelectorAll('.resolucao-btn').forEach(btn => btn.addEventListener('click', () => {
+    const sub = btn.dataset.sub, novo = btn.dataset.res;
+    const jaSel = document.querySelector(`.resolucao-btn.sel[data-sub="${sub}"]`)?.dataset.res === novo;
+    const val = jaSel ? null : novo;
+    aplicarResolucao(sub, val);
+    document.querySelectorAll(`.resolucao-btn[data-sub="${sub}"]`).forEach(b => b.classList.toggle('sel', !jaSel && b.dataset.res === novo));
+  }));
+
+  // PDFs
+  const p1 = document.getElementById('pdf-pre'); if (p1) p1.addEventListener('click', () => gerarPDF('pre'));
+  const p2 = document.getElementById('pdf-resultado'); if (p2) p2.addEventListener('click', () => gerarPDF('resultado'));
+  const p3 = document.getElementById('pdf-revistoria'); if (p3) p3.addEventListener('click', () => gerarPDF('revistoria'));
+
+  // comunidade (placeholder — módulo dedicado depois)
+  const bc = document.getElementById('btn-comunidade');
+  if (bc) bc.addEventListener('click', () => toast('Compartilhamento na Comunidade em breve — seus dados já ficam prontos para isso.'));
+}
+
+function ehItemCustom(id) { return estado.personalizados.some(p => p.id === id); }
+
+function aplicarStatus(id, val) {
+  if (ehItemCustom(id)) { const p = estado.personalizados.find(x => x.id === id); if (p) p.status = val; agendarSalvar(); }
+  else setItem(id, { status: val });
+}
+function aplicarObs(id, val) {
+  if (ehItemCustom(id)) { const p = estado.personalizados.find(x => x.id === id); if (p) p.obs = val.trim(); agendarSalvar(); }
+  else setItem(id, { obs: val.trim() });
+}
+function aplicarResolucao(id, val) {
+  if (ehItemCustom(id)) { const p = estado.personalizados.find(x => x.id === id); if (p) p.resolucao = val; agendarSalvar(); }
+  else setItem(id, { resolucao: val });
+}
+
+function atualizarProgresso() {
+  CHECKLIST.forEach(cat => {
+    const el = document.querySelector(`[data-prog="${cat.id}"]`);
+    if (!el) return;
+    const { feitos, total } = progressoCategoria(cat);
+    el.textContent = `${feitos} de ${total} verificados`;
+    el.classList.toggle('completa', total > 0 && feitos === total);
+  });
+}
+
+// ── info modal ──
+function abrirInfo(id) {
+  const s = SUBITEM_MAP[id]; if (!s) return;
+  document.getElementById('info-modal-titulo').textContent = s.rotulo;
+  document.getElementById('info-modal-texto').textContent = s.instrucao;
+  document.getElementById('info-modal').classList.add('vis');
+}
+document.getElementById('info-modal-close').addEventListener('click', () => document.getElementById('info-modal').classList.remove('vis'));
+document.getElementById('info-modal').addEventListener('click', e => { if (e.target.id === 'info-modal') e.currentTarget.classList.remove('vis'); });
+
+// ── fotos ──
+async function enviarFoto(input) {
+  const file = input.files[0]; if (!file) return;
+  const id = input.dataset.fotoInput;
+  toast('Enviando foto...');
+  const seguro = file.name.replace(/[^\w.\-]/g, '_');
+  const path = `vistoria/${projeto.id}/${id}/${Date.now()}_${seguro}`;
+  const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type });
+  if (upErr) { toast('Não foi possível enviar a foto.'); console.error(upErr); return; }
+  const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
+  const url = urlData.publicUrl;
+  if (ehItemCustom(id)) { const p = estado.personalizados.find(x => x.id === id); p.fotos = [...(p.fotos||[]), url]; }
+  else setItem(id, { fotos: [...(getItem(id).fotos||[]), url] });
+  agendarSalvar();
+  // re-render só a área de fotos do subitem
+  const cont = document.querySelector(`.sub-fotos[data-fotos="${id}"]`);
+  const fotos = ehItemCustom(id) ? estado.personalizados.find(x => x.id === id).fotos : getItem(id).fotos;
+  if (cont) { cont.outerHTML = renderFotos(id, fotos); relegarFotos(id); }
+  icons();
+  toast('Foto anexada.');
+}
+function removerFoto(id, url) {
+  if (ehItemCustom(id)) { const p = estado.personalizados.find(x => x.id === id); p.fotos = (p.fotos||[]).filter(u => u !== url); }
+  else setItem(id, { fotos: (getItem(id).fotos||[]).filter(u => u !== url) });
+  agendarSalvar();
+  const cont = document.querySelector(`.sub-fotos[data-fotos="${id}"]`);
+  const fotos = ehItemCustom(id) ? estado.personalizados.find(x => x.id === id).fotos : getItem(id).fotos;
+  if (cont) { cont.outerHTML = renderFotos(id, fotos); relegarFotos(id); }
+  icons();
+}
+function relegarFotos(id) {
+  const cont = document.querySelector(`.sub-fotos[data-fotos="${id}"]`); if (!cont) return;
+  const inp = cont.querySelector('[data-foto-input]'); if (inp) inp.addEventListener('change', () => enviarFoto(inp));
+  cont.querySelectorAll('[data-del-foto]').forEach(btn => btn.addEventListener('click', () => removerFoto(btn.dataset.sub, btn.dataset.delFoto)));
+}
+
+// ─────────────────────────────────────────────────────────────
+// SALVAR
+// ─────────────────────────────────────────────────────────────
+function agendarSalvar() { clearTimeout(salvarTimer); salvarTimer = setTimeout(salvar, 700); }
+async function salvar() {
+  const payload = {
+    projeto_id: projeto.id,
+    itens: estado.itens,
+    personalizados: estado.personalizados,
+    avaliacoes: estado.avaliacoes,
+    nota_geral: estado.nota_geral || null,
+    atualizado_em: new Date().toISOString(),
+  };
+  const { error } = await sb.from('vistorias').upsert(payload, { onConflict: 'projeto_id' });
+  if (error) { toast('Não foi possível salvar agora.'); console.error(error); return; }
+  toast('Salvo.');
+}
+
+// ─────────────────────────────────────────────────────────────
+// PDF
+// ─────────────────────────────────────────────────────────────
+const STATUS_LABEL = { ok:'OK', pendencia:'PENDÊNCIA', na:'Não se aplica' };
+function pdfCabecalho(subtitulo) {
+  return `<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #C9A227;padding-bottom:14px;margin-bottom:22px;">
+    <div><div style="font-family:Sora,sans-serif;font-weight:700;font-size:20px;color:#1a1a1a;">Guide Arquitetura</div>
+    <div style="font-size:12px;color:#8a7d3a;letter-spacing:.08em;text-transform:uppercase;">${subtitulo}</div></div>
+    <div style="text-align:right;font-size:11px;color:#666;">${esc(projeto.nome_cliente||'')}<br>${new Date().toLocaleDateString('pt-BR')}</div>
+  </div>`;
+}
+function pdfSecTitulo(t) { return `<div style="font-family:Sora,sans-serif;font-weight:700;font-size:16px;color:#1a1a1a;margin:22px 0 10px;border-left:3px solid #C9A227;padding-left:10px;">${t}</div>`; }
+
+function pdfBlank() {
+  let h = pdfCabecalho('Checklist de vistoria — para levar');
+  h += pdfSecTitulo('Guia da vistoria');
+  h += GUIA_TEXTO.map(p => `<p style="font-size:12px;color:#333;line-height:1.6;margin-bottom:10px;">${p}</p>`).join('');
+  h += pdfSecTitulo('O que levar');
+  h += `<ul style="margin:0;padding-left:18px;">${LEVAR.map(l => `<li style="font-size:12px;color:#333;line-height:1.5;margin-bottom:8px;"><b>${l.nome}.</b> ${l.porque}</li>`).join('')}</ul>`;
+  h += pdfSecTitulo('Checklist prático');
+  CHECKLIST.forEach(cat => {
+    h += `<div style="font-family:Sora,sans-serif;font-weight:600;font-size:13px;color:#8a7d3a;margin:16px 0 6px;">${cat.nome}</div>`;
+    h += cat.subitens.map(s => `<div style="font-size:12px;color:#333;margin-bottom:7px;">☐ OK &nbsp; ☐ Pendência &nbsp; ☐ N/A &nbsp;&nbsp; ${s.rotulo} <span style="color:#999">__________________</span></div>`).join('');
+  });
+  return h;
+}
+
+function pdfResultado() {
+  let h = pdfCabecalho('Resultado da vistoria — registro formal');
+  CHECKLIST.forEach(cat => {
+    const linhas = cat.subitens.filter(s => getItem(s.id).status);
+    const custom = estado.personalizados.filter(p => p.categoria === cat.id && p.status);
+    if (!linhas.length && !custom.length) return;
+    h += pdfSecTitulo(cat.nome);
+    const render = (rotulo, it) => {
+      const cor = it.status === 'ok' ? '#2e8b57' : it.status === 'pendencia' ? '#c86a1e' : '#666';
+      let b = `<div style="font-size:12px;color:#222;margin-bottom:6px;"><b style="color:${cor}">[${STATUS_LABEL[it.status]}]</b> ${rotulo}`;
+      if (it.obs) b += ` — <span style="color:#555">${esc(it.obs)}</span>`;
+      b += `</div>`;
+      if ((it.fotos||[]).length) b += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px 12px;">${it.fotos.map(u => `<img src="${u}" crossorigin="anonymous" style="width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`).join('')}</div>`;
+      return b;
+    };
+    linhas.forEach(s => h += render(s.rotulo, getItem(s.id)));
+    custom.forEach(p => h += render(p.titulo || 'Item personalizado', p));
+  });
+  // avaliações
+  const avs = STARS.filter(st => estado.avaliacoes[st.id]);
+  if (avs.length) {
+    h += pdfSecTitulo('Avaliação da entrega');
+    avs.forEach(st => h += `<div style="font-size:12px;color:#222;margin-bottom:5px;">${st.q} <b style="color:#8a7d3a">${'★'.repeat(estado.avaliacoes[st.id])}${'☆'.repeat(5-estado.avaliacoes[st.id])}</b></div>`);
+  }
+  if (estado.nota_geral) { h += pdfSecTitulo('Nota geral'); h += `<p style="font-size:12px;color:#333;line-height:1.6;">${esc(estado.nota_geral)}</p>`; }
+  return h;
+}
+
+function pdfRevistoria() {
+  let h = pdfCabecalho('Revistoria — status das pendências');
+  const render = (rotulo, categoria, it) => {
+    const r = it.resolucao === 'resolvido' ? '#2e8b57' : it.resolucao === 'nao_resolvido' ? '#c0392b' : '#999';
+    const rl = it.resolucao === 'resolvido' ? 'RESOLVIDO' : it.resolucao === 'nao_resolvido' ? 'NÃO RESOLVIDO' : 'não conferido';
+    return `<div style="font-size:12px;color:#222;margin-bottom:8px;"><b style="color:${r}">[${rl}]</b> ${rotulo} <span style="color:#999">(${categoria})</span>${it.obs ? ` — <span style="color:#555">${esc(it.obs)}</span>` : ''}</div>`;
+  };
+  let algum = false;
+  CHECKLIST.forEach(cat => cat.subitens.forEach(s => { const it = getItem(s.id); if (it.status === 'pendencia') { h += render(s.rotulo, cat.nome, it); algum = true; } }));
+  estado.personalizados.forEach(p => { if (p.status === 'pendencia') { h += render(p.titulo || 'Item', nomeCat(p.categoria), p); algum = true; } });
+  if (!algum) h += `<p style="font-size:12px;color:#333;">Nenhuma pendência registrada.</p>`;
+  return h;
+}
+
+async function gerarPDF(modo) {
+  if (!window.jspdf || !window.html2canvas) { toast('Gerador de PDF ainda carregando, tente de novo.'); return; }
+  toast('Gerando PDF...');
+  const stage = document.getElementById('pdf-stage');
+  const conteudo = modo === 'pre' ? pdfBlank() : modo === 'resultado' ? pdfResultado() : pdfRevistoria();
+  stage.innerHTML = `<div style="width:794px;background:#fff;color:#222;padding:40px;font-family:Outfit,Arial,sans-serif;">${conteudo}</div>`;
+  try {
+    const canvas = await html2canvas(stage.firstElementChild, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+    const imgH = canvas.height * pw / canvas.width;
+    const img = canvas.toDataURL('image/jpeg', 0.9);
+    let pos = 0, restante = imgH;
+    pdf.addImage(img, 'JPEG', 0, pos, pw, imgH);
+    restante -= ph;
+    while (restante > 0) { pos = restante - imgH; pdf.addPage(); pdf.addImage(img, 'JPEG', 0, pos, pw, imgH); restante -= ph; }
+    const nome = modo === 'pre' ? 'vistoria-pre' : modo === 'resultado' ? 'vistoria-resultado' : 'revistoria-status';
+    pdf.save(`guide-${nome}.pdf`);
+    toast('PDF gerado.');
+  } catch (e) { console.error(e); toast('Não foi possível gerar o PDF agora.'); }
+  finally { stage.innerHTML = ''; }
+}
+
+// ─────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = ic('check') + `<span>${msg}</span>`; icons();
+  t.classList.add('vis'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('vis'), 3200);
+}
+
+inicializar();
+</script>
+</body>
+</html>
