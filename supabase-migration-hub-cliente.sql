@@ -240,12 +240,17 @@ create policy "cliente gerencia seus palpites" on palpites_ambiente for all
 create table if not exists vistorias (
   id uuid primary key default gen_random_uuid(),
   projeto_id uuid not null references projetos(id) on delete cascade unique,
+  cabecalho jsonb default '{}'::jsonb,       -- {data, hora, apto, endereco, proprietario, acompanhante}
+  levar jsonb default '{}'::jsonb,           -- { "<indice do item de 'o que levar'>": true }
   itens jsonb default '{}'::jsonb,
   personalizados jsonb default '[]'::jsonb,
   avaliacoes jsonb default '{}'::jsonb,
   nota_geral text,
   atualizado_em timestamptz default now()
 );
+-- colunas novas para bancos onde a tabela já existia
+alter table vistorias add column if not exists cabecalho jsonb default '{}'::jsonb;
+alter table vistorias add column if not exists levar jsonb default '{}'::jsonb;
 alter table vistorias enable row level security;
 drop policy if exists "cliente gerencia sua vistoria" on vistorias;
 create policy "cliente gerencia sua vistoria" on vistorias for all

@@ -565,14 +565,16 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-toggle:active .marco-toggle-bolha { transform: scale(0.8); }
 .marco-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-24px) scale(0.8); }
 @media (prefers-reduced-motion: reduce) { .marco-toggle, .marco-toggle-bolha { transition: background .3s, box-shadow .3s; } }
-/* mesmo toggle na CAPA de "Rumo às chaves" — mostra de relance se todos os marcos
-   visíveis já foram concluídos (só liga quando todos estão feitos) */
-.chaves-capa-toggle-wrap { position: absolute; top: 18px; right: 18px; z-index: 1; }
+/* indicador da VISTORIA na capa de "Rumo às chaves" — linha abaixo do título, com o
+   nome da área e o toggle (só visual) que liga quando a vistoria foi concluída */
+.chaves-capa-vistoria { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; background: var(--glass2); border-radius: var(--r-md); padding: 10px 12px 10px 16px; }
+.ccv-esq { display: flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-sm); color: var(--white); }
+.ccv-esq svg { color: var(--gold); }
 /* na capa o toggle é um ícone do card (não um controle miúdo) — maior e com mais
    definição: borda mais presente, vidro menos diluído, aro de luz mais nítido */
 .chaves-capa-toggle {
-  transform-origin: center;
-  width: 36px; height: 68px; padding: 5px;
+  transform-origin: center; flex-shrink: 0;
+  width: 34px; height: 60px; padding: 5px;
   background: linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03) 40%, rgba(0,0,0,0.22) 100%);
   border: 1.5px solid rgba(255,255,255,0.22);
   box-shadow: inset 0 1px 1px rgba(255,255,255,0.32), inset 0 -8px 14px rgba(0,0,0,0.3), 0 6px 16px rgba(0,0,0,0.4);
@@ -583,9 +585,9 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
   border-color: rgba(226,185,59,0.5);
   box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -8px 14px rgba(0,0,0,0.25), 0 6px 16px rgba(0,0,0,0.4), 0 0 22px rgba(201,162,39,0.32);
 }
-.chaves-capa-toggle .marco-toggle-bolha { width: 26px; height: 26px; }
-.chaves-capa-toggle.ativo .marco-toggle-bolha { transform: translateY(-32px); }
-.chaves-capa-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-32px) scale(0.8); }
+.chaves-capa-toggle .marco-toggle-bolha { width: 24px; height: 24px; }
+.chaves-capa-toggle.ativo .marco-toggle-bolha { transform: translateY(-26px); }
+.chaves-capa-toggle.ativo:active .marco-toggle-bolha { transform: translateY(-26px) scale(0.8); }
 .marco-nome { font-family:'Sora',sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--off); flex: 1; }
 .marco-item.feito .marco-nome { color: var(--white); }
 .marco-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin: 6px 0 6px 38px; }
@@ -1416,7 +1418,7 @@ function ativarImaBolhaVertical(toggleEl) {
     const cy = r.top + r.height / 2;
     const dy = (ev.clientY - cy) / (r.height / 2); // -1 no topo … 1 na base
     const forca = Math.max(0, -dy); // só atrai quando o mouse está acima do centro da cápsula
-    const base = toggleEl.classList.contains('ativo') ? -32 : 0;
+    const base = toggleEl.classList.contains('ativo') ? -26 : 0;
     bolha.style.transform = `translateY(${base - forca * limite}px)`;
   });
   toggleEl.addEventListener('mouseleave', () => { bolha.style.transform = ''; });
@@ -1664,22 +1666,16 @@ function fechadoGui() {
 }
 
 function fechadoChaves() {
-  if (!marcos) {
-    return `
-      <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
-      <div class="card-titulo">Seu grande dia está chegando</div>
-      <div class="card-corpo"><div class="card-convite">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu. Assim que a obra avançar, cada marco aparece aqui.')}</div></div>
-    `;
-  }
-  const visiveis = marcosVisiveis();
-  const feitos = visiveis.filter(m => marcos[m.campo]).length;
-  const todosFeitos = visiveis.length > 0 && feitos === visiveis.length;
+  // indicador da VISTORIA na capa — evidencia que a área de vistoria mora neste card.
+  // O toggle é só visual (não clicável); liga quando a vistoria já foi concluída.
+  const vistoriaFeita = !!(marcos && marcos.vistoria_em);
   return `
     <div class="card-eyebrow">${ic('key')} Rumo às chaves</div>
-    <div class="chaves-capa-toggle-wrap">
-      <button type="button" class="marco-toggle chaves-capa-toggle ${todosFeitos ? 'ativo' : ''}" tabindex="-1" aria-hidden="true" title="${feitos} de ${visiveis.length} marcos concluídos"><span class="marco-toggle-bolha"></span></button>
-    </div>
     <div class="card-titulo">O caminho até a virada da chave</div>
+    <div class="chaves-capa-vistoria">
+      <div class="ccv-esq">${ic('clipboard-check','ic-sm')} <span>Vistoria da unidade</span></div>
+      <button type="button" class="marco-toggle chaves-capa-toggle ${vistoriaFeita ? 'ativo' : ''}" tabindex="-1" aria-hidden="true"><span class="marco-toggle-bolha"></span></button>
+    </div>
   `;
 }
 
@@ -2677,12 +2673,14 @@ function renderMarcoFixo(m) {
       </div>
       ${temDetalhe ? `<div class="marco-detalhe-body" id="acc-body-${idAcc}"><div class="marco-detalhe-inner">${paragrafos(m.detalhe)}</div></div>` : ''}
       ${m.campo === 'vistoria_em' ? `
-        <div class="marco-vistoria-cta">
-          <a href="/vistoria"><button class="card-cta">${ic('clipboard-check','ic-sm')} Abrir checklist de vistoria</button></a>
+        <div class="marco-obra-cta">
+          <p class="marco-obra-intro">${marcarPalavras('Prepare-se para o grande dia com o checklist completo da Guide — item por item, com guia, o que levar e registro de fotos.')}</p>
+          <a href="/vistoria"><button class="btn-primario marco-obra-btn">${ic('clipboard-check','ic-sm')} Abrir checklist de vistoria</button></a>
         </div>` : ''}
       ${m.campo === 'revistoria_em' ? `
-        <div class="marco-vistoria-cta">
-          <a href="/vistoria?modo=revistoria"><button class="card-cta">${ic('list-checks','ic-sm')} Conferir pendências da revistoria</button></a>
+        <div class="marco-obra-cta">
+          <p class="marco-obra-intro">${marcarPalavras('Volte ao checklist e confira, uma a uma, se as pendências apontadas na vistoria foram resolvidas.')}</p>
+          <a href="/vistoria?modo=revistoria"><button class="btn-primario marco-obra-btn">${ic('list-checks','ic-sm')} Conferir pendências da revistoria</button></a>
         </div>` : ''}
       ${m.campo === 'inicio_reforma_em' ? `
         <div class="marco-obra-cta">
