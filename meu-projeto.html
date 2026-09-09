@@ -728,7 +728,9 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .capsula-data-btn { background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 6px 12px; font-size: var(--fs-xs); color: var(--muted); cursor:pointer; font-family:'Outfit',sans-serif; transition: all .2s; }
 .capsula-data-btn:hover { border-color: var(--gold); color: var(--gold-light); }
 .capsula-data-btn.ativa { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
-.capsula-data-input { width:100%; background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 14px; color: var(--white); font-family:'Outfit',sans-serif; font-size: var(--fs-base); margin-bottom: 16px; }
+.capsula-data-input { width:100%; background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 14px; color: var(--white); font-family:'Outfit',sans-serif; font-size: var(--fs-base); margin-bottom: 12px; }
+.capsula-data-confirma { display:flex; align-items:flex-start; gap:8px; font-size: var(--fs-sm); color: var(--gold-light); background: var(--gold-dim); border:1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 16px; line-height:1.5; }
+.capsula-data-confirma svg { flex-shrink:0; margin-top:1px; }
 .capsula-item { display:flex; align-items:center; gap:12px; border:1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 8px; }
 .capsula-item .ci-status { color: var(--gold); flex-shrink:0; }
 .capsula-item .ci-meta { display:flex; flex-direction:column; gap:2px; font-size: var(--fs-xs); }
@@ -1473,6 +1475,27 @@ function formatarData(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+}
+// com ano — para datas que ficam meses/anos no futuro (ex.: Cápsula do Tempo)
+function formatarDataAno(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+// normaliza qualquer data ("AAAA-MM-DD", "DD/MM/AAAA", Date, ISO) para ISO ao MEIO-DIA local,
+// evitando o "volta 1 dia" causado por fuso quando a data é interpretada como UTC 00:00.
+function isoData12h(valor) {
+  if (!valor) return '';
+  let y, m, d;
+  if (valor instanceof Date) { y = valor.getFullYear(); m = valor.getMonth() + 1; d = valor.getDate(); }
+  else {
+    const s = String(valor).trim();
+    let mm = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (mm) { y = +mm[1]; m = +mm[2]; d = +mm[3]; }
+    else if ((mm = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) { d = +mm[1]; m = +mm[2]; y = +mm[3]; }
+    else { const dt = new Date(s); if (isNaN(dt.getTime())) return ''; y = dt.getFullYear(); m = dt.getMonth() + 1; d = dt.getDate(); }
+  }
+  const dt = new Date(y, m - 1, d, 12, 0, 0, 0);
+  return isNaN(dt.getTime()) ? '' : dt.toISOString();
 }
 function paraInputDate(iso) {
   if (!iso) return '';
@@ -3328,14 +3351,14 @@ function renderCapsulaLista() {
     const st = statusCarta(c);
     const icone = st === 'lida' ? 'mail-open' : (st === 'disponivel' ? 'mail' : 'lock');
     const quando = st === 'lacrada'
-      ? `Abre em ${formatarData(c.abrir_em)}`
-      : (st === 'lida' ? 'Disponível — leia quando quiser' : 'Pronta para ler');
+      ? `Abre em ${formatarDataAno(c.abrir_em)}`
+      : (st === 'lida' ? `Aberta · disponível sempre (era ${formatarDataAno(c.abrir_em)})` : `Pronta para ler (${formatarDataAno(c.abrir_em)})`);
     const disponivel = st === 'disponivel' || st === 'lida';
     return `
       <div class="capsula-item">
         <span class="ci-status">${ic(icone, 'ic-sm')}</span>
         <span class="ci-meta">
-          <span class="ci-escrita">Escrita em ${formatarData(c.escrita_em)}</span>
+          <span class="ci-escrita">Escrita em ${formatarDataAno(c.escrita_em)}</span>
           <span class="ci-abre">${quando}</span>
         </span>
         ${disponivel ? `<button type="button" class="btn-primario ci-abrir-btn" data-acao="cap-abrir" data-id="${c.id}">${st === 'lida' ? 'Ler de novo' : 'Abrir carta'}</button>` : ''}
@@ -3370,15 +3393,15 @@ function renderCapsulaIntro() {
 
 function renderCapsulaEditor() {
   const dados = bfDados() || {};
-  const prazoData = dados['prazo-data'];
+  const chavesISO = isoData12h(dados['prazo-data']);
   const pills = [];
-  if (prazoData) { try { pills.push({ modo: 'chaves', label: 'Na entrega das chaves', valor: new Date(prazoData).toISOString() }); } catch (e) {} }
+  if (chavesISO) pills.push({ modo: 'chaves', label: 'Na entrega das chaves', valor: chavesISO });
   const seisMeses = new Date(); seisMeses.setMonth(seisMeses.getMonth() + 6);
-  pills.push({ modo: '6meses', label: 'Daqui a 6 meses', valor: seisMeses.toISOString() });
+  pills.push({ modo: '6meses', label: 'Daqui a 6 meses', valor: isoData12h(seisMeses) });
   pills.push({ modo: 'aniversario', label: 'No meu aniversário', valor: '' });
   pills.push({ modo: 'outra', label: 'Eu escolho outra data', valor: '' });
   const mostrarInput = capsulaDataModo === 'aniversario' || capsulaDataModo === 'outra';
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = isoData12h(new Date()).slice(0, 10);
   const podeGuardar = capsulaConteudo.trim() && capsulaData;
   return `
     <div class="diario-capsula">
@@ -3389,6 +3412,7 @@ function renderCapsulaEditor() {
         ${pills.map(p => `<button type="button" class="capsula-data-btn${capsulaDataModo === p.modo ? ' ativa' : ''}" data-acao="cap-data" data-modo="${p.modo}" data-valor="${p.valor}">${p.label}</button>`).join('')}
       </div>
       ${mostrarInput ? `<input type="date" class="capsula-data-input" id="capsula-data-input" min="${hoje}" value="${capsulaData ? capsulaData.slice(0, 10) : ''}">` : ''}
+      ${capsulaData ? `<div class="capsula-data-confirma">${ic('calendar-check','ic-sm')} Esta carta vai abrir em <strong>${formatarDataAno(capsulaData)}</strong> — e continua disponível para reler depois.</div>` : ''}
       <div class="diario-acoes" style="justify-content:space-between;">
         <button type="button" class="card-cta" data-acao="cap-lista">Cancelar</button>
         <button type="button" class="btn-primario" data-acao="cap-guardar"${podeGuardar ? '' : ' disabled'}>${ic('lock', 'ic-sm')} Guardar carta</button>
@@ -3422,7 +3446,7 @@ function abrirCartaOverlay(carta) {
     const fresca = cartas.find(c => c.id === carta.id) || carta;
     el.innerHTML = `
       <div class="capsula-carta">
-        <div class="cc-label">Você escreveu isso em ${formatarData(fresca.escrita_em)}</div>
+        <div class="cc-label">Você escreveu isso em ${formatarDataAno(fresca.escrita_em)}</div>
         <div class="cc-corpo">${esc(fresca.conteudo || '')}</div>
         <div class="diario-acoes"><button type="button" class="card-cta" data-acao="cap-fechar">Fechar</button></div>
       </div>`;
@@ -3436,6 +3460,7 @@ function ligarDiario() {
   if (!root) return;
   root.addEventListener('click', onDiarioClick);
   root.addEventListener('input', onDiarioInput);
+  root.addEventListener('change', onDiarioInput); // date picker às vezes só dispara 'change'
   root.addEventListener('keydown', (e) => {
     if (e.target.closest('button')) return; // deixa o botão (ex.: apagar) tratar sozinho
     const card = e.target.closest('.momento-card[data-acao]');
@@ -3446,8 +3471,14 @@ function ligarDiario() {
 
 function onDiarioInput(e) {
   if (e.target.id === 'capsula-txt') capsulaConteudo = e.target.value;
-  if (e.target.id === 'capsula-data-input') capsulaData = e.target.value ? new Date(e.target.value).toISOString() : '';
-  if (e.target.id === 'capsula-txt' || e.target.id === 'capsula-data-input') {
+  if (e.target.id === 'capsula-data-input') {
+    const novo = isoData12h(e.target.value);
+    if (novo === capsulaData) return;
+    capsulaData = novo;
+    repintarCapsula(); // atualiza a linha "vai abrir em ..." e o botão Guardar
+    return;
+  }
+  if (e.target.id === 'capsula-txt') {
     const g = document.querySelector('[data-acao="cap-guardar"]');
     if (g) g.disabled = !(capsulaConteudo.trim() && capsulaData);
   }
@@ -3563,8 +3594,10 @@ async function apagarMomento(id) {
 
 async function guardarCarta() {
   const conteudo = capsulaConteudo.trim();
-  if (!conteudo || !capsulaData) { toast('Escreva a carta e escolha a data.'); return; }
-  const { error } = await sb.from('diario_cartas').insert({ projeto_id: projeto.id, abrir_em: capsulaData, conteudo });
+  const abrirEm = isoData12h(capsulaData);
+  if (!conteudo || !abrirEm) { toast('Escreva a carta e escolha a data.'); return; }
+  if (new Date(abrirEm).getTime() <= Date.now()) { toast('Escolha uma data no futuro para abrir a carta.'); return; }
+  const { error } = await sb.from('diario_cartas').insert({ projeto_id: projeto.id, abrir_em: abrirEm, conteudo });
   if (error) { toast('Não foi possível guardar a carta agora.'); console.error(error); return; }
   capsulaConteudo = ''; capsulaData = ''; capsulaDataModo = ''; capsulaVista = 'lista';
   cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
