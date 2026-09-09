@@ -701,11 +701,14 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .diario-grupo-toggle button.ativa { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
 .momento-grupo { margin-bottom: 18px; }
 .momento-grupo-rotulo { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color: var(--muted); margin: 4px 0 8px; }
-.momento-card { border:1px solid var(--border2); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 8px; cursor:pointer; transition: border-color .2s; }
+.momento-card { border:1px solid var(--border2); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 8px; transition: border-color .2s; }
+.momento-card[data-acao] { cursor:pointer; }
 .momento-card:hover { border-color: var(--border); }
 .momento-resumo { display:flex; align-items:center; gap:10px; font-size: var(--fs-sm); color: var(--off); flex-wrap:wrap; }
 .momento-resumo .mc-tag { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.04em; color: var(--gold-light); border:1px solid var(--border); border-radius: var(--r-pill); padding: 2px 8px; }
 .momento-resumo .mc-data { margin-left:auto; color: var(--muted); font-size: var(--fs-2xs); }
+.momento-apagar { background:none; border:none; padding:2px; margin-left:4px; color: var(--muted); cursor:pointer; opacity:.55; transition: opacity .2s, color .2s; display:inline-flex; }
+.momento-apagar:hover { opacity:1; color: var(--red); }
 .momento-nota { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2); white-space: pre-wrap; }
 
 .mapa-emocional { border:1px solid var(--border2); border-radius: var(--r-md); padding: 16px; margin-bottom: 26px; background: var(--glass2); }
@@ -3164,9 +3167,10 @@ function expandidoDiario() {
     <div id="diario-root">
       <div class="modal-eyebrow">${ic('notebook-pen')} Seu diário</div>
       <div id="diario-lembrete-slot">${renderLembreteDiario()}</div>
-      <div class="diario-pergunta-fase">${pergunta}</div>
+      <div class="modal-titulo">Como você está hoje?</div>
       <div class="humor-explicacao">Este é o seu espaço para registrar como você se sente ao longo de toda a jornada — da compra à entrega das chaves. A cada momento importante, deixe aqui uma marca do que está sentindo.</div>
       <div class="humor-emocional">${marcarPalavras('Registrar suas emoções e revisitá-las depois tem um poder real: quando você olha para trás e percebe que superou a ansiedade de uma fase, isso te motiva a seguir em frente. Acompanhar esse ciclo é acompanhar a construção não só do seu lar, mas da sua própria história com ele.')}</div>
+      <div class="diario-pergunta-fase">${pergunta}</div>
       <div id="diario-registro">${renderRegistroDiario()}</div>
       <div id="diario-mapa">${renderMapaEmocional()}</div>
       <div id="diario-momentos">${renderMomentos()}</div>
@@ -3290,22 +3294,24 @@ function renderMomentoCard(e) {
   const info = HUMORES.find(x => x.key === e.humor) || HUMORES[2];
   const tag = DIARIO_TAGS.find(t => t.key === e.tag_contexto);
   const fase = FASES.find(f => f.id === e.fase);
+  // nota já aparece aberta; clicar no card fecha/abre. Botão de lixeira apaga o registro.
   return `
-    <div class="momento-card" data-acao="momento-toggle" role="button" tabindex="0">
+    <div class="momento-card${e.nota ? ' expandido' : ''}" ${e.nota ? 'data-acao="momento-toggle" role="button" tabindex="0"' : ''}>
       <div class="momento-resumo">
         ${ic(info.icon, 'ic-sm')}<span>${info.label}</span>
         ${tag ? `<span class="mc-tag">${tag.label}</span>` : ''}
         <span class="mc-data">${formatarData(e.registrado_em)}${fase ? ' · ' + fase.nome : ''}</span>
+        ${e.id ? `<button type="button" class="momento-apagar" data-acao="momento-apagar" data-id="${e.id}" aria-label="Apagar este registro" title="Apagar">${ic('trash-2', 'ic-sm')}</button>` : ''}
       </div>
-      ${e.nota ? `<div class="momento-nota" hidden>${esc(e.nota)}</div>` : ''}
+      ${e.nota ? `<div class="momento-nota">${esc(e.nota)}</div>` : ''}
     </div>`;
 }
 
 // ── Cápsula do Tempo — cartas para o próprio futuro ──
+// lacrada = data ainda não chegou | disponivel = pode ler (para sempre) | lida = já abriu ao menos uma vez
 function statusCarta(c) {
-  if (c.aberta) return 'aberta';
-  if (c.pronta) return 'pronta';
-  return 'lacrada';
+  if (!c.disponivel) return 'lacrada';
+  return c.aberta ? 'lida' : 'disponivel';
 }
 
 function renderCapsula() {
@@ -3320,8 +3326,11 @@ function renderCapsulaLista() {
     ? `<div class="capsula-sugestao">${ic('sparkles', 'ic-sm')}<span>${CAPSULA_SUGESTAO_FASE[faseId]}</span></div>` : '';
   const lista = cartas.length ? cartas.map(c => {
     const st = statusCarta(c);
-    const icone = st === 'aberta' ? 'mail-open' : (st === 'pronta' ? 'mail' : 'lock');
-    const quando = st === 'aberta' ? 'Aberta' : `Abre em ${formatarData(c.abrir_em)}`;
+    const icone = st === 'lida' ? 'mail-open' : (st === 'disponivel' ? 'mail' : 'lock');
+    const quando = st === 'lacrada'
+      ? `Abre em ${formatarData(c.abrir_em)}`
+      : (st === 'lida' ? 'Disponível — leia quando quiser' : 'Pronta para ler');
+    const disponivel = st === 'disponivel' || st === 'lida';
     return `
       <div class="capsula-item">
         <span class="ci-status">${ic(icone, 'ic-sm')}</span>
@@ -3329,7 +3338,7 @@ function renderCapsulaLista() {
           <span class="ci-escrita">Escrita em ${formatarData(c.escrita_em)}</span>
           <span class="ci-abre">${quando}</span>
         </span>
-        ${st === 'pronta' ? `<button type="button" class="btn-primario ci-abrir-btn" data-acao="cap-abrir" data-id="${c.id}">Abrir carta</button>` : ''}
+        ${disponivel ? `<button type="button" class="btn-primario ci-abrir-btn" data-acao="cap-abrir" data-id="${c.id}">${st === 'lida' ? 'Ler de novo' : 'Abrir carta'}</button>` : ''}
       </div>`;
   }).join('') : `<div class="capsula-texto">Nenhuma carta guardada ainda.</div>`;
   return `
@@ -3388,13 +3397,14 @@ function renderCapsulaEditor() {
 }
 
 function abrirCartaOverlay(carta) {
+  const jaLida = !!carta.aberta;
   const el = document.createElement('div');
   el.className = 'capsula-overlay';
   el.innerHTML = `
     <div class="capsula-envelope">
-      <div class="ce-icone">${ic('mail', 'ic-xl')}</div>
-      <p>Uma carta sua está esperando por você.</p>
-      <button type="button" class="btn-primario" data-acao="cap-revelar">Abrir</button>
+      <div class="ce-icone">${ic(jaLida ? 'mail-open' : 'mail', 'ic-xl')}</div>
+      <p>${jaLida ? 'Reabrindo uma carta que você já leu.' : 'Uma carta sua está esperando por você.'}</p>
+      <button type="button" class="btn-primario" data-acao="cap-revelar">${jaLida ? 'Ler de novo' : 'Abrir'}</button>
     </div>`;
   document.body.appendChild(el);
   icons();
@@ -3403,6 +3413,7 @@ function abrirCartaOverlay(carta) {
     if (ev.target.closest('[data-acao="cap-fechar"]')) { el.remove(); return; }
     if (!ev.target.closest('[data-acao="cap-revelar"]')) return;
     if (!carta.aberta) {
+      // marca a primeira leitura; a carta continua disponível para reler sempre
       const { error } = await sb.from('diario_cartas').update({ aberta_em: new Date().toISOString() }).eq('id', carta.id);
       if (error) console.error(error);
       cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
@@ -3426,7 +3437,8 @@ function ligarDiario() {
   root.addEventListener('click', onDiarioClick);
   root.addEventListener('input', onDiarioInput);
   root.addEventListener('keydown', (e) => {
-    const card = e.target.closest('.momento-card');
+    if (e.target.closest('button')) return; // deixa o botão (ex.: apagar) tratar sozinho
+    const card = e.target.closest('.momento-card[data-acao]');
     if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleMomento(card); }
   });
   icons();
@@ -3470,6 +3482,7 @@ async function onDiarioClick(e) {
   if (acao === 'pular') { registrarMomento(false); return; }
   if (acao === 'registrar') { registrarMomento(true); return; }
   if (acao === 'grupo') { diarioGrupo = alvo.dataset.grupo; repintarMomentos(); return; }
+  if (acao === 'momento-apagar') { apagarMomento(alvo.dataset.id); return; }
   if (acao === 'momento-toggle') { toggleMomento(alvo); return; }
 
   if (acao === 'cap-intro') { capsulaVista = 'intro'; repintarCapsula(); return; }
@@ -3525,15 +3538,27 @@ async function registrarMomento(comNota) {
     tag = diarioTag || null;
   }
   const payload = { projeto_id: projeto.id, humor: diarioEmocao, nota, tag_contexto: tag, fase };
-  const { error } = await sb.from('diario_humor').insert(payload);
+  const { data, error } = await sb.from('diario_humor').insert(payload).select().single();
   if (error) { toast('Não foi possível registrar agora.'); console.error(error); return; }
-  humores.unshift({ ...payload, registrado_em: new Date().toISOString() });
+  humores.unshift(data || { ...payload, registrado_em: new Date().toISOString() });
   diarioEmocao = null; diarioTag = null;
   repintarRegistro(); repintarMapa(); repintarMomentos();
   const slot = document.getElementById('diario-lembrete-slot');
   if (slot) slot.innerHTML = renderLembreteDiario();
   renderBento();
   toast('Registrado — obrigado por compartilhar.');
+}
+
+async function apagarMomento(id) {
+  if (!id) return;
+  const { error } = await sb.from('diario_humor').delete().eq('id', id);
+  if (error) { toast('Não foi possível apagar agora.'); console.error(error); return; }
+  humores = humores.filter(h => h.id !== id);
+  repintarMapa(); repintarMomentos();
+  const slot = document.getElementById('diario-lembrete-slot');
+  if (slot) slot.innerHTML = renderLembreteDiario();
+  renderBento();
+  toast('Registro apagado.');
 }
 
 async function guardarCarta() {

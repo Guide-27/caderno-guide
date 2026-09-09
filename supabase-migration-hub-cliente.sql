@@ -206,16 +206,18 @@ create policy "cliente gerencia suas cartas" on diario_cartas for all
   using (exists (select 1 from projetos p where p.id = diario_cartas.projeto_id and p.email = auth.email()))
   with check (exists (select 1 from projetos p where p.id = diario_cartas.projeto_id and p.email = auth.email()));
 
--- View de leitura: enquanto `now() < abrir_em` (e ainda não aberta), `conteudo` volta null.
+-- View de leitura: enquanto `now() < abrir_em` o `conteudo` volta null (carta lacrada).
+-- A partir da data de abertura o conteúdo fica disponível PARA SEMPRE (pode reler quantas
+-- vezes quiser); `aberta_em` só marca a primeira leitura, não bloqueia nada.
 -- `security_invoker = on` (Postgres 15+) faz a RLS da tabela base valer para a view.
 drop view if exists diario_cartas_visao;
 create view diario_cartas_visao
   with (security_invoker = on) as
   select
     id, projeto_id, escrita_em, abrir_em, aberta_em,
-    case when now() < abrir_em and aberta_em is null then null else conteudo end as conteudo,
-    (aberta_em is not null)                   as aberta,
-    (now() >= abrir_em and aberta_em is null) as pronta
+    case when now() >= abrir_em then conteudo else null end as conteudo,
+    (now() >= abrir_em)     as disponivel,
+    (aberta_em is not null)  as aberta
   from diario_cartas;
 
 -- ─── 7. Mural de imagens — evolução fotográfica registrada pelo cliente ───
