@@ -767,6 +767,19 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .carta-guide-painel .cgp-corpo p { font-size: var(--fs-sm); color: var(--off); line-height: 1.8; margin: 0 0 15px; }
 .carta-guide-painel .diario-acoes { justify-content:flex-end; margin-top: 10px; }
 
+/* abertura suave das cartas (Guia + Cápsula do Tempo) */
+@keyframes cartaOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cartaPainelIn  { from { opacity: 0; transform: translateY(20px) scale(.975); } to { opacity: 1; transform: none; } }
+.carta-guide-overlay, .capsula-overlay { animation: cartaOverlayIn .30s ease both; }
+.carta-guide-painel, .capsula-envelope, .capsula-carta { animation: cartaPainelIn .42s cubic-bezier(.16,.84,.28,1) both; }
+.carta-guide-overlay.saindo, .capsula-overlay.saindo { animation: cartaOverlayIn .22s ease reverse forwards; }
+.capsula-envelope.saindo { animation: cartaPainelIn .20s ease reverse forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .carta-guide-overlay, .capsula-overlay,
+  .carta-guide-painel, .capsula-envelope, .capsula-carta,
+  .carta-guide-overlay.saindo, .capsula-overlay.saindo, .capsula-envelope.saindo { animation-duration: .01ms !important; }
+}
+
 .farol { font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.65; margin-bottom: 20px; }
 
 .form-input, .input-generico { width: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 11px 14px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); margin-bottom: 10px; }
@@ -3288,9 +3301,8 @@ function abrirCartaGuideOverlay(primeiraVez) {
     </div>`;
   document.body.appendChild(el);
   icons();
-  const fecha = () => el.remove();
   el.addEventListener('click', (ev) => {
-    if (ev.target === el || ev.target.closest('[data-acao="carta-guide-fechar"]')) fecha();
+    if (ev.target === el || ev.target.closest('[data-acao="carta-guide-fechar"]')) fecharOverlaySuave(el);
   });
   // repinta o slot pro estado "aberta" (ícone discreto) sem fechar o overlay
   const slot = document.getElementById('carta-guide-slot');
@@ -3519,6 +3531,13 @@ function renderCapsulaEditor() {
     </div>`;
 }
 
+// fecha um overlay com fade-out (a entrada é 100% CSS na classe do overlay)
+function fecharOverlaySuave(el) {
+  if (!el || el.classList.contains('saindo')) return;
+  el.classList.add('saindo');
+  setTimeout(() => el.remove(), 240);
+}
+
 function abrirCartaOverlay(carta) {
   const jaLida = cartaLida(carta);
   const el = document.createElement('div');
@@ -3532,9 +3551,13 @@ function abrirCartaOverlay(carta) {
   document.body.appendChild(el);
   icons();
   el.addEventListener('click', async (ev) => {
-    if (ev.target === el) { el.remove(); return; }
-    if (ev.target.closest('[data-acao="cap-fechar"]')) { el.remove(); return; }
+    if (ev.target === el) { fecharOverlaySuave(el); return; }
+    if (ev.target.closest('[data-acao="cap-fechar"]')) { fecharOverlaySuave(el); return; }
     if (!ev.target.closest('[data-acao="cap-revelar"]')) return;
+    // envelope some suave enquanto a carta é preparada (ignora cliques repetidos)
+    const envel = el.querySelector('.capsula-envelope');
+    if (!envel || envel.classList.contains('saindo')) return;
+    envel.classList.add('saindo');
     if (!cartaLida(carta)) {
       // marca a primeira leitura; a carta continua disponível para reler sempre
       const { error } = await sb.from('diario_cartas').update({ aberta_em: new Date().toISOString() }).eq('id', carta.id);
@@ -3543,6 +3566,7 @@ function abrirCartaOverlay(carta) {
       cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
       repintarCapsula();
     }
+    await new Promise(r => setTimeout(r, 180)); // deixa o envelope terminar de sair
     const fresca = cartas.find(c => c.id === carta.id) || carta;
     el.innerHTML = `
       <div class="capsula-carta">
