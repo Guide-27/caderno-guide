@@ -755,6 +755,18 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .diario-privacidade svg { color: var(--gold); flex-shrink:0; margin-top: 1px; }
 .diario-privacidade p { margin: 0; }
 
+/* carta de boas-vindas da Guide — mesmo vidro/borda dos outros blocos do painel */
+.carta-guide-selo { display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; padding: 26px 22px; margin-bottom: 22px; background: var(--glass); backdrop-filter: blur(6px); border:1px solid var(--border2); border-radius: var(--r-md); }
+.carta-guide-selo .cgs-icone { color: var(--gold); opacity: .85; }
+.carta-guide-selo .cgs-chamada { font-size: var(--fs-sm); color: var(--muted); margin: 0; line-height: 1.6; max-width: 320px; }
+.carta-guide-reabrir { display:inline-flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.06em; color: var(--muted); background:none; border:none; padding:0; margin-bottom: 18px; cursor:pointer; opacity:.7; transition: opacity .2s, color .2s; font-family:'Outfit',sans-serif; }
+.carta-guide-reabrir:hover { opacity:1; color: var(--gold-light); }
+.carta-guide-overlay { position: fixed; inset: 0; z-index: 960; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(8,8,10,0.55); backdrop-filter: blur(8px); }
+.carta-guide-painel { max-width: 560px; width:100%; max-height: 82vh; overflow-y:auto; padding: 32px 34px; background: var(--card); border:1px solid var(--border); border-radius: var(--r-lg); }
+.carta-guide-painel .cgp-eyebrow { display:flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color: var(--gold-light); margin-bottom: 18px; }
+.carta-guide-painel .cgp-corpo p { font-size: var(--fs-sm); color: var(--off); line-height: 1.8; margin: 0 0 15px; }
+.carta-guide-painel .diario-acoes { justify-content:flex-end; margin-top: 10px; }
+
 .farol { font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.65; margin-bottom: 20px; }
 
 .form-input, .input-generico { width: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 11px 14px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); margin-bottom: 10px; }
@@ -1211,6 +1223,32 @@ const CAPSULA_SUGESTAO_FASE = {
   obra:      'A obra começou. O que você quer dizer para a pessoa que vai receber as chaves?',
 };
 
+// Carta de boas-vindas da Guide — mostrada no 1º acesso ao card "Seu diário".
+// Parágrafos separados por linha em branco; renderizados como <p> no padrão de corpo.
+const CARTA_GUIDE = `Comprar um lar é um capítulo diferente para cada pessoa. Para algumas, é a realização de um sonho antigo. Para outras, uma decisão estratégica, um investimento, um próximo passo. Às vezes as três coisas ao mesmo tempo — ou nenhuma delas com nome ainda.
+
+O que quase sempre é igual é que não é simples. Tem peso, tem escolha, tem algo sendo deixado para trás para que isso aqui possa existir.
+
+E aqui você está.
+
+Isso é mais do que uma compra. É um ato de fé — em você, no futuro, na vida que você está construindo. E como todo ato de fé, ele carrega junto uma dose real de medo, de dúvida, de ansiedade. Não porque você errou. Mas porque você se importa profundamente com o que está fazendo.
+
+O processo que vem pela frente tem fases. Algumas vão parecer empolgantes — quando as ideias tomam forma, quando você vê seu espaço começar a existir no papel, quando o render chega e de repente o lar que estava só na sua cabeça aparece na tela. Mas outras fases vão ser cansativas. Vão ter decisões que travam, prazos que pesam, dias em que a obra parece distante demais e o investimento, grande demais. Dias em que você vai querer que tudo já estivesse pronto.
+
+Tudo isso é normal. Tudo isso faz parte.
+
+E é exatamente por isso que este espaço existe.
+
+A Guide criou o Seu Diário porque acredita que acompanhar uma reforma é acompanhar uma pessoa — não só um projeto. Que por trás de cada decisão de acabamento, de cada planta revisada, de cada aprovação, existe alguém vivendo um momento único e irrepetível da sua vida. E que esse momento merece ser registrado, respeitado e lembrado.
+
+Aqui você pode chegar como estiver. Ansiosa, radiante, cansada, esperançosa — todos os sentimentos têm lugar. Você não precisa estar bem para registrar. Você não precisa ter certeza do que sente. Só precisa ser honesta consigo mesma, no ritmo que for seu.
+
+Com o tempo, esses registros vão virar algo precioso: a prova concreta de tudo que você atravessou. E quando você finalmente segurar as chaves nas mãos, poder olhar para trás e ver cada momento que passou aqui — os difíceis e os bonitos — vai fazer esse lar significar ainda mais.
+
+Porque ele não vai ser só um apartamento. Vai ser a história de quem você foi enquanto ele ainda estava sendo construído.
+
+A Guide está aqui em cada etapa dessa história. Não só no projeto — mas em você.`;
+
 // ═══════════════════════════════════════════════════════════════════════
 // "O QUE VOCÊ SONHOU" — mapas de tradução editáveis (briefing → inspiração)
 // Toda resposta do briefing é TRADUZIDA em promessa/inspiração; nunca exibimos o dado cru.
@@ -1442,6 +1480,7 @@ let comunidade = [];
 let parceiros = [];
 let humores = [];
 let cartas = [];
+let cartaGuiaAberta = false;
 let mural = [];
 let palpites = [];
 let quizIndex = 0;
@@ -1542,7 +1581,7 @@ async function inicializar() {
 
   const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
 
-  const [bf, marcosRow, gloss, comum, parc, hums, cartasRows, muralRows, palpRows, marcosPersRows] = await Promise.all([
+  const [bf, marcosRow, gloss, comum, parc, hums, cartasRows, muralRows, palpRows, marcosPersRows, cartaGuiaRow] = await Promise.all([
     tentar(sb.from('briefing_respostas').select('dados, status').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('glossario_termos').select('*').order('ordem', { ascending: true }), []),
@@ -1553,6 +1592,7 @@ async function inicializar() {
     tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []),
     tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
     tentar(sb.from('marcos_personalizados').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []),
+    tentar(sb.from('diario_carta_guide').select('aberta_em').eq('projeto_id', projeto.id).maybeSingle(), null),
   ]);
   briefing = bf;
   marcos = marcosRow;
@@ -1565,6 +1605,9 @@ async function inicializar() {
   cartas = cartasRows || [];
   mural = muralRows;
   palpites = palpRows || [];
+  let lsCartaGuia = false;
+  try { lsCartaGuia = localStorage.getItem('carta-guide-aberta-' + projeto.id) === 'true'; } catch (e) {}
+  cartaGuiaAberta = !!(cartaGuiaRow && cartaGuiaRow.aberta_em) || lsCartaGuia;
 
   if (faseAtualId === 'layout' || faseAtualId === 'imagens') {
     const ambs = await tentar(sb.from('ambientes').select('id, nome').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []);
@@ -3189,6 +3232,7 @@ function expandidoDiario() {
   return `
     <div id="diario-root">
       <div class="modal-eyebrow">${ic('notebook-pen')} Seu diário</div>
+      <div id="carta-guide-slot">${renderCartaGuideBloco()}</div>
       <div id="diario-lembrete-slot">${renderLembreteDiario()}</div>
       <div class="modal-titulo">Como você está hoje?</div>
       <div class="humor-explicacao">Este é o seu espaço para registrar como você se sente ao longo de toda a jornada — da compra à entrega das chaves. A cada momento importante, deixe aqui uma marca do que está sentindo.</div>
@@ -3206,6 +3250,51 @@ function expandidoDiario() {
       <div class="diario-privacidade">${ic('lock','ic-sm')}<p>Seus sentimentos compartilhados aqui são reservados. Seu arquiteto e a Guide não têm acesso direto a esse conteúdo — ele foi feito para você.</p></div>
     </div>
   `;
+}
+
+// ── Carta de boas-vindas da Guide (1º acesso) ──
+function renderCartaGuideBloco() {
+  if (cartaGuiaAberta) {
+    return `<button type="button" class="carta-guide-reabrir" data-acao="carta-guide-reabrir">${ic('mail-open','ic-sm')} Sua carta da Guide ${ic('arrow-up-right','ic-sm')}</button>`;
+  }
+  return `
+    <div class="carta-guide-selo">
+      <div class="cgs-icone">${ic('mail','ic-xl')}</div>
+      <p class="cgs-chamada">Abra sua primeira carta — essa é da Guide, para você.</p>
+      <button type="button" class="card-cta" data-acao="carta-guide-abrir">Abrir carta</button>
+    </div>`;
+}
+
+async function persistirCartaGuiaAberta() {
+  cartaGuiaAberta = true;
+  try { localStorage.setItem('carta-guide-aberta-' + projeto.id, 'true'); } catch (e) {}
+  const { error } = await sb.from('diario_carta_guide').upsert(
+    { projeto_id: projeto.id, aberta_em: new Date().toISOString() },
+    { onConflict: 'projeto_id' }
+  );
+  if (error) console.warn('carta guide: não persistiu no servidor (segue com localStorage)', error);
+}
+
+function abrirCartaGuideOverlay(primeiraVez) {
+  if (primeiraVez) persistirCartaGuiaAberta();
+  const paras = CARTA_GUIDE.split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join('');
+  const el = document.createElement('div');
+  el.className = 'carta-guide-overlay';
+  el.innerHTML = `
+    <div class="carta-guide-painel">
+      <div class="cgp-eyebrow">${ic('mail-open','ic-sm')} Uma carta da Guide</div>
+      <div class="cgp-corpo">${paras}</div>
+      <div class="diario-acoes"><button type="button" class="card-cta" data-acao="carta-guide-fechar">Fechar</button></div>
+    </div>`;
+  document.body.appendChild(el);
+  icons();
+  const fecha = () => el.remove();
+  el.addEventListener('click', (ev) => {
+    if (ev.target === el || ev.target.closest('[data-acao="carta-guide-fechar"]')) fecha();
+  });
+  // repinta o slot pro estado "aberta" (ícone discreto) sem fechar o overlay
+  const slot = document.getElementById('carta-guide-slot');
+  if (slot) { slot.innerHTML = renderCartaGuideBloco(); icons(); }
 }
 
 function renderLembreteDiario() {
@@ -3501,6 +3590,8 @@ async function onDiarioClick(e) {
   const acao = alvo.dataset.acao;
 
   if (acao === 'share') { mostrarEmDesenvolvimento(alvo.dataset.share); return; }
+  if (acao === 'carta-guide-abrir') { abrirCartaGuideOverlay(true); return; }
+  if (acao === 'carta-guide-reabrir') { abrirCartaGuideOverlay(false); return; }
   if (acao === 'lembrete-ok') {
     const banner = alvo.closest('.diario-lembrete');
     if (banner) banner.remove();

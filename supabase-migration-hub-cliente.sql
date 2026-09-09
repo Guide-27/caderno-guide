@@ -220,6 +220,20 @@ create view diario_cartas_visao
     (aberta_em is not null)  as aberta
   from diario_cartas;
 
+-- ─── 6c. Carta de boas-vindas da Guide (mostrada no 1º acesso ao card "Seu diário") ───
+-- Uma linha por projeto, criada quando o cliente abre a carta pela 1ª vez. O texto da carta
+-- vive no frontend (constante CARTA_GUIDE); aqui só guardamos "já abriu?". localStorage é
+-- fallback offline. Nunca aparece no painel do arquiteto.
+create table if not exists diario_carta_guide (
+  projeto_id uuid primary key references projetos(id) on delete cascade,
+  aberta_em timestamptz default now()
+);
+alter table diario_carta_guide enable row level security;
+drop policy if exists "cliente gerencia sua carta guide" on diario_carta_guide;
+create policy "cliente gerencia sua carta guide" on diario_carta_guide for all
+  using (exists (select 1 from projetos p where p.id = diario_carta_guide.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = diario_carta_guide.projeto_id and p.email = auth.email()));
+
 -- ─── 7. Mural de imagens — evolução fotográfica registrada pelo cliente ───
 -- Dados privados: mesma regra do diário, nunca aparece no painel do arquiteto.
 create table if not exists mural_fotos (
