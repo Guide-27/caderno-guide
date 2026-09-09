@@ -168,7 +168,7 @@ create policy "todos autenticados leem parceiros" on parceiros for select
 
 -- ─── 6. Seu diário — histórico de emoções ao longo da jornada ───
 -- Dados privados: só o próprio cliente enxerga (nunca aparece no painel do arquiteto).
--- Sem conceito de "lacre" — todos os registros ficam sempre visíveis e navegáveis.
+-- Os registros de emoção ficam sempre visíveis e navegáveis (sem lacre).
 -- `humor` guarda uma chave semântica (triste | neutro | contente | feliz | radiante),
 -- não mais um emoji — a interface é 100% ícone vetorial agora.
 create table if not exists diario_humor (
@@ -177,16 +177,46 @@ create table if not exists diario_humor (
   humor text not null,
   registrado_em timestamptz default now()
 );
+-- Colunas do card reformulado: nota livre + tag de contexto + snapshot da fase no registro.
+alter table diario_humor add column if not exists nota         text;
+alter table diario_humor add column if not exists tag_contexto text;  -- burocracia | decisao_dificil | novidade_boa | aprovacao | sem_motivo
+alter table diario_humor add column if not exists fase         text;  -- briefing | layout | imagens | executivo | obra (registros antigos ficam null)
 alter table diario_humor enable row level security;
 drop policy if exists "cliente gerencia seu humor" on diario_humor;
 create policy "cliente gerencia seu humor" on diario_humor for all
   using (exists (select 1 from projetos p where p.id = diario_humor.projeto_id and p.email = auth.email()))
   with check (exists (select 1 from projetos p where p.id = diario_humor.projeto_id and p.email = auth.email()));
 
--- NOTA: a tabela `cartas_futuro` (criada em uma versão anterior desta migração) não é mais
--- usada pelo painel — o conceito de "carta lacrada" foi substituído pelo diário de emoções
--- acima. Deixamos a tabela como está (não fazemos DROP) caso já tenha dados; ela é apenas
--- ignorada pelo código atual de meu-projeto.html.
+-- ─── 6b. Cápsula do Tempo — cartas que o cliente escreve para o próprio futuro ───
+-- Reintroduz o conceito de "carta lacrada" (a antiga `cartas_futuro` continua morta e
+-- ignorada — não reaproveitar). A carta NÃO pode ser lida antes de `abrir_em`: por isso o
+-- frontend LÊ da view `diario_cartas_visao` (que zera `conteudo` enquanto lacrada) e só
+-- ESCREVE na tabela. `aberta_em` marca quando o cliente abriu de fato.
+create table if not exists diario_cartas (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade,
+  escrita_em timestamptz default now(),
+  abrir_em timestamptz not null,
+  conteudo text not null,
+  aberta_em timestamptz
+);
+alter table diario_cartas enable row level security;
+drop policy if exists "cliente gerencia suas cartas" on diario_cartas;
+create policy "cliente gerencia suas cartas" on diario_cartas for all
+  using (exists (select 1 from projetos p where p.id = diario_cartas.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = diario_cartas.projeto_id and p.email = auth.email()));
+
+-- View de leitura: enquanto `now() < abrir_em` (e ainda não aberta), `conteudo` volta null.
+-- `security_invoker = on` (Postgres 15+) faz a RLS da tabela base valer para a view.
+drop view if exists diario_cartas_visao;
+create view diario_cartas_visao
+  with (security_invoker = on) as
+  select
+    id, projeto_id, escrita_em, abrir_em, aberta_em,
+    case when now() < abrir_em and aberta_em is null then null else conteudo end as conteudo,
+    (aberta_em is not null)                   as aberta,
+    (now() >= abrir_em and aberta_em is null) as pronta
+  from diario_cartas;
 
 -- ─── 7. Mural de imagens — evolução fotográfica registrada pelo cliente ───
 -- Dados privados: mesma regra do diário, nunca aparece no painel do arquiteto.

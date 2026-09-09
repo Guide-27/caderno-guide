@@ -671,14 +671,84 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 
 /* diário */
 .humor-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
-.humor-emocional { font-family:'Cormorant Garamond',serif; font-style: italic; font-size: var(--fs-serif); color: var(--gold-light); line-height: 1.65; margin-bottom: 22px; }
+/* padrão de corpo dos outros cards — sem serif, sem itálico, sem dourado (era destoante) */
+.humor-emocional { font-size: var(--fs-sm); color: var(--muted); font-style: normal; line-height: 1.7; margin-bottom: 22px; }
 .humor-opcoes { display: flex; gap: 10px; margin: 6px 0 26px; }
-.humor-btn { flex: 1; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px 6px; text-align: center; cursor: pointer; transition: all .2s; color: var(--muted); display:flex; flex-direction:column; align-items:center; gap:6px; }
+.humor-btn { flex: 1; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px 6px; text-align: center; cursor: pointer; transition: all .2s; color: var(--muted); display:flex; flex-direction:column; align-items:center; gap:6px; font-family:'Outfit',sans-serif; }
 .humor-btn:hover, .humor-btn.sel { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
+.humor-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .humor-btn span { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .04em; }
 .humor-historico-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 12px; }
 .humor-hist-item { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); color: var(--off); padding: 9px 0; border-bottom: 1px solid var(--border2); }
 .humor-hist-item .hi-data { margin-left: auto; color: var(--muted); font-size: var(--fs-2xs); }
+
+/* diário — card reformulado (pergunta por fase, nota, momentos, mapa, cápsula, privacidade) */
+.diario-pergunta-fase { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-md); color: var(--white); line-height: 1.45; margin-bottom: 14px; }
+.diario-lembrete { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background: var(--gold-dim); border:1px solid var(--border); border-radius: var(--r-md); padding: 12px 16px; margin-bottom: 18px; font-size: var(--fs-sm); color: var(--off); }
+.diario-lembrete button { margin-left:auto; background:none; border:1px solid var(--gold); color:var(--gold-light); border-radius: var(--r-pill); padding: 6px 14px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.05em; cursor:pointer; font-family:'Outfit',sans-serif; }
+
+.diario-nota-painel { border:1px solid var(--border2); border-radius: var(--r-md); padding: 16px; margin: 0 0 26px; background: var(--glass2); }
+.diario-nota-prompt { font-size: var(--fs-sm); color: var(--muted); margin-bottom: 12px; }
+.diario-tags { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 12px; }
+.diario-tag { background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 6px 12px; font-size: var(--fs-xs); color: var(--muted); cursor:pointer; font-family:'Outfit',sans-serif; transition: all .2s; }
+.diario-tag:hover { border-color: var(--gold); color: var(--gold-light); }
+.diario-tag.ativa { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
+.diario-nota-txt { width:100%; background: var(--dark); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 11px 14px; color: var(--white); font-family:'Outfit',sans-serif; font-size: var(--fs-base); line-height:1.6; resize: vertical; min-height: 76px; }
+.diario-acoes { display:flex; gap:10px; justify-content:flex-end; align-items:center; margin-top: 12px; }
+
+.diario-grupo-toggle { display:flex; gap:6px; margin-left:auto; }
+.diario-grupo-toggle button { background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 5px 12px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.05em; color: var(--muted); cursor:pointer; font-family:'Outfit',sans-serif; }
+.diario-grupo-toggle button.ativa { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
+.momento-grupo { margin-bottom: 18px; }
+.momento-grupo-rotulo { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color: var(--muted); margin: 4px 0 8px; }
+.momento-card { border:1px solid var(--border2); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 8px; cursor:pointer; transition: border-color .2s; }
+.momento-card:hover { border-color: var(--border); }
+.momento-resumo { display:flex; align-items:center; gap:10px; font-size: var(--fs-sm); color: var(--off); flex-wrap:wrap; }
+.momento-resumo .mc-tag { font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.04em; color: var(--gold-light); border:1px solid var(--border); border-radius: var(--r-pill); padding: 2px 8px; }
+.momento-resumo .mc-data { margin-left:auto; color: var(--muted); font-size: var(--fs-2xs); }
+.momento-nota { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2); white-space: pre-wrap; }
+
+.mapa-emocional { border:1px solid var(--border2); border-radius: var(--r-md); padding: 16px; margin-bottom: 26px; background: var(--glass2); }
+.mapa-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 12px; }
+.mapa-emocional svg { display:block; width:100%; height:auto; overflow:visible; }
+
+.diario-capsula { border:1px solid var(--border2); border-radius: var(--r-md); padding: 18px; margin-bottom: 26px; }
+.capsula-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 10px; }
+.capsula-texto { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+.capsula-sugestao { display:flex; align-items:flex-start; gap:8px; font-size: var(--fs-sm); color: var(--gold-light); background: var(--gold-dim); border:1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; margin-bottom: 14px; line-height:1.55; }
+.capsula-prompts { margin: 0 0 16px; padding: 0; list-style: none; }
+.capsula-prompts .cp-label { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 6px; }
+.capsula-prompts li.cp-item { font-family:'Cormorant Garamond',serif; font-size: var(--fs-serif); color: var(--off); line-height: 1.5; padding: 4px 0 4px 14px; border-left: 2px solid var(--border); margin-bottom: 4px; }
+.capsula-txt { width:100%; background: var(--dark); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 14px; color: var(--white); font-family:'Outfit',sans-serif; font-size: var(--fs-base); line-height:1.65; resize: vertical; min-height: 160px; margin-bottom: 16px; }
+.capsula-data-label { font-size: var(--fs-sm); color: var(--muted); margin-bottom: 8px; }
+.capsula-datas { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 10px; }
+.capsula-data-btn { background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 6px 12px; font-size: var(--fs-xs); color: var(--muted); cursor:pointer; font-family:'Outfit',sans-serif; transition: all .2s; }
+.capsula-data-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+.capsula-data-btn.ativa { border-color: var(--gold); background: var(--gold-dim); color: var(--gold-light); }
+.capsula-data-input { width:100%; background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 14px; color: var(--white); font-family:'Outfit',sans-serif; font-size: var(--fs-base); margin-bottom: 16px; }
+.capsula-item { display:flex; align-items:center; gap:12px; border:1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 8px; }
+.capsula-item .ci-status { color: var(--gold); flex-shrink:0; }
+.capsula-item .ci-meta { display:flex; flex-direction:column; gap:2px; font-size: var(--fs-xs); }
+.capsula-item .ci-escrita { color: var(--off); }
+.capsula-item .ci-abre { color: var(--muted); }
+.capsula-item .ci-abrir-btn { margin-left:auto; }
+.capsula-overlay { position: fixed; inset: 0; background: rgba(8,8,10,0.86); backdrop-filter: blur(6px); display:flex; align-items:center; justify-content:center; z-index: 960; padding: 24px; }
+.capsula-envelope, .capsula-carta { background: var(--card); border:1px solid var(--border); border-radius: var(--r-lg); padding: 32px 28px; max-width: 460px; width: 100%; text-align: center; }
+.capsula-carta { text-align: left; max-height: 70vh; overflow-y: auto; }
+.capsula-envelope .ce-icone { color: var(--gold); margin-bottom: 14px; }
+.capsula-envelope p { font-size: var(--fs-base); color: var(--off); line-height: 1.6; margin-bottom: 20px; }
+.capsula-carta .cc-label { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 14px; }
+.capsula-carta .cc-corpo { font-family:'Cormorant Garamond',serif; font-size: var(--fs-lg); color: var(--white); line-height: 1.7; white-space: pre-wrap; margin-bottom: 22px; }
+
+.diario-share-bloco { border-top: 1px solid var(--border2); padding-top: 20px; margin-top: 8px; }
+.diario-share-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; }
+.diario-share-corpo { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+.btn-share { display:inline-flex; align-items:center; gap:8px; background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 10px 16px; font-size: var(--fs-sm); color: var(--off); cursor:pointer; font-family:'Outfit',sans-serif; transition: all .2s; }
+.btn-share:hover { border-color: var(--gold); color: var(--gold-light); }
+
+.diario-privacidade { display:flex; align-items:flex-start; gap:8px; border-top: 1px solid var(--border2); padding: 14px 0 2px; margin-top: 22px; font-size: var(--fs-xs); color: var(--muted); font-style: normal; line-height: 1.6; }
+.diario-privacidade svg { color: var(--gold); flex-shrink:0; margin-top: 1px; }
+.diario-privacidade p { margin: 0; }
 
 .farol { font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.65; margin-bottom: 20px; }
 
@@ -705,6 +775,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 /* botão PRIMÁRIO (preenchido) — reservado à ação principal de cada tela; o .card-cta ghost é o secundário. Dois níveis, deliberado (item 8) */
 .btn-primario, .mural-upload-btn { display:inline-flex; align-items:center; gap:8px; background: var(--gold); color: var(--black); border:none; border-radius: var(--r-sm); padding: 11px 18px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; font-family:'Outfit',sans-serif; transition: transform .2s, box-shadow .2s; }
 .btn-primario:hover, .mural-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,162,39,0.22); }
+.btn-primario:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .conta-bloco { margin-bottom: 22px; }
 .conta-bloco-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
@@ -1098,6 +1169,43 @@ const HUMORES = [
   { key:'radiante', icon:'sparkles', label:'Radiante' },
 ];
 
+// intensidade emocional (mapa "Como você tem estado") — mesma ordem de HUMORES
+const HUMOR_VALOR = { triste:1, neutro:2, contente:3, feliz:4, radiante:5 };
+
+// pergunta de abertura do diário, por fase real do projeto (FASES)
+const DIARIO_PERGUNTAS = {
+  briefing:  'Estamos descobrindo o seu estilo — como está sendo essa fase de escolhas?',
+  layout:    'Ver o espaço tomando forma na planta — o que isso está te gerando?',
+  imagens:   'Seu lar está ganhando vida visual. O que você sente ao olhar para ele?',
+  executivo: 'Cada detalhe técnico está sendo desenhado. Como você está lidando com a espera?',
+  obra:      'A entrega está chegando. Como você está lidando com essa expectativa?',
+};
+
+// tags de contexto da nota livre
+const DIARIO_TAGS = [
+  { key:'burocracia',      label:'Burocracia' },
+  { key:'decisao_dificil', label:'Decisão difícil' },
+  { key:'novidade_boa',    label:'Novidade boa' },
+  { key:'aprovacao',       label:'Aprovação' },
+  { key:'sem_motivo',      label:'Sem motivo específico' },
+];
+
+// Cápsula do Tempo — sugestões para começar a carta
+const CAPSULA_PROMPTS = [
+  'Hoje eu estou...',
+  'O que eu mais quero para mim nesse próximo capítulo é...',
+  'O que eu tenho medo de perder nessa mudança é...',
+  'Algo que ninguém sabe que estou sentindo é...',
+];
+
+// convite para escrever uma carta, disparado pela fase atual (só se ainda não houver cartas)
+const CAPSULA_SUGESTAO_FASE = {
+  layout:    'A planta está tomando forma. Como está sendo deixar o espaço ganhar corpo?',
+  imagens:   'Você está vendo seu lar pela primeira vez. Quer guardar o que sente agora?',
+  executivo: 'Faltam poucos passos. O que você quer lembrar desse momento de espera?',
+  obra:      'A obra começou. O que você quer dizer para a pessoa que vai receber as chaves?',
+};
+
 // ═══════════════════════════════════════════════════════════════════════
 // "O QUE VOCÊ SONHOU" — mapas de tradução editáveis (briefing → inspiração)
 // Toda resposta do briefing é TRADUZIDA em promessa/inspiração; nunca exibimos o dado cru.
@@ -1328,6 +1436,7 @@ let glossario = [];
 let comunidade = [];
 let parceiros = [];
 let humores = [];
+let cartas = [];
 let mural = [];
 let palpites = [];
 let quizIndex = 0;
@@ -1379,6 +1488,13 @@ function revelarPalavras(container) {
 }
 function popElastic(el) { el.classList.remove('elastic-pop'); void el.offsetWidth; el.classList.add('elastic-pop'); }
 
+// escapa texto livre do cliente (notas do diário, cartas) antes de ir pra innerHTML
+function esc(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ─────────────────────────────────────────────────────────────
 // BOOT
 // ─────────────────────────────────────────────────────────────
@@ -1400,13 +1516,14 @@ async function inicializar() {
 
   const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
 
-  const [bf, marcosRow, gloss, comum, parc, hums, muralRows, palpRows, marcosPersRows] = await Promise.all([
+  const [bf, marcosRow, gloss, comum, parc, hums, cartasRows, muralRows, palpRows, marcosPersRows] = await Promise.all([
     tentar(sb.from('briefing_respostas').select('dados, status').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('glossario_termos').select('*').order('ordem', { ascending: true }), []),
     tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', '__pendente__').order('criado_em', { ascending: false }), []),
     tentar(sb.from('parceiros').select('*').order('ordem', { ascending: true }), []),
     tentar(sb.from('diario_humor').select('*').eq('projeto_id', projeto.id).order('registrado_em', { ascending: false }).limit(40), []),
+    tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), []),
     tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []),
     tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
     tentar(sb.from('marcos_personalizados').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []),
@@ -1419,6 +1536,7 @@ async function inicializar() {
   comunidade = empreendimento ? await tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', empreendimento).order('criado_em', { ascending: false }), []) : comum;
   parceiros = parc;
   humores = hums;
+  cartas = cartasRows || [];
   mural = muralRows;
   palpites = palpRows || [];
 
@@ -1767,12 +1885,16 @@ function fechadoGlossario() {
 function fechadoDiario() {
   const hoje = humores[0];
   const hojeInfo = hoje ? HUMORES.find(h => h.key === hoje.humor) : null;
+  const nCartas = cartas.length;
+  const legenda = nCartas
+    ? `${nCartas} carta${nCartas === 1 ? '' : 's'} guardada${nCartas === 1 ? '' : 's'} na Cápsula do Tempo.`
+    : 'Guarde como você se sente em cada momento desta jornada.';
   return `
     <div class="card-eyebrow">${ic('notebook-pen')} Seu diário</div>
     <div class="card-titulo">Como você está hoje?</div>
     <div class="card-corpo">
       <div style="color:var(--gold);">${hojeInfo ? ic(hojeInfo.icon, 'ic-xl') : ic('circle-dashed','ic-lg')}</div>
-      <div class="card-convite">${marcarPalavras('Guarde como você se sente em cada momento desta jornada.')}</div>
+      <div class="card-convite">${marcarPalavras(legenda)}</div>
     </div>
   `;
 }
@@ -1974,6 +2096,7 @@ function mostrarEmDesenvolvimento(tipo) {
   const rotulos = {
     'comunidade-perfil': 'Compartilhar seu perfil', 'comunidade-lar': 'Compartilhar seu novo lar', 'comunidade-pessoas': 'Conectar com vizinhos',
     'insta-elemento': 'Escolher elementos', 'insta-frase': 'Frases prontas', 'insta-comp': 'Composição do post', 'insta-montar': 'Montar meu post',
+    'diario-superacao': 'Compartilhar uma superação',
   };
   const el = document.createElement('div');
   el.className = 'mini-modal-overlay';
@@ -3022,42 +3145,407 @@ function ligarQuizOpcoes() {
 }
 
 // ── Seu diário ──
+// estado da sessão do modal (reiniciado a cada abertura em expandidoDiario)
+let diarioEmocao = null;      // emoção escolhida, aguardando a nota opcional
+let diarioTag = null;         // tag de contexto marcada
+let diarioGrupo = 'fase';     // agrupamento do histórico: 'fase' | 'semana'
+let capsulaVista = 'lista';   // 'lista' | 'intro' | 'editor'
+let capsulaConteudo = '';     // rascunho da carta (preservado entre repinturas)
+let capsulaData = '';         // ISO da data de abertura escolhida
+let capsulaDataModo = '';     // pill ativa: '' | 'chaves' | '6meses' | 'aniversario' | 'outra'
+
+function faseDiarioId() { return (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id; }
+
 function expandidoDiario() {
+  diarioEmocao = null; diarioTag = null; diarioGrupo = 'fase';
+  capsulaVista = 'lista'; capsulaConteudo = ''; capsulaData = ''; capsulaDataModo = '';
+  const pergunta = DIARIO_PERGUNTAS[faseDiarioId()] || 'Como você está se sentindo hoje?';
   return `
-    <div class="modal-eyebrow">${ic('notebook-pen')} Seu diário</div>
-    <div class="modal-titulo">Como você está se sentindo hoje?</div>
-    <div class="humor-explicacao">Este é o seu espaço para registrar como você se sente ao longo de toda a jornada — da compra à entrega das chaves. A cada momento importante, deixe aqui uma marca do que está sentindo.</div>
-    <div class="humor-emocional">${marcarPalavras('Registrar suas emoções e revisitá-las depois tem um poder real: quando você olha para trás e percebe que superou a ansiedade de uma fase, isso te motiva a seguir em frente. Acompanhar esse ciclo é acompanhar a construção não só do seu lar, mas da sua própria história com ele.')}</div>
-    <div class="humor-opcoes" id="humor-opcoes">
-      ${HUMORES.map(h => `<div class="humor-btn" data-humor="${h.key}">${ic(h.icon,'ic-lg')}<span>${h.label}</span></div>`).join('')}
+    <div id="diario-root">
+      <div class="modal-eyebrow">${ic('notebook-pen')} Seu diário</div>
+      <div id="diario-lembrete-slot">${renderLembreteDiario()}</div>
+      <div class="diario-pergunta-fase">${pergunta}</div>
+      <div class="humor-explicacao">Este é o seu espaço para registrar como você se sente ao longo de toda a jornada — da compra à entrega das chaves. A cada momento importante, deixe aqui uma marca do que está sentindo.</div>
+      <div class="humor-emocional">${marcarPalavras('Registrar suas emoções e revisitá-las depois tem um poder real: quando você olha para trás e percebe que superou a ansiedade de uma fase, isso te motiva a seguir em frente. Acompanhar esse ciclo é acompanhar a construção não só do seu lar, mas da sua própria história com ele.')}</div>
+      <div id="diario-registro">${renderRegistroDiario()}</div>
+      <div id="diario-mapa">${renderMapaEmocional()}</div>
+      <div id="diario-momentos">${renderMomentos()}</div>
+      <div id="diario-capsula">${renderCapsula()}</div>
+      <div class="diario-share-bloco">
+        <div class="diario-share-titulo">Compartilhe suas superações</div>
+        <div class="diario-share-corpo">Cada obra é uma história de coragem. Quando você compartilha o que superou, ajuda outras Guiders que estão exatamente onde você já esteve — e talvez não saibam que essa fase passa.</div>
+        <button class="btn-share" type="button" data-acao="share" data-share="diario-superacao">${ic('share-2','ic-sm')} Compartilhar um momento com a comunidade</button>
+      </div>
+      <div class="diario-privacidade">${ic('lock','ic-sm')}<p>Seus sentimentos compartilhados aqui são reservados. Seu arquiteto e a Guide não têm acesso direto a esse conteúdo — ele foi feito para você.</p></div>
     </div>
-    <div class="humor-historico-titulo">Seu histórico</div>
-    <div id="humor-historico">${renderHumorHistorico()}</div>
   `;
 }
 
-function renderHumorHistorico() {
-  if (!humores.length) return `<div class="card-convite">Nenhum registro ainda — comece hoje.</div>`;
-  return humores.map(h => {
-    const info = HUMORES.find(x => x.key === h.humor) || HUMORES[2];
-    return `<div class="humor-hist-item">${ic(info.icon,'ic-sm')} <span>${info.label}</span><span class="hi-data">${formatarData(h.registrado_em)}</span></div>`;
-  }).join('');
+function renderLembreteDiario() {
+  if (!humores.length) return '';
+  const dias = Math.floor((Date.now() - new Date(humores[0].registrado_em).getTime()) / 86400000);
+  if (dias < 5) return '';
+  return `
+    <div class="diario-lembrete">
+      <span>Faz alguns dias que você não aparece aqui. Tudo bem?</span>
+      <button type="button" data-acao="lembrete-ok">Registrar como estou</button>
+    </div>`;
 }
 
-function ligarDiario() {
-  document.querySelectorAll('#humor-opcoes .humor-btn').forEach(b => {
-    b.addEventListener('click', async () => {
-      popElastic(b);
-      const humor = b.dataset.humor;
-      const { error } = await sb.from('diario_humor').insert({ projeto_id: projeto.id, humor });
-      if (error) { toast('Não foi possível registrar agora.'); console.error(error); return; }
-      humores.unshift({ humor, registrado_em: new Date().toISOString() });
-      document.getElementById('humor-historico').innerHTML = renderHumorHistorico();
-      icons();
-      renderBento();
-      toast('Registrado — obrigado por compartilhar.');
-    });
+function renderRegistroDiario() {
+  const opcoes = `
+    <div class="humor-opcoes" id="humor-opcoes">
+      ${HUMORES.map(h => `<button type="button" class="humor-btn${diarioEmocao === h.key ? ' sel' : ''}" data-acao="emocao" data-humor="${h.key}" aria-label="${h.label}">${ic(h.icon,'ic-lg')}<span>${h.label}</span></button>`).join('')}
+    </div>`;
+  if (!diarioEmocao) return opcoes;
+  const tags = DIARIO_TAGS.map(t => `<button type="button" class="diario-tag${diarioTag === t.key ? ' ativa' : ''}" data-acao="tag" data-tag="${t.key}">${t.label}</button>`).join('');
+  return opcoes + `
+    <div class="diario-nota-painel" id="diario-nota-painel">
+      <div class="diario-nota-prompt">Quer deixar uma nota? (opcional)</div>
+      <div class="diario-tags">${tags}</div>
+      <textarea class="diario-nota-txt" id="diario-nota-txt" rows="3" maxlength="500" placeholder="O que você quer registrar sobre esse momento?"></textarea>
+      <div class="diario-acoes">
+        <button type="button" class="card-cta" data-acao="pular">Pular</button>
+        <button type="button" class="btn-primario" data-acao="registrar">${ic('check','ic-sm')} Registrar momento</button>
+      </div>
+    </div>`;
+}
+
+// ── Mapa de intensidade emocional (SVG à mão, sem biblioteca) ──
+function renderMapaEmocional() {
+  if (humores.length < 2) return '';
+  const pts = humores.slice().reverse().map(h => ({
+    v: HUMOR_VALOR[h.humor] || 3,
+    fase: (FASES.find(f => f.id === h.fase) || {}).nome || '',
+  }));
+  const W = 320, H = 120, padX = 14, padY = 16, n = pts.length;
+  const x = i => padX + (n === 1 ? 0 : i * (W - padX * 2) / (n - 1));
+  const y = v => (H - padY) - ((v - 1) / 4) * (H - padY * 2);
+  const linha = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const area = `${padX},${(H - padY).toFixed(1)} ${linha} ${x(n - 1).toFixed(1)},${(H - padY).toFixed(1)}`;
+  const dots = pts.map((p, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="3.2" fill="var(--gold)"></circle>`).join('');
+  let ult = null;
+  const labels = pts.map((p, i) => {
+    if (!p.fase || p.fase === ult) return '';
+    ult = p.fase;
+    const anchor = i === 0 ? 'start' : (i === n - 1 ? 'end' : 'middle');
+    return `<text x="${x(i).toFixed(1)}" y="${H - 2}" text-anchor="${anchor}" font-size="9" fill="var(--muted)">${p.fase}</text>`;
+  }).join('');
+  return `
+    <div class="mapa-emocional">
+      <div class="mapa-titulo">Como você tem estado</div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Linha da sua intensidade emocional ao longo do tempo">
+        <polygon points="${area}" fill="var(--gold-dim)" stroke="none"></polygon>
+        <polyline points="${linha}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+        ${dots}
+        ${labels}
+      </svg>
+    </div>`;
+}
+
+// ── "Seus momentos" — histórico em subcards, agrupado por fase ou semana ──
+function renderMomentos() {
+  const header = `
+    <div class="humor-historico-titulo" style="display:flex;align-items:center;gap:10px;">
+      <span>Seus momentos</span>
+      <span class="diario-grupo-toggle">
+        <button type="button" data-acao="grupo" data-grupo="fase" class="${diarioGrupo === 'fase' ? 'ativa' : ''}">Por fase</button>
+        <button type="button" data-acao="grupo" data-grupo="semana" class="${diarioGrupo === 'semana' ? 'ativa' : ''}">Por semana</button>
+      </span>
+    </div>`;
+  if (!humores.length) return header + `<div class="card-convite">Nenhum registro ainda — comece hoje.</div>`;
+  const grupos = agruparMomentos(humores, diarioGrupo);
+  const corpo = Object.keys(grupos).map(chave => `
+    <div class="momento-grupo">
+      <div class="momento-grupo-rotulo">${chave}</div>
+      ${grupos[chave].map(renderMomentoCard).join('')}
+    </div>`).join('');
+  return header + corpo;
+}
+
+function agruparMomentos(lista, modo) {
+  const grupos = {};
+  lista.forEach(e => {
+    let chave;
+    if (modo === 'fase') {
+      const f = FASES.find(x => x.id === e.fase);
+      chave = f ? f.nome : 'Sem fase definida';
+    } else {
+      chave = rotuloSemana(e.registrado_em);
+    }
+    (grupos[chave] = grupos[chave] || []).push(e);
   });
+  return grupos;
+}
+
+function rotuloSemana(iso) {
+  const d = new Date(iso);
+  const seg = new Date(d);
+  seg.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // volta até a segunda-feira
+  seg.setHours(0, 0, 0, 0);
+  return 'Semana de ' + seg.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+}
+
+function renderMomentoCard(e) {
+  const info = HUMORES.find(x => x.key === e.humor) || HUMORES[2];
+  const tag = DIARIO_TAGS.find(t => t.key === e.tag_contexto);
+  const fase = FASES.find(f => f.id === e.fase);
+  return `
+    <div class="momento-card" data-acao="momento-toggle" role="button" tabindex="0">
+      <div class="momento-resumo">
+        ${ic(info.icon, 'ic-sm')}<span>${info.label}</span>
+        ${tag ? `<span class="mc-tag">${tag.label}</span>` : ''}
+        <span class="mc-data">${formatarData(e.registrado_em)}${fase ? ' · ' + fase.nome : ''}</span>
+      </div>
+      ${e.nota ? `<div class="momento-nota" hidden>${esc(e.nota)}</div>` : ''}
+    </div>`;
+}
+
+// ── Cápsula do Tempo — cartas para o próprio futuro ──
+function statusCarta(c) {
+  if (c.aberta) return 'aberta';
+  if (c.pronta) return 'pronta';
+  return 'lacrada';
+}
+
+function renderCapsula() {
+  if (capsulaVista === 'intro') return renderCapsulaIntro();
+  if (capsulaVista === 'editor') return renderCapsulaEditor();
+  return renderCapsulaLista();
+}
+
+function renderCapsulaLista() {
+  const faseId = faseDiarioId();
+  const sugestao = (!cartas.length && CAPSULA_SUGESTAO_FASE[faseId])
+    ? `<div class="capsula-sugestao">${ic('sparkles', 'ic-sm')}<span>${CAPSULA_SUGESTAO_FASE[faseId]}</span></div>` : '';
+  const lista = cartas.length ? cartas.map(c => {
+    const st = statusCarta(c);
+    const icone = st === 'aberta' ? 'mail-open' : (st === 'pronta' ? 'mail' : 'lock');
+    const quando = st === 'aberta' ? 'Aberta' : `Abre em ${formatarData(c.abrir_em)}`;
+    return `
+      <div class="capsula-item">
+        <span class="ci-status">${ic(icone, 'ic-sm')}</span>
+        <span class="ci-meta">
+          <span class="ci-escrita">Escrita em ${formatarData(c.escrita_em)}</span>
+          <span class="ci-abre">${quando}</span>
+        </span>
+        ${st === 'pronta' ? `<button type="button" class="btn-primario ci-abrir-btn" data-acao="cap-abrir" data-id="${c.id}">Abrir carta</button>` : ''}
+      </div>`;
+  }).join('') : `<div class="capsula-texto">Nenhuma carta guardada ainda.</div>`;
+  return `
+    <div class="diario-capsula">
+      <div class="capsula-titulo">${ic('mail', 'ic-sm')} Cápsula do Tempo</div>
+      ${sugestao}
+      ${lista}
+      <div class="diario-acoes" style="justify-content:flex-start;">
+        <button type="button" class="card-cta" data-acao="cap-intro">${cartas.length ? '+ Escrever outra carta' : 'Escrever uma carta para você'}</button>
+      </div>
+    </div>`;
+}
+
+function renderCapsulaIntro() {
+  return `
+    <div class="diario-capsula">
+      <div class="capsula-titulo">Escreva uma carta para você</div>
+      <div class="capsula-texto">Essa carta é para você — não para o apartamento. Escreva sobre o que você está vivendo agora: seus medos, suas esperanças, o que você quer que mude, o que você quer preservar. Quando ela for aberta, vai ser um reencontro com quem você era nesse momento.</div>
+      <ul class="capsula-prompts">
+        <li class="cp-label">Sugestões para começar:</li>
+        ${CAPSULA_PROMPTS.map(p => `<li class="cp-item">${p}</li>`).join('')}
+      </ul>
+      <div class="diario-acoes" style="justify-content:space-between;">
+        <button type="button" class="card-cta" data-acao="cap-lista">Voltar</button>
+        <button type="button" class="btn-primario" data-acao="cap-editor">Escrever minha carta</button>
+      </div>
+    </div>`;
+}
+
+function renderCapsulaEditor() {
+  const dados = bfDados() || {};
+  const prazoData = dados['prazo-data'];
+  const pills = [];
+  if (prazoData) { try { pills.push({ modo: 'chaves', label: 'Na entrega das chaves', valor: new Date(prazoData).toISOString() }); } catch (e) {} }
+  const seisMeses = new Date(); seisMeses.setMonth(seisMeses.getMonth() + 6);
+  pills.push({ modo: '6meses', label: 'Daqui a 6 meses', valor: seisMeses.toISOString() });
+  pills.push({ modo: 'aniversario', label: 'No meu aniversário', valor: '' });
+  pills.push({ modo: 'outra', label: 'Eu escolho outra data', valor: '' });
+  const mostrarInput = capsulaDataModo === 'aniversario' || capsulaDataModo === 'outra';
+  const hoje = new Date().toISOString().slice(0, 10);
+  const podeGuardar = capsulaConteudo.trim() && capsulaData;
+  return `
+    <div class="diario-capsula">
+      <div class="capsula-titulo">Sua carta</div>
+      <textarea class="capsula-txt" id="capsula-txt" placeholder="Escreva aqui...">${esc(capsulaConteudo)}</textarea>
+      <div class="capsula-data-label">Quando você quer abrir essa carta?</div>
+      <div class="capsula-datas">
+        ${pills.map(p => `<button type="button" class="capsula-data-btn${capsulaDataModo === p.modo ? ' ativa' : ''}" data-acao="cap-data" data-modo="${p.modo}" data-valor="${p.valor}">${p.label}</button>`).join('')}
+      </div>
+      ${mostrarInput ? `<input type="date" class="capsula-data-input" id="capsula-data-input" min="${hoje}" value="${capsulaData ? capsulaData.slice(0, 10) : ''}">` : ''}
+      <div class="diario-acoes" style="justify-content:space-between;">
+        <button type="button" class="card-cta" data-acao="cap-lista">Cancelar</button>
+        <button type="button" class="btn-primario" data-acao="cap-guardar"${podeGuardar ? '' : ' disabled'}>${ic('lock', 'ic-sm')} Guardar carta</button>
+      </div>
+    </div>`;
+}
+
+function abrirCartaOverlay(carta) {
+  const el = document.createElement('div');
+  el.className = 'capsula-overlay';
+  el.innerHTML = `
+    <div class="capsula-envelope">
+      <div class="ce-icone">${ic('mail', 'ic-xl')}</div>
+      <p>Uma carta sua está esperando por você.</p>
+      <button type="button" class="btn-primario" data-acao="cap-revelar">Abrir</button>
+    </div>`;
+  document.body.appendChild(el);
+  icons();
+  el.addEventListener('click', async (ev) => {
+    if (ev.target === el) { el.remove(); return; }
+    if (ev.target.closest('[data-acao="cap-fechar"]')) { el.remove(); return; }
+    if (!ev.target.closest('[data-acao="cap-revelar"]')) return;
+    if (!carta.aberta) {
+      const { error } = await sb.from('diario_cartas').update({ aberta_em: new Date().toISOString() }).eq('id', carta.id);
+      if (error) console.error(error);
+      cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
+      repintarCapsula();
+    }
+    const fresca = cartas.find(c => c.id === carta.id) || carta;
+    el.innerHTML = `
+      <div class="capsula-carta">
+        <div class="cc-label">Você escreveu isso em ${formatarData(fresca.escrita_em)}</div>
+        <div class="cc-corpo">${esc(fresca.conteudo || '')}</div>
+        <div class="diario-acoes"><button type="button" class="card-cta" data-acao="cap-fechar">Fechar</button></div>
+      </div>`;
+    icons();
+  });
+}
+
+// ── eventos do diário (delegação no #diario-root, recriado a cada abertura) ──
+function ligarDiario() {
+  const root = document.getElementById('diario-root');
+  if (!root) return;
+  root.addEventListener('click', onDiarioClick);
+  root.addEventListener('input', onDiarioInput);
+  root.addEventListener('keydown', (e) => {
+    const card = e.target.closest('.momento-card');
+    if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleMomento(card); }
+  });
+  icons();
+}
+
+function onDiarioInput(e) {
+  if (e.target.id === 'capsula-txt') capsulaConteudo = e.target.value;
+  if (e.target.id === 'capsula-data-input') capsulaData = e.target.value ? new Date(e.target.value).toISOString() : '';
+  if (e.target.id === 'capsula-txt' || e.target.id === 'capsula-data-input') {
+    const g = document.querySelector('[data-acao="cap-guardar"]');
+    if (g) g.disabled = !(capsulaConteudo.trim() && capsulaData);
+  }
+}
+
+async function onDiarioClick(e) {
+  const alvo = e.target.closest('[data-acao]');
+  if (!alvo) return;
+  const acao = alvo.dataset.acao;
+
+  if (acao === 'share') { mostrarEmDesenvolvimento(alvo.dataset.share); return; }
+  if (acao === 'lembrete-ok') {
+    const banner = alvo.closest('.diario-lembrete');
+    if (banner) banner.remove();
+    const alvoRolagem = document.getElementById('humor-opcoes');
+    if (alvoRolagem) alvoRolagem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (acao === 'emocao') {
+    diarioEmocao = alvo.dataset.humor;
+    popElastic(alvo);
+    repintarRegistro();
+    const painel = document.getElementById('diario-nota-painel');
+    if (painel) painel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  if (acao === 'tag') {
+    diarioTag = (diarioTag === alvo.dataset.tag) ? null : alvo.dataset.tag;
+    repintarRegistro();
+    return;
+  }
+  if (acao === 'pular') { registrarMomento(false); return; }
+  if (acao === 'registrar') { registrarMomento(true); return; }
+  if (acao === 'grupo') { diarioGrupo = alvo.dataset.grupo; repintarMomentos(); return; }
+  if (acao === 'momento-toggle') { toggleMomento(alvo); return; }
+
+  if (acao === 'cap-intro') { capsulaVista = 'intro'; repintarCapsula(); return; }
+  if (acao === 'cap-lista') { capsulaVista = 'lista'; repintarCapsula(); return; }
+  if (acao === 'cap-editor') { capsulaVista = 'editor'; repintarCapsula(); return; }
+  if (acao === 'cap-data') {
+    capsulaDataModo = alvo.dataset.modo;
+    capsulaData = alvo.dataset.valor || '';
+    repintarCapsula();
+    return;
+  }
+  if (acao === 'cap-guardar') { guardarCarta(); return; }
+  if (acao === 'cap-abrir') {
+    const c = cartas.find(x => x.id === alvo.dataset.id);
+    if (c) abrirCartaOverlay(c);
+    return;
+  }
+}
+
+function repintarRegistro() {
+  const el = document.getElementById('diario-registro');
+  if (el) el.innerHTML = renderRegistroDiario();
+  icons();
+}
+function repintarMapa() {
+  const el = document.getElementById('diario-mapa');
+  if (el) el.innerHTML = renderMapaEmocional();
+  icons();
+}
+function repintarMomentos() {
+  const el = document.getElementById('diario-momentos');
+  if (el) el.innerHTML = renderMomentos();
+  icons();
+}
+function repintarCapsula() {
+  const el = document.getElementById('diario-capsula');
+  if (el) el.innerHTML = renderCapsula();
+  icons();
+}
+function toggleMomento(card) {
+  const nota = card.querySelector('.momento-nota');
+  card.classList.toggle('expandido');
+  if (nota) nota.hidden = !nota.hidden;
+}
+
+async function registrarMomento(comNota) {
+  if (!diarioEmocao) return;
+  const fase = faseDiarioId();
+  let nota = null, tag = null;
+  if (comNota) {
+    const ta = document.getElementById('diario-nota-txt');
+    nota = ta && ta.value.trim() ? ta.value.trim() : null;
+    tag = diarioTag || null;
+  }
+  const payload = { projeto_id: projeto.id, humor: diarioEmocao, nota, tag_contexto: tag, fase };
+  const { error } = await sb.from('diario_humor').insert(payload);
+  if (error) { toast('Não foi possível registrar agora.'); console.error(error); return; }
+  humores.unshift({ ...payload, registrado_em: new Date().toISOString() });
+  diarioEmocao = null; diarioTag = null;
+  repintarRegistro(); repintarMapa(); repintarMomentos();
+  const slot = document.getElementById('diario-lembrete-slot');
+  if (slot) slot.innerHTML = renderLembreteDiario();
+  renderBento();
+  toast('Registrado — obrigado por compartilhar.');
+}
+
+async function guardarCarta() {
+  const conteudo = capsulaConteudo.trim();
+  if (!conteudo || !capsulaData) { toast('Escreva a carta e escolha a data.'); return; }
+  const { error } = await sb.from('diario_cartas').insert({ projeto_id: projeto.id, abrir_em: capsulaData, conteudo });
+  if (error) { toast('Não foi possível guardar a carta agora.'); console.error(error); return; }
+  capsulaConteudo = ''; capsulaData = ''; capsulaDataModo = ''; capsulaVista = 'lista';
+  cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
+  repintarCapsula();
+  renderBento();
+  toast('Carta guardada com carinho.');
 }
 
 // ── Mural de imagens ──
