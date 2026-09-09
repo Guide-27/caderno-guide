@@ -102,11 +102,10 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
   height: 100%;
   object-fit: cover;
   pointer-events: none;
-  /* joga o vídeo numa camada própria da placa de vídeo — evita travadinha de composição */
+  /* joga o vídeo numa camada própria da placa de vídeo — troca de quadro mais macia ao rolar */
   transform: translateZ(0) scale(1.04);
   backface-visibility: hidden;
-  will-change: transform;
-  /* leve desfoque disfarça o "pulo" entre quadros na câmera lenta (é fundo, não pesa na nitidez) */
+  /* leve desfoque: suaviza a passagem de um quadro pro outro e disfarça o upscale (é fundo) */
   filter: blur(0.6px) saturate(1.04);
 }
 /* se a pessoa pediu menos animação no sistema, mostra só a imagem */
@@ -918,20 +917,48 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 <body>
 
 <div class="bg-gradient"></div>
-<video class="bg-video" src="/assets/bg-fluid-mp4.mp4" autoplay muted loop playsinline preload="auto" poster="/assets/bg-fluid.jpg"></video>
+<video class="bg-video" src="/assets/bg-fluid-scroll.mp4" muted playsinline preload="auto" poster="/assets/bg-fluid.jpg"></video>
 <div class="bg-breath"></div>
 <div class="noise"></div>
 <script>
+  /* Fundo em vídeo controlado pela ROLAGEM.
+     O vídeo não toca sozinho: avança quando você rola pra baixo,
+     recua quando rola pra cima e congela quando você para. */
   (function () {
     var v = document.querySelector('.bg-video');
     if (!v) return;
-    // 0.7 = mais lento que o normal, porém sem picotar como em 0.5
-    var camaraLenta = function () { try { v.playbackRate = 0.7; } catch (e) {} };
-    v.addEventListener('loadedmetadata', camaraLenta);
-    v.addEventListener('play', camaraLenta);
-    camaraLenta();
-    var p = v.play();
-    if (p && p.catch) p.catch(function () {}); // ignora bloqueio de autoplay
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; // CSS já mostra só a imagem
+
+    var dur = 0;
+
+    // 0 = topo da página, 1 = fim da página
+    function progressoRolagem() {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      if (max <= 0) return 0;
+      var p = window.scrollY / max;
+      return p < 0 ? 0 : (p > 1 ? 1 : p);
+    }
+
+    // leva o tempo do vídeo para o ponto que corresponde à rolagem
+    function aplicar() {
+      if (!dur || v.seeking) return;               // evita empilhar buscas
+      var alvo = progressoRolagem() * dur;
+      if (Math.abs(v.currentTime - alvo) > 0.02) {
+        try { v.currentTime = alvo; } catch (e) {}
+      }
+    }
+
+    function iniciar() {
+      dur = v.duration || 0;
+      v.pause();                                    // nunca toca sozinho
+      aplicar();
+    }
+    if (v.readyState >= 1) iniciar();
+    v.addEventListener('loadedmetadata', iniciar);
+    v.addEventListener('seeked', aplicar);          // rolou mais durante a busca? recalcula
+
+    window.addEventListener('scroll', aplicar, { passive: true });
+    window.addEventListener('resize', aplicar, { passive: true });
   })();
 </script>
 <div class="cursor-dot" id="cursor-dot"></div>
