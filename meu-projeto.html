@@ -3331,10 +3331,20 @@ function renderMomentoCard(e) {
 }
 
 // ── Cápsula do Tempo — cartas para o próprio futuro ──
-// lacrada = data ainda não chegou | disponivel = pode ler (para sempre) | lida = já abriu ao menos uma vez
+// lacrada = data ainda não chegou | disponivel = pode ler (para sempre) | lida = já abriu ao menos uma vez.
+// Deriva de `abrir_em`/`aberta_em` (sempre presentes) — não depende das colunas calculadas
+// `disponivel`/`aberta` da view, que podem faltar se a migração nova ainda não foi rodada.
+function cartaDisponivel(c) {
+  if (c && c.disponivel != null) return !!c.disponivel;
+  return !!(c && c.abrir_em) && new Date(c.abrir_em).getTime() <= Date.now();
+}
+function cartaLida(c) {
+  if (c && c.aberta != null) return !!c.aberta;
+  return !!(c && c.aberta_em);
+}
 function statusCarta(c) {
-  if (!c.disponivel) return 'lacrada';
-  return c.aberta ? 'lida' : 'disponivel';
+  if (!cartaDisponivel(c)) return 'lacrada';
+  return cartaLida(c) ? 'lida' : 'disponivel';
 }
 
 function renderCapsula() {
@@ -3421,7 +3431,7 @@ function renderCapsulaEditor() {
 }
 
 function abrirCartaOverlay(carta) {
-  const jaLida = !!carta.aberta;
+  const jaLida = cartaLida(carta);
   const el = document.createElement('div');
   el.className = 'capsula-overlay';
   el.innerHTML = `
@@ -3436,10 +3446,11 @@ function abrirCartaOverlay(carta) {
     if (ev.target === el) { el.remove(); return; }
     if (ev.target.closest('[data-acao="cap-fechar"]')) { el.remove(); return; }
     if (!ev.target.closest('[data-acao="cap-revelar"]')) return;
-    if (!carta.aberta) {
+    if (!cartaLida(carta)) {
       // marca a primeira leitura; a carta continua disponível para reler sempre
       const { error } = await sb.from('diario_cartas').update({ aberta_em: new Date().toISOString() }).eq('id', carta.id);
       if (error) console.error(error);
+      carta.aberta_em = carta.aberta_em || new Date().toISOString();
       cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
       repintarCapsula();
     }
