@@ -844,16 +844,67 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .convite-selo { display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color:var(--muted); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 5px 12px; }
 
 /* mural */
-.mural-form { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 22px; flex-wrap: wrap; }
+.mural-form { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 18px; flex-wrap: wrap; }
 .mural-form .input-generico { margin-bottom: 0; flex: 1; min-width: 180px; }
+
+/* texto explicativo — corpo do painel, sem itálico e sem dourado */
+.mural-texto { font-size: var(--fs-base); color: var(--off); line-height: 1.65; margin-bottom: 20px; }
+
+/* sugestões de momentos — some com 5+ fotos */
+.mural-sugestoes { margin-bottom: 22px; }
+.mural-sugestoes-titulo { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+.mural-sugestoes-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.mural-sugestao-chip { display:inline-flex; align-items:center; gap:6px; font-size: var(--fs-xs); color: var(--off); background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 6px 12px; }
+.mural-sugestao-chip svg { width: 12px; height: 12px; color: var(--muted); }
+
+.mural-compare-btn { display:inline-flex; align-items:center; gap:7px; font-size: var(--fs-xs); font-weight:500; color: var(--off); background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 7px 14px; margin-bottom: 16px; cursor:pointer; font-family:'Outfit',sans-serif; transition: border-color .2s, color .2s; }
+.mural-compare-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+
 .mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 14px; }
-.mural-item { border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
-.mural-item img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.mural-item { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
+.mural-item > img { width: 100%; height: 130px; object-fit: cover; display: block; }
 .mural-item-corpo { padding: 10px 12px; }
-.mural-item-legenda { font-size: var(--fs-xs); color: var(--off); line-height: 1.4; }
-.mural-item-data { font-size: var(--fs-2xs); color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.mural-item-legenda { font-size: var(--fs-xs); color: var(--off); line-height: 1.4; margin-top: 4px; }
+.mural-item-data { font-size: var(--fs-2xs); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+/* tag manual — badge discreto sobre a miniatura */
+.mural-item-badge { position: absolute; top: 8px; left: 8px; font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .03em; color: var(--white); background: rgba(8,8,10,0.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border: 1px solid var(--border2); border-radius: var(--r-pill); padding: 3px 9px; }
+/* lixeira — aparece no hover da miniatura */
+.mural-item-del { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display:flex; align-items:center; justify-content:center; border:none; border-radius: 50%; background: rgba(8,8,10,0.62); color: var(--off); cursor:pointer; opacity: 0; transition: opacity .2s, color .2s; }
+.mural-item:hover .mural-item-del, .mural-item:focus-within .mural-item-del { opacity: 1; }
+.mural-item-del:hover { color: var(--red); }
+.mural-item-del svg { width: 15px; height: 15px; }
+.mural-item-acoes { display:flex; align-items:center; gap:8px; padding: 0 12px 12px; }
+.mural-tag-select { flex:1; min-width:0; background: var(--dark); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 6px 8px; color: var(--off); font-family:'Outfit',sans-serif; font-size: var(--fs-2xs); }
+.mural-item-share { background:none; border:none; padding:4px; color: var(--muted); cursor:pointer; display:inline-flex; transition: color .2s; }
+.mural-item-share:hover { color: var(--gold-light); }
+.mural-item-share svg { width: 15px; height: 15px; }
+/* confirmação inline da remoção (sem modal de tela cheia) */
+.mural-item-confirm { position: absolute; inset: 0; z-index: 3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center; padding: 16px; background: rgba(8,8,10,0.92); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.mural-item-confirm p { margin:0; font-size: var(--fs-xs); color: var(--off); line-height: 1.5; }
+.mural-item-confirm-acoes { display:flex; gap:8px; }
+.mural-item-confirm button { font-family:'Outfit',sans-serif; font-size: var(--fs-xs); border-radius: var(--r-sm); padding: 7px 14px; cursor:pointer; border:1px solid var(--border2); background: var(--glass2); color: var(--off); }
+.mural-item-confirm button.perigo { background: var(--red); border-color: var(--red); color: var(--white); }
+
 .mural-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
 .mural-strip img { width: 90px; height: 70px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border2); flex-shrink: 0; }
+
+/* comparação antes / depois */
+.mural-compare-hint { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+.mural-compare-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px,1fr)); gap: 10px; margin-bottom: 14px; }
+.mural-compare-pick { position: relative; border:2px solid var(--border2); border-radius: var(--r-sm); overflow:hidden; cursor:pointer; padding:0; background:none; }
+.mural-compare-pick img { width:100%; height:78px; object-fit:cover; display:block; }
+.mural-compare-pick.sel { border-color: var(--gold); }
+.mural-compare-pick-num { position:absolute; top:4px; left:4px; width:18px; height:18px; border-radius:50%; background: var(--gold); color: var(--black); font-size: 10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.mural-compare-viewport { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: var(--r-md); overflow: hidden; border:1px solid var(--border2); user-select: none; touch-action: none; }
+.mural-compare-viewport img { position:absolute; inset:0; width:100%; height:100%; object-fit: cover; }
+.mural-compare-top { z-index: 2; clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0); }
+.mural-compare-handle { position:absolute; top:0; bottom:0; left: var(--pos, 50%); width:2px; background: var(--gold); z-index: 3; transform: translateX(-1px); pointer-events:none; }
+.mural-compare-handle::after { content:''; position:absolute; top:50%; left:50%; width:32px; height:32px; transform: translate(-50%,-50%); border-radius:50%; background: var(--gold); border:3px solid var(--black); }
+.mural-compare-range { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor: ew-resize; z-index: 4; }
+.mural-compare-legenda { position:absolute; bottom:10px; font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:.06em; color:var(--white); background:rgba(8,8,10,0.6); border-radius:var(--r-pill); padding:3px 10px; z-index:3; }
+.mural-compare-legenda.esq { left:10px; }
+.mural-compare-legenda.dir { right:10px; }
+.mural-compare-acoes { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
 /* botão PRIMÁRIO (preenchido) — reservado à ação principal de cada tela; o .card-cta ghost é o secundário. Dois níveis, deliberado (item 8) */
 .btn-primario, .mural-upload-btn { display:inline-flex; align-items:center; gap:8px; background: var(--gold); color: var(--black); border:none; border-radius: var(--r-sm); padding: 11px 18px; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; font-family:'Outfit',sans-serif; transition: transform .2s, box-shadow .2s; }
 .btn-primario:hover, .mural-upload-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,162,39,0.22); }
@@ -1548,6 +1599,8 @@ let humores = [];
 let cartas = [];
 let cartaGuiaAberta = false;
 let mural = [];
+let muralComparando = false;
+let muralSel = [];
 let palpites = [];
 let quizIndex = 0;
 let quizAcertos = 0;
@@ -1655,7 +1708,7 @@ async function inicializar() {
     tentar(sb.from('parceiros').select('*').order('ordem', { ascending: true }), []),
     tentar(sb.from('diario_humor').select('*').eq('projeto_id', projeto.id).order('registrado_em', { ascending: false }).limit(40), []),
     tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), []),
-    tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []),
+    tentar(sb.from('mural_fotos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: true }), []),
     tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
     tentar(sb.from('marcos_personalizados').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []),
     tentar(sb.from('diario_carta_guide').select('aberta_em').eq('projeto_id', projeto.id).maybeSingle(), null),
@@ -2035,7 +2088,7 @@ function fechadoDiario() {
 }
 
 function fechadoMural() {
-  const strip = mural.slice(0, 8);
+  const strip = mural.slice(-8);
   return `
     <div class="card-eyebrow">${ic('images')} Mural de imagens</div>
     <div class="card-titulo">${mural.length ? mural.length + ' foto(s) registradas' : 'Sua evolução, em fotos'}</div>
@@ -2232,6 +2285,7 @@ function mostrarEmDesenvolvimento(tipo) {
     'comunidade-perfil': 'Compartilhar seu perfil', 'comunidade-lar': 'Compartilhar seu novo lar', 'comunidade-pessoas': 'Conectar com vizinhos',
     'insta-elemento': 'Escolher elementos', 'insta-frase': 'Frases prontas', 'insta-comp': 'Composição do post', 'insta-montar': 'Montar meu post',
     'diario-superacao': 'Compartilhar uma superação',
+    'mural-momento': 'Compartilhar este momento',
   };
   const el = document.createElement('div');
   el.className = 'mini-modal-overlay';
@@ -3862,30 +3916,171 @@ async function guardarCarta() {
 }
 
 // ── Mural de imagens ──
+const MURAL_TAGS = [
+  { v: 'antes',    label: 'Antes' },
+  { v: 'durante',  label: 'Durante' },
+  { v: 'depois',   label: 'Depois' },
+  { v: 'favorita', label: '⭐ Favorita' },
+];
+const MURAL_SUGESTOES = [
+  'Primeira visita ao imóvel',
+  'Obra iniciada',
+  'Primeiro cômodo pronto',
+  'Dia da mudança',
+  'Primeiro café em casa',
+];
+
 function expandidoMural() {
   return `
     <div class="modal-eyebrow">${ic('images')} Mural de imagens</div>
-    <div class="modal-titulo">A memória viva da sua conquista</div>
-    <p class="farol">${marcarPalavras('Fotografe cada passo desta jornada: as paredes cruas, a primeira parede pintada, o dia da mudança. Um dia você vai olhar para trás e ver, foto por foto, como transformou um espaço vazio no seu lar.')}</p>
+    <div class="modal-titulo">A memória viva da sua trajetória torna tudo mais especial</div>
+    <p class="mural-texto">${marcarPalavras('Fotografe cada passo desta jornada: as paredes cruas, a primeira parede pintada, o dia da mudança. Um dia você vai olhar para trás e ver, foto por foto, como transformou um espaço vazio no seu lar.')}</p>
     <div class="mural-form">
       <input type="text" class="input-generico" id="mural-legenda" placeholder="Uma legenda para este momento...">
       <label class="mural-upload-btn">${ic('image-plus','ic-sm')} Adicionar foto<input type="file" accept="image/*" id="mural-input-arquivo" style="display:none;"></label>
     </div>
-    <div class="mural-grid" id="mural-grid">${renderMuralGrid()}</div>
+    <div id="mural-root">
+      <div id="mural-sugestoes-slot">${renderMuralSugestoes()}</div>
+      <div id="mural-conteudo">${renderMuralConteudo()}</div>
+    </div>
+    <div class="diario-privacidade">${ic('lock','ic-sm')}<p>Suas fotos compartilhadas aqui são reservadas. Seu arquiteto e a Guide não têm acesso direto a esse conteúdo — ele foi feito para você.</p></div>
   `;
 }
 
-function renderMuralGrid() {
-  if (!mural.length) return `<div class="card-convite">${marcarPalavras('Nenhuma foto ainda — comece registrando o primeiro momento.')}</div>`;
-  return mural.map(f => `
-    <div class="mural-item">
-      <img src="${f.url}">
-      <div class="mural-item-corpo">
-        <div class="mural-item-legenda">${f.legenda || 'Sem legenda'}</div>
-        <div class="mural-item-data">${formatarData(f.criado_em)}</div>
+function renderMuralSugestoes() {
+  if (mural.length >= 5 || muralComparando) return '';
+  return `
+    <div class="mural-sugestoes">
+      <div class="mural-sugestoes-titulo">Sugestões de momentos para registrar</div>
+      <div class="mural-sugestoes-lista">
+        ${MURAL_SUGESTOES.map(s => `<span class="mural-sugestao-chip">${ic('circle-dashed')} ${s}</span>`).join('')}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+}
+
+function renderMuralConteudo() {
+  if (muralComparando) return renderMuralComparar();
+  if (!mural.length) return `<div class="card-convite">Seu mural está esperando pelo primeiro momento.</div>`;
+  const btnComparar = mural.length >= 2
+    ? `<button type="button" class="mural-compare-btn" data-acao="mural-comparar">${ic('arrow-left-right','ic-sm')} Comparar dois momentos</button>`
+    : '';
+  return `${btnComparar}<div class="mural-grid" id="mural-grid">${renderMuralGrid()}</div>`;
+}
+
+function renderMuralGrid() {
+  return mural.map(f => {
+    const tag = MURAL_TAGS.find(t => t.v === f.tag);
+    const badge = tag ? `<div class="mural-item-badge">${tag.label}</div>` : '';
+    const opcoes = MURAL_TAGS.map(t => `<option value="${t.v}"${f.tag === t.v ? ' selected' : ''}>${t.label}</option>`).join('');
+    return `
+    <div class="mural-item" data-id="${f.id}">
+      <img src="${f.url}" alt="${(f.legenda || 'Foto do mural').replace(/"/g, '&quot;')}">
+      ${badge}
+      <button type="button" class="mural-item-del" data-acao="mural-del" aria-label="Remover foto">${ic('trash-2')}</button>
+      <div class="mural-item-corpo">
+        <div class="mural-item-data">${formatarData(f.criado_em)}</div>
+        ${f.legenda ? `<div class="mural-item-legenda">${f.legenda}</div>` : ''}
+      </div>
+      <div class="mural-item-acoes">
+        <select class="mural-tag-select" data-acao="mural-tag" aria-label="Marcação da foto">
+          <option value="">Sem marcação</option>${opcoes}
+        </select>
+        <button type="button" class="mural-item-share" data-acao="mural-share" aria-label="Compartilhar este momento">${ic('share-2')}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMuralComparar() {
+  const escolhidas = muralSel.map(id => mural.find(f => String(f.id) === String(id))).filter(Boolean);
+  let corpo;
+  if (escolhidas.length < 2) {
+    corpo = `
+      <p class="mural-compare-hint">Escolha duas fotos para ver lado a lado, separadas por uma alça que você arrasta.</p>
+      <div class="mural-compare-picker">
+        ${mural.map(f => {
+          const n = muralSel.indexOf(String(f.id));
+          return `<button type="button" class="mural-compare-pick${n > -1 ? ' sel' : ''}" data-acao="mural-compare-pick" data-id="${f.id}">
+            ${n > -1 ? `<span class="mural-compare-pick-num">${n + 1}</span>` : ''}
+            <img src="${f.url}" alt="">
+          </button>`;
+        }).join('')}
+      </div>`;
+  } else {
+    const [a, b] = escolhidas;
+    corpo = `
+      <div class="mural-compare-viewport" style="--pos:50%">
+        <img src="${b.url}" alt="">
+        <img class="mural-compare-top" src="${a.url}" alt="">
+        <div class="mural-compare-handle"></div>
+        <span class="mural-compare-legenda esq">${formatarData(a.criado_em)}</span>
+        <span class="mural-compare-legenda dir">${formatarData(b.criado_em)}</span>
+        <input type="range" class="mural-compare-range" min="0" max="100" value="50" aria-label="Arraste para comparar os dois momentos">
+      </div>
+      <div class="mural-compare-acoes">
+        <button type="button" class="btn-share" data-acao="mural-share">${ic('share-2','ic-sm')} Compartilhar com a comunidade</button>
+        <button type="button" class="btn-share" data-acao="mural-salvar-registro">${ic('check','ic-sm')} Salvar como registro pessoal</button>
+      </div>`;
+  }
+  return `
+    <button type="button" class="mural-compare-btn" data-acao="mural-comparar-sair">${ic('arrow-left','ic-sm')} Voltar ao mural</button>
+    ${corpo}`;
+}
+
+function repintarMural() {
+  const s = document.getElementById('mural-sugestoes-slot');
+  const c = document.getElementById('mural-conteudo');
+  if (s) s.innerHTML = renderMuralSugestoes();
+  if (c) c.innerHTML = renderMuralConteudo();
+  icons();
+  renderBento();
+}
+
+function pedirRemocaoFoto(item) {
+  if (!item || item.querySelector('.mural-item-confirm')) return;
+  const box = document.createElement('div');
+  box.className = 'mural-item-confirm';
+  box.innerHTML = `
+    <p>Tem certeza que quer remover essa foto? Essa ação não pode ser desfeita.</p>
+    <div class="mural-item-confirm-acoes">
+      <button type="button" data-acao="mural-del-cancelar">Cancelar</button>
+      <button type="button" class="perigo" data-acao="mural-del-confirmar">Remover</button>
+    </div>`;
+  item.appendChild(box);
+}
+
+async function removerFotoMural(id) {
+  if (!id) return;
+  const foto = mural.find(f => String(f.id) === String(id));
+  const { error } = await sb.from('mural_fotos').delete().eq('id', id);
+  if (error) { toast('Não foi possível remover a foto agora.'); console.error(error); return; }
+  if (foto && foto.url) {
+    const marca = `/object/public/${BUCKET}/`;
+    const i = foto.url.indexOf(marca);
+    if (i > -1) sb.storage.from(BUCKET).remove([decodeURIComponent(foto.url.slice(i + marca.length))]);
+  }
+  mural = mural.filter(f => String(f.id) !== String(id));
+  muralSel = muralSel.filter(x => x !== String(id));
+  repintarMural();
+  toast('Foto removida do mural.');
+}
+
+async function atualizarTagFoto(id, tag) {
+  const foto = mural.find(f => String(f.id) === String(id));
+  if (foto) foto.tag = tag || null;
+  repintarMural();
+  if (usuarioAtual && usuarioAtual.email === 'demo@demo.com') return;
+  const { error } = await sb.from('mural_fotos').update({ tag: tag || null }).eq('id', id);
+  if (error) { toast('Não foi possível salvar a marcação.'); console.error(error); }
+}
+
+function togglePickComparar(btn) {
+  const id = String(btn.dataset.id);
+  const i = muralSel.indexOf(id);
+  if (i > -1) muralSel.splice(i, 1);
+  else { if (muralSel.length >= 2) muralSel.shift(); muralSel.push(id); }
+  const c = document.getElementById('mural-conteudo');
+  if (c) { c.innerHTML = renderMuralConteudo(); icons(); }
 }
 
 function ligarMural() {
@@ -3902,12 +4097,39 @@ function ligarMural() {
     const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(path);
     const { data, error } = await sb.from('mural_fotos').insert({ projeto_id: projeto.id, url: urlData.publicUrl, legenda: legenda || null }).select().single();
     if (error) { toast('Não foi possível salvar a foto.'); console.error(error); return; }
-    mural.unshift(data);
-    document.getElementById('mural-grid').innerHTML = renderMuralGrid();
+    mural.push(data);
     document.getElementById('mural-legenda').value = '';
     input.value = '';
-    renderBento();
+    muralComparando = false; muralSel = [];
+    repintarMural();
     toast('Foto adicionada ao mural.');
+  });
+
+  const raiz = document.getElementById('mural-root');
+  if (!raiz) return;
+
+  raiz.addEventListener('click', (e) => {
+    const alvo = e.target.closest('[data-acao]');
+    if (!alvo || !raiz.contains(alvo)) return;
+    const acao = alvo.dataset.acao;
+    if (acao === 'mural-comparar')      { muralComparando = true; muralSel = []; repintarMural(); }
+    if (acao === 'mural-comparar-sair') { muralComparando = false; muralSel = []; repintarMural(); }
+    if (acao === 'mural-compare-pick')  togglePickComparar(alvo);
+    if (acao === 'mural-del')           pedirRemocaoFoto(alvo.closest('.mural-item'));
+    if (acao === 'mural-del-cancelar')  { const c = alvo.closest('.mural-item-confirm'); if (c) c.remove(); }
+    if (acao === 'mural-del-confirmar') removerFotoMural(alvo.closest('.mural-item').dataset.id);
+    if (acao === 'mural-share')         mostrarEmDesenvolvimento('mural-momento');
+    if (acao === 'mural-salvar-registro') { muralComparando = false; muralSel = []; repintarMural(); toast('Comparação guardada no seu mural.'); }
+  });
+
+  raiz.addEventListener('change', (e) => {
+    const sel = e.target.closest('.mural-tag-select');
+    if (sel) atualizarTagFoto(sel.closest('.mural-item').dataset.id, sel.value);
+  });
+
+  raiz.addEventListener('input', (e) => {
+    const range = e.target.closest('.mural-compare-range');
+    if (range) range.closest('.mural-compare-viewport').style.setProperty('--pos', range.value + '%');
   });
 }
 
