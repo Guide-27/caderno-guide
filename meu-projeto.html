@@ -738,12 +738,68 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .capsula-item .ci-abre { color: var(--muted); }
 .capsula-item .ci-abrir-btn { margin-left:auto; }
 .capsula-overlay { position: fixed; inset: 0; background: rgba(8,8,10,0.86); backdrop-filter: blur(6px); display:flex; align-items:center; justify-content:center; z-index: 960; padding: 24px; }
-.capsula-envelope, .capsula-carta { background: var(--card); border:1px solid var(--border); border-radius: var(--r-lg); padding: 32px 28px; max-width: 460px; width: 100%; text-align: center; }
-.capsula-carta { text-align: left; max-height: 70vh; overflow-y: auto; }
-.capsula-envelope .ce-icone { color: var(--gold); margin-bottom: 14px; }
-.capsula-envelope p { font-size: var(--fs-base); color: var(--off); line-height: 1.6; margin-bottom: 20px; }
-.capsula-carta .cc-label { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 14px; }
-.capsula-carta .cc-corpo { font-family:'Cormorant Garamond',serif; font-size: var(--fs-lg); color: var(--white); line-height: 1.7; white-space: pre-wrap; margin-bottom: 22px; }
+
+/* ── painel de leitura das cartas: cápsula em vidro líquido cinza-claro, borda 3D reflexiva ── */
+.carta-glass {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: 100%; max-width: 520px; max-height: 82vh;
+  padding: 32px 34px;
+  overflow: hidden;
+  border-radius: 44px;                         /* cápsula: extremidades bem arredondadas */
+  border: 1px solid rgba(255,255,255,0.5);
+  background:
+    linear-gradient(157deg, rgba(247,248,251,0.46), rgba(216,220,228,0.26) 52%, rgba(238,240,246,0.42));
+  -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.08);
+          backdrop-filter: blur(30px) saturate(180%) brightness(1.08);
+  box-shadow:
+    0 50px 110px -24px rgba(0,0,0,0.7),
+    0 14px 34px -12px rgba(0,0,0,0.5),
+    inset 0 3px 2px rgba(255,255,255,0.95),      /* aresta superior iluminada */
+    inset 0 -6px 14px rgba(255,255,255,0.35),
+    inset 0 1px 40px rgba(255,255,255,0.28),
+    inset 0 -20px 40px -20px rgba(120,124,135,0.25);
+}
+.carta-glass::before {                          /* anel reflexivo que "escorre" pelas bordas */
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,1) 0%, rgba(255,255,255,0.35) 20%, rgba(255,255,255,0) 42%,
+    rgba(255,255,255,0) 58%, rgba(255,255,255,0.4) 80%, rgba(255,255,255,0.95) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  pointer-events: none;
+}
+.carta-glass::after {                           /* brilho de topo curvo, sensação 3D */
+  content: ''; position: absolute; left: 5%; right: 5%; top: -2%; height: 52%; border-radius: 44px;
+  background: radial-gradient(130% 100% at 50% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 55%, rgba(255,255,255,0) 78%);
+  pointer-events: none;
+}
+.carta-glass > * { position: relative; z-index: 1; }
+.carta-glass .card-cta { border-color: rgba(120,124,135,0.4); color: #3a3a40; background: rgba(255,255,255,0.55); }
+.carta-glass .card-cta:hover { border-color: rgba(90,94,105,0.6); background: rgba(255,255,255,0.8); }
+
+/* área rolável interna — cabeçalho e "Fechar" ficam fixos fora dela */
+.carta-scroll {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding-right: 8px; margin-right: -8px;
+  scrollbar-width: thin; scrollbar-color: rgba(90,94,105,0.45) transparent;
+}
+.carta-scroll::-webkit-scrollbar { width: 10px; }
+.carta-scroll::-webkit-scrollbar-track { background: transparent; margin: 8px 0; }
+.carta-scroll::-webkit-scrollbar-thumb {
+  background: rgba(90,94,105,0.4); border: 3px solid transparent; background-clip: padding-box;
+  border-radius: var(--r-pill); box-shadow: inset 0 0 6px rgba(255,255,255,0.4);
+}
+.carta-scroll::-webkit-scrollbar-thumb:hover { background: rgba(80,84,95,0.6); background-clip: padding-box; }
+
+.capsula-envelope { align-items: center; text-align: center; max-width: 440px; gap: 0; }
+.capsula-envelope .ce-icone { color: #9c7b16; margin-bottom: 14px; }
+.capsula-envelope p { font-size: var(--fs-base); color: #26262b; line-height: 1.6; margin: 0 0 20px; }
+.capsula-carta .cc-label { font-size: var(--fs-xs); color: #6a6a72; margin-bottom: 14px; }
+.capsula-carta .cc-corpo { font-family:'Cormorant Garamond',serif; font-size: var(--fs-lg); color: #201f1c; line-height: 1.75; white-space: pre-wrap; margin: 0 0 22px; }
+.capsula-carta .diario-acoes, .carta-guide-painel .diario-acoes { justify-content: flex-end; margin-top: 14px; }
 
 .diario-share-bloco { border-top: 1px solid var(--border2); padding-top: 20px; margin-top: 8px; }
 .diario-share-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; }
@@ -759,25 +815,20 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .carta-guide-selo { display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; padding: 26px 22px; margin-bottom: 22px; background: var(--glass); backdrop-filter: blur(6px); border:1px solid var(--border2); border-radius: var(--r-md); }
 .carta-guide-selo .cgs-icone { color: var(--gold); opacity: .85; }
 .carta-guide-selo .cgs-chamada { font-size: var(--fs-sm); color: var(--muted); margin: 0; line-height: 1.6; max-width: 320px; }
-.carta-guide-reabrir { display:inline-flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.06em; color: var(--muted); background:none; border:none; padding:0; margin-bottom: 18px; cursor:pointer; opacity:.7; transition: opacity .2s, color .2s; font-family:'Outfit',sans-serif; }
-.carta-guide-reabrir:hover { opacity:1; color: var(--gold-light); }
-.carta-guide-overlay { position: fixed; inset: 0; z-index: 960; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(8,8,10,0.55); backdrop-filter: blur(8px); }
-.carta-guide-painel { max-width: 560px; width:100%; max-height: 82vh; overflow-y:auto; padding: 32px 34px; background: var(--card); border:1px solid var(--border); border-radius: var(--r-lg); }
-.carta-guide-painel .cgp-eyebrow { display:flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.08em; color: var(--gold-light); margin-bottom: 18px; }
-.carta-guide-painel .cgp-corpo p { font-size: var(--fs-sm); color: var(--off); line-height: 1.8; margin: 0 0 15px; }
-.carta-guide-painel .diario-acoes { justify-content:flex-end; margin-top: 10px; }
+/* botão de reabrir — sempre visível no topo do card, com cara de botão */
+.carta-guide-reabrir { display:inline-flex; align-items:center; gap:7px; font-size: var(--fs-xs); font-weight:500; color: var(--gold-light); background: var(--gold-dim); border:1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 7px 14px; margin-bottom: 20px; cursor:pointer; transition: background .2s, border-color .2s; font-family:'Outfit',sans-serif; }
+.carta-guide-reabrir:hover { background: rgba(201,162,39,0.16); border-color: var(--gold); }
+.carta-guide-overlay { position: fixed; inset: 0; z-index: 960; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(8,8,10,0.6); backdrop-filter: blur(8px); }
+.carta-guide-painel { max-width: 560px; }
+.carta-guide-painel .cgp-eyebrow { display:flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.1em; font-weight:600; color: #8a6a12; margin-bottom: 18px; }
+.carta-guide-painel .cgp-corpo p { font-size: 13px; color: #26262b; line-height: 1.85; margin: 0 0 15px; }
 
-/* abertura suave das cartas (Guia + Cápsula do Tempo) */
+/* abertura das cartas: o fundo faz fade; o painel "sai do botão" (efeito no JS, animarAberturaDeOrigem) */
 @keyframes cartaOverlayIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cartaPainelIn  { from { opacity: 0; transform: translateY(20px) scale(.975); } to { opacity: 1; transform: none; } }
-.carta-guide-overlay, .capsula-overlay { animation: cartaOverlayIn .30s ease both; }
-.carta-guide-painel, .capsula-envelope, .capsula-carta { animation: cartaPainelIn .42s cubic-bezier(.16,.84,.28,1) both; }
-.carta-guide-overlay.saindo, .capsula-overlay.saindo { animation: cartaOverlayIn .22s ease reverse forwards; }
-.capsula-envelope.saindo { animation: cartaPainelIn .20s ease reverse forwards; }
+.carta-guide-overlay, .capsula-overlay { animation: cartaOverlayIn .28s ease both; }
+.carta-guide-overlay.saindo, .capsula-overlay.saindo { animation: cartaOverlayIn .3s ease reverse forwards; }
 @media (prefers-reduced-motion: reduce) {
-  .carta-guide-overlay, .capsula-overlay,
-  .carta-guide-painel, .capsula-envelope, .capsula-carta,
-  .carta-guide-overlay.saindo, .capsula-overlay.saindo, .capsula-envelope.saindo { animation-duration: .01ms !important; }
+  .carta-guide-overlay, .capsula-overlay, .carta-guide-overlay.saindo, .capsula-overlay.saindo { animation-duration: .01ms !important; }
 }
 
 .farol { font-family: 'Outfit', sans-serif; font-style: normal; font-weight: 400; font-size: var(--fs-base); color: var(--gold-light); line-height: 1.65; margin-bottom: 20px; }
@@ -3288,25 +3339,27 @@ async function persistirCartaGuiaAberta() {
   if (error) console.warn('carta guide: não persistiu no servidor (segue com localStorage)', error);
 }
 
-function abrirCartaGuideOverlay(primeiraVez) {
+function abrirCartaGuideOverlay(primeiraVez, origemEl) {
   if (primeiraVez) persistirCartaGuiaAberta();
   const paras = CARTA_GUIDE.split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join('');
   const el = document.createElement('div');
   el.className = 'carta-guide-overlay';
   el.innerHTML = `
-    <div class="carta-guide-painel">
+    <div class="carta-guide-painel carta-glass">
       <div class="cgp-eyebrow">${ic('mail-open','ic-sm')} Uma carta da Guide</div>
-      <div class="cgp-corpo">${paras}</div>
+      <div class="carta-scroll"><div class="cgp-corpo">${paras}</div></div>
       <div class="diario-acoes"><button type="button" class="card-cta" data-acao="carta-guide-fechar">Fechar</button></div>
     </div>`;
   document.body.appendChild(el);
   icons();
-  el.addEventListener('click', (ev) => {
-    if (ev.target === el || ev.target.closest('[data-acao="carta-guide-fechar"]')) fecharOverlaySuave(el);
-  });
-  // repinta o slot pro estado "aberta" (ícone discreto) sem fechar o overlay
+  // repinta o slot pro estado "aberta" (botão sempre visível) — antes de medir a origem do fechamento
   const slot = document.getElementById('carta-guide-slot');
   if (slot) { slot.innerHTML = renderCartaGuideBloco(); icons(); }
+  const fechar = animarAberturaDeOrigem(el, () =>
+    document.querySelector('#carta-guide-slot [data-acao="carta-guide-reabrir"]') || origemEl);
+  el.addEventListener('click', (ev) => {
+    if (ev.target === el || ev.target.closest('[data-acao="carta-guide-fechar"]')) fechar();
+  });
 }
 
 function renderLembreteDiario() {
@@ -3531,50 +3584,114 @@ function renderCapsulaEditor() {
     </div>`;
 }
 
-// fecha um overlay com fade-out (a entrada é 100% CSS na classe do overlay)
-function fecharOverlaySuave(el) {
-  if (!el || el.classList.contains('saindo')) return;
-  el.classList.add('saindo');
-  setTimeout(() => el.remove(), 240);
+function prefereMenosMovimento() {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
 }
 
-function abrirCartaOverlay(carta) {
+// transform que leva o painel do centro da tela até o centro do botão de origem (encolhido)
+function transformDoBotao(painelEl, origemEl) {
+  if (!painelEl || !origemEl) return null;
+  const b = origemEl.getBoundingClientRect();
+  const p = painelEl.getBoundingClientRect();
+  if (!b.width || !p.width) return null;
+  const dx = (b.left + b.width / 2) - (p.left + p.width / 2);
+  const dy = (b.top + b.height / 2) - (p.top + p.height / 2);
+  const sc = Math.max(0.05, Math.min(b.width / p.width, 0.4));
+  return `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+}
+
+// entrada: o painel "surge" do botão; devolve fechar() que o "recolhe" de volta ao botão.
+// getOrigem pode ser função (reavaliada no fechamento) ou elemento.
+function animarAberturaDeOrigem(overlayEl, getOrigem) {
+  const painel = () => overlayEl.querySelector('.capsula-envelope, .capsula-carta, .carta-guide-painel');
+  const origemAgora = () => (typeof getOrigem === 'function' ? getOrigem() : getOrigem);
+  const podeAnimar = (o) => !prefereMenosMovimento() && o && document.body.contains(o);
+
+  const o0 = origemAgora();
+  if (podeAnimar(o0)) {
+    const p = painel();
+    const t = transformDoBotao(p, o0);
+    if (p && t) {
+      p.style.transformOrigin = 'center center';
+      p.style.transform = t;
+      p.style.opacity = '0';
+      requestAnimationFrame(() => {
+        p.style.transition = 'transform .44s cubic-bezier(.16,.84,.28,1), opacity .3s ease';
+        p.style.transform = 'none';
+        p.style.opacity = '1';
+      });
+    }
+  }
+
+  return function fechar() {
+    if (overlayEl.classList.contains('saindo')) return;
+    overlayEl.classList.add('saindo');
+    const o = origemAgora();
+    const p = painel();
+    const t = podeAnimar(o) ? transformDoBotao(p, o) : null;
+    if (p && t) {
+      p.style.transition = 'transform .34s cubic-bezier(.5,0,.75,0), opacity .3s ease';
+      p.style.transform = t;
+      p.style.opacity = '0';
+    }
+    setTimeout(() => overlayEl.remove(), 360);
+  };
+}
+
+function abrirCartaOverlay(carta, origemEl) {
   const jaLida = cartaLida(carta);
   const el = document.createElement('div');
   el.className = 'capsula-overlay';
   el.innerHTML = `
-    <div class="capsula-envelope">
+    <div class="capsula-envelope carta-glass">
       <div class="ce-icone">${ic(jaLida ? 'mail-open' : 'mail', 'ic-xl')}</div>
       <p>${jaLida ? 'Reabrindo uma carta que você já leu.' : 'Uma carta sua está esperando por você.'}</p>
       <button type="button" class="btn-primario" data-acao="cap-revelar">${jaLida ? 'Ler de novo' : 'Abrir'}</button>
     </div>`;
   document.body.appendChild(el);
   icons();
+  const fechar = animarAberturaDeOrigem(el, () =>
+    document.querySelector('#diario-capsula [data-acao="cap-abrir"][data-id="' + carta.id + '"]') || origemEl);
+
   el.addEventListener('click', async (ev) => {
-    if (ev.target === el) { fecharOverlaySuave(el); return; }
-    if (ev.target.closest('[data-acao="cap-fechar"]')) { fecharOverlaySuave(el); return; }
+    if (ev.target === el) { fechar(); return; }
+    if (ev.target.closest('[data-acao="cap-fechar"]')) { fechar(); return; }
     if (!ev.target.closest('[data-acao="cap-revelar"]')) return;
-    // envelope some suave enquanto a carta é preparada (ignora cliques repetidos)
+    // envelope some suave; depois a carta entra no lugar (ignora cliques repetidos)
     const envel = el.querySelector('.capsula-envelope');
-    if (!envel || envel.classList.contains('saindo')) return;
-    envel.classList.add('saindo');
+    if (!envel || envel.dataset.saindo) return;
+    envel.dataset.saindo = '1';
+    envel.style.transition = 'opacity .18s ease, transform .18s ease';
+    envel.style.opacity = '0';
+    envel.style.transform = 'scale(.96)';
     if (!cartaLida(carta)) {
-      // marca a primeira leitura; a carta continua disponível para reler sempre
       const { error } = await sb.from('diario_cartas').update({ aberta_em: new Date().toISOString() }).eq('id', carta.id);
       if (error) console.error(error);
       carta.aberta_em = carta.aberta_em || new Date().toISOString();
       cartas = await tentar(sb.from('diario_cartas_visao').select('*').eq('projeto_id', projeto.id).order('escrita_em', { ascending: false }), cartas);
       repintarCapsula();
     }
-    await new Promise(r => setTimeout(r, 180)); // deixa o envelope terminar de sair
+    await new Promise(r => setTimeout(r, 180));
     const fresca = cartas.find(c => c.id === carta.id) || carta;
     el.innerHTML = `
-      <div class="capsula-carta">
-        <div class="cc-label">Você escreveu isso em ${formatarDataAno(fresca.escrita_em)}</div>
-        <div class="cc-corpo">${esc(fresca.conteudo || '')}</div>
+      <div class="capsula-carta carta-glass">
+        <div class="carta-scroll">
+          <div class="cc-label">Você escreveu isso em ${formatarDataAno(fresca.escrita_em)}</div>
+          <div class="cc-corpo">${esc(fresca.conteudo || '')}</div>
+        </div>
         <div class="diario-acoes"><button type="button" class="card-cta" data-acao="cap-fechar">Fechar</button></div>
       </div>`;
     icons();
+    const cartaEl = el.querySelector('.capsula-carta');
+    if (cartaEl && !prefereMenosMovimento()) {
+      cartaEl.style.opacity = '0';
+      cartaEl.style.transform = 'translateY(14px) scale(.985)';
+      requestAnimationFrame(() => {
+        cartaEl.style.transition = 'transform .4s cubic-bezier(.16,.84,.28,1), opacity .3s ease';
+        cartaEl.style.transform = 'none';
+        cartaEl.style.opacity = '1';
+      });
+    }
   });
 }
 
@@ -3614,8 +3731,8 @@ async function onDiarioClick(e) {
   const acao = alvo.dataset.acao;
 
   if (acao === 'share') { mostrarEmDesenvolvimento(alvo.dataset.share); return; }
-  if (acao === 'carta-guide-abrir') { abrirCartaGuideOverlay(true); return; }
-  if (acao === 'carta-guide-reabrir') { abrirCartaGuideOverlay(false); return; }
+  if (acao === 'carta-guide-abrir') { abrirCartaGuideOverlay(true, alvo); return; }
+  if (acao === 'carta-guide-reabrir') { abrirCartaGuideOverlay(false, alvo); return; }
   if (acao === 'lembrete-ok') {
     const banner = alvo.closest('.diario-lembrete');
     if (banner) banner.remove();
@@ -3654,7 +3771,7 @@ async function onDiarioClick(e) {
   if (acao === 'cap-guardar') { guardarCarta(); return; }
   if (acao === 'cap-abrir') {
     const c = cartas.find(x => x.id === alvo.dataset.id);
-    if (c) abrirCartaOverlay(c);
+    if (c) abrirCartaOverlay(c, alvo);
     return;
   }
 }
