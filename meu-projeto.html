@@ -737,69 +737,72 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .capsula-item .ci-escrita { color: var(--off); }
 .capsula-item .ci-abre { color: var(--muted); }
 .capsula-item .ci-abrir-btn { margin-left:auto; }
-.capsula-overlay { position: fixed; inset: 0; background: rgba(8,8,10,0.86); backdrop-filter: blur(6px); display:flex; align-items:center; justify-content:center; z-index: 960; padding: 24px; }
+.capsula-overlay { position: fixed; inset: 0; background: rgba(8,8,10,0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); display:flex; align-items:center; justify-content:center; z-index: 960; padding: 24px; }
 
-/* ── painel de leitura das cartas: cápsula em vidro líquido cinza-claro, borda 3D reflexiva ── */
+/* ── painel de leitura das cartas: card grande em glassmorfismo, texto branco legível ── */
 .carta-glass {
   position: relative;
   display: flex; flex-direction: column;
-  width: 100%; max-width: 520px; max-height: 82vh;
-  padding: 32px 34px;
+  width: 100%; max-width: 440px; height: min(660px, 86vh);
+  padding: 38px 34px 24px;
   overflow: hidden;
-  border-radius: 44px;                         /* cápsula: extremidades bem arredondadas */
-  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 34px;
+  border: 1px solid rgba(255,255,255,0.22);
   background:
-    linear-gradient(157deg, rgba(247,248,251,0.46), rgba(216,220,228,0.26) 52%, rgba(238,240,246,0.42));
-  -webkit-backdrop-filter: blur(30px) saturate(180%) brightness(1.08);
-          backdrop-filter: blur(30px) saturate(180%) brightness(1.08);
+    radial-gradient(120px 120px at 22% 26%, rgba(255,255,255,0.10), transparent 70%),
+    radial-gradient(90px 90px at 82% 20%, rgba(255,255,255,0.08), transparent 70%),
+    radial-gradient(70px 70px at 28% 90%, rgba(255,255,255,0.07), transparent 70%),
+    radial-gradient(60px 60px at 76% 82%, rgba(255,255,255,0.06), transparent 70%),
+    linear-gradient(155deg, rgba(255,255,255,0.12), rgba(255,255,255,0.045) 60%, rgba(255,255,255,0.09));
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+          backdrop-filter: blur(22px) saturate(150%);
   box-shadow:
-    0 50px 110px -24px rgba(0,0,0,0.7),
-    0 14px 34px -12px rgba(0,0,0,0.5),
-    inset 0 3px 2px rgba(255,255,255,0.95),      /* aresta superior iluminada */
-    inset 0 -6px 14px rgba(255,255,255,0.35),
-    inset 0 1px 40px rgba(255,255,255,0.28),
-    inset 0 -20px 40px -20px rgba(120,124,135,0.25);
+    0 40px 90px -30px rgba(0,0,0,0.7),
+    0 8px 24px -12px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
 }
-.carta-glass::before {                          /* anel reflexivo que "escorre" pelas bordas */
-  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
-  background: linear-gradient(135deg,
-    rgba(255,255,255,1) 0%, rgba(255,255,255,0.35) 20%, rgba(255,255,255,0) 42%,
-    rgba(255,255,255,0) 58%, rgba(255,255,255,0.4) 80%, rgba(255,255,255,0.95) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-          mask-composite: exclude;
-  pointer-events: none;
-}
-.carta-glass::after {                           /* brilho de topo curvo, sensação 3D */
-  content: ''; position: absolute; left: 5%; right: 5%; top: -2%; height: 52%; border-radius: 44px;
-  background: radial-gradient(130% 100% at 50% 0%, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 55%, rgba(255,255,255,0) 78%);
+.carta-glass::before {                          /* realce sutil só na aresta superior */
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 40%; border-radius: 34px 34px 0 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.10), transparent);
   pointer-events: none;
 }
 .carta-glass > * { position: relative; z-index: 1; }
-.carta-glass .card-cta { border-color: rgba(120,124,135,0.4); color: #3a3a40; background: rgba(255,255,255,0.55); }
-.carta-glass .card-cta:hover { border-color: rgba(90,94,105,0.6); background: rgba(255,255,255,0.8); }
 
-/* área rolável interna — cabeçalho e "Fechar" ficam fixos fora dela */
+/* título grande com barra lateral (referência) */
+.cg-titulo { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+.cg-titulo .cg-bar { width: 2px; align-self: stretch; min-height: 48px; background: rgba(255,255,255,0.55); border-radius: 2px; margin-top: 4px; }
+.cg-titulo h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.14; color: #fff; margin: 0; letter-spacing: -0.01em; }
+.cg-titulo .cg-eyebrow { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .16em; color: rgba(255,255,255,0.6); margin: 0 0 8px; }
+
+/* faixa de leitura: texto some suavemente pro topo/base ao rolar (máscara de fade) */
 .carta-scroll {
-  flex: 1; min-height: 0; overflow-y: auto;
-  padding-right: 8px; margin-right: -8px;
-  scrollbar-width: thin; scrollbar-color: rgba(90,94,105,0.45) transparent;
+  flex: 1; min-height: 0; overflow-y: auto; padding-right: 10px;
+  /* no início só o fim some; ao rolar, o topo também some (classe .rolou via JS) */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 82%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0, #000 82%, transparent 100%);
+  transition: -webkit-mask-image .3s ease, mask-image .3s ease;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.28) transparent;
 }
-.carta-scroll::-webkit-scrollbar { width: 10px; }
-.carta-scroll::-webkit-scrollbar-track { background: transparent; margin: 8px 0; }
-.carta-scroll::-webkit-scrollbar-thumb {
-  background: rgba(90,94,105,0.4); border: 3px solid transparent; background-clip: padding-box;
-  border-radius: var(--r-pill); box-shadow: inset 0 0 6px rgba(255,255,255,0.4);
+.carta-scroll.rolou {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 82%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 82%, transparent 100%);
 }
-.carta-scroll::-webkit-scrollbar-thumb:hover { background: rgba(80,84,95,0.6); background-clip: padding-box; }
+.carta-scroll::-webkit-scrollbar { width: 5px; }
+.carta-scroll::-webkit-scrollbar-track { background: transparent; }
+.carta-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.28); border-radius: var(--r-pill); }
+.carta-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.42); }
+.cg-corpo p { font-size: 16px; color: rgba(255,255,255,0.92); line-height: 1.64; margin: 0 0 18px; font-weight: 300; white-space: pre-line; }
+.cg-corpo p:first-child { padding-top: 6px; }
 
-.capsula-envelope { align-items: center; text-align: center; max-width: 440px; gap: 0; }
-.capsula-envelope .ce-icone { color: #9c7b16; margin-bottom: 14px; }
-.capsula-envelope p { font-size: var(--fs-base); color: #26262b; line-height: 1.6; margin: 0 0 20px; }
-.capsula-carta .cc-label { font-size: var(--fs-xs); color: #6a6a72; margin-bottom: 14px; }
-.capsula-carta .cc-corpo { font-family:'Cormorant Garamond',serif; font-size: var(--fs-lg); color: #201f1c; line-height: 1.75; white-space: pre-wrap; margin: 0 0 22px; }
-.capsula-carta .diario-acoes, .carta-guide-painel .diario-acoes { justify-content: flex-end; margin-top: 14px; }
+.cg-rodape { display: flex; justify-content: flex-end; padding-top: 14px; }
+.carta-glass .card-cta { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.3); color: #fff; }
+.carta-glass .card-cta:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.5); }
+
+/* envelope pré-abertura (Cápsula) — mesmo vidro, compacto e centrado */
+.capsula-envelope { height: auto; justify-content: center; align-items: center; text-align: center; max-width: 380px; padding: 44px 34px; }
+.capsula-envelope .ce-icone { color: #fff; opacity: .85; margin-bottom: 16px; }
+.capsula-envelope p { font-size: var(--fs-base); color: rgba(255,255,255,0.9); line-height: 1.6; margin: 0 0 22px; font-weight: 300; }
 
 .diario-share-bloco { border-top: 1px solid var(--border2); padding-top: 20px; margin-top: 8px; }
 .diario-share-titulo { font-family:'Sora',sans-serif; font-weight:600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; }
@@ -818,10 +821,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 /* botão de reabrir — sempre visível no topo do card, com cara de botão */
 .carta-guide-reabrir { display:inline-flex; align-items:center; gap:7px; font-size: var(--fs-xs); font-weight:500; color: var(--gold-light); background: var(--gold-dim); border:1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 7px 14px; margin-bottom: 20px; cursor:pointer; transition: background .2s, border-color .2s; font-family:'Outfit',sans-serif; }
 .carta-guide-reabrir:hover { background: rgba(201,162,39,0.16); border-color: var(--gold); }
-.carta-guide-overlay { position: fixed; inset: 0; z-index: 960; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(8,8,10,0.6); backdrop-filter: blur(8px); }
-.carta-guide-painel { max-width: 560px; }
-.carta-guide-painel .cgp-eyebrow { display:flex; align-items:center; gap:6px; font-size: var(--fs-2xs); text-transform:uppercase; letter-spacing:.1em; font-weight:600; color: #8a6a12; margin-bottom: 18px; }
-.carta-guide-painel .cgp-corpo p { font-size: 13px; color: #26262b; line-height: 1.85; margin: 0 0 15px; }
+.carta-guide-overlay { position: fixed; inset: 0; z-index: 960; display:flex; align-items:center; justify-content:center; padding: 24px; background: rgba(8,8,10,0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
 
 /* abertura das cartas: o fundo faz fade; o painel "sai do botão" (efeito no JS, animarAberturaDeOrigem) */
 @keyframes cartaOverlayIn { from { opacity: 0; } to { opacity: 1; } }
@@ -3346,12 +3346,13 @@ function abrirCartaGuideOverlay(primeiraVez, origemEl) {
   el.className = 'carta-guide-overlay';
   el.innerHTML = `
     <div class="carta-guide-painel carta-glass">
-      <div class="cgp-eyebrow">${ic('mail-open','ic-sm')} Uma carta da Guide</div>
-      <div class="carta-scroll"><div class="cgp-corpo">${paras}</div></div>
-      <div class="diario-acoes"><button type="button" class="card-cta" data-acao="carta-guide-fechar">Fechar</button></div>
+      <div class="cg-titulo"><span class="cg-bar"></span><h3>Uma carta<br>da Guide</h3></div>
+      <div class="carta-scroll"><div class="cg-corpo">${paras}</div></div>
+      <div class="cg-rodape"><button type="button" class="card-cta" data-acao="carta-guide-fechar">Fechar</button></div>
     </div>`;
   document.body.appendChild(el);
   icons();
+  ativarFadeScroll(el);
   // repinta o slot pro estado "aberta" (botão sempre visível) — antes de medir a origem do fechamento
   const slot = document.getElementById('carta-guide-slot');
   if (slot) { slot.innerHTML = renderCartaGuideBloco(); icons(); }
@@ -3600,6 +3601,15 @@ function transformDoBotao(painelEl, origemEl) {
   return `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${sc.toFixed(3)})`;
 }
 
+// liga o fade do topo da faixa de leitura só depois que a pessoa começa a rolar
+function ativarFadeScroll(overlayEl) {
+  const sc = overlayEl.querySelector('.carta-scroll');
+  if (!sc) return;
+  const atualiza = () => sc.classList.toggle('rolou', sc.scrollTop > 8);
+  sc.addEventListener('scroll', atualiza, { passive: true });
+  atualiza();
+}
+
 // entrada: o painel "surge" do botão; devolve fechar() que o "recolhe" de volta ao botão.
 // getOrigem pode ser função (reavaliada no fechamento) ou elemento.
 function animarAberturaDeOrigem(overlayEl, getOrigem) {
@@ -3673,15 +3683,15 @@ function abrirCartaOverlay(carta, origemEl) {
     }
     await new Promise(r => setTimeout(r, 180));
     const fresca = cartas.find(c => c.id === carta.id) || carta;
+    const parasCarta = String(fresca.conteudo || '').split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join('') || '<p></p>';
     el.innerHTML = `
       <div class="capsula-carta carta-glass">
-        <div class="carta-scroll">
-          <div class="cc-label">Você escreveu isso em ${formatarDataAno(fresca.escrita_em)}</div>
-          <div class="cc-corpo">${esc(fresca.conteudo || '')}</div>
-        </div>
-        <div class="diario-acoes"><button type="button" class="card-cta" data-acao="cap-fechar">Fechar</button></div>
+        <div class="cg-titulo"><span class="cg-bar"></span><div><p class="cg-eyebrow">Escrita em ${formatarDataAno(fresca.escrita_em)}</p><h3>Sua carta</h3></div></div>
+        <div class="carta-scroll"><div class="cg-corpo">${parasCarta}</div></div>
+        <div class="cg-rodape"><button type="button" class="card-cta" data-acao="cap-fechar">Fechar</button></div>
       </div>`;
     icons();
+    ativarFadeScroll(el);
     const cartaEl = el.querySelector('.capsula-carta');
     if (cartaEl && !prefereMenosMovimento()) {
       cartaEl.style.opacity = '0';
