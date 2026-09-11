@@ -861,10 +861,13 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .mural-compare-btn:hover { border-color: var(--gold); color: var(--gold-light); }
 
 /* barra de topo: comparar + info */
-.mural-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
-.mural-toolbar .mural-compare-btn { margin-bottom:0; }
-.mural-info-btn { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border2); background:var(--glass2); color:var(--muted); cursor:pointer; transition:color .2s, border-color .2s; }
-.mural-info-btn:hover, .mural-info-btn[aria-expanded="true"] { color:var(--gold-light); border-color:var(--gold); }
+.mural-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+/* botões do topo com mais destaque — cápsula dourada, padrão do "reabrir carta" */
+.mural-toolbar .mural-compare-btn { margin-bottom:0; background:var(--gold-dim); border-color:var(--gold-mid); color:var(--gold-light); font-size:var(--fs-sm); font-weight:600; padding:9px 17px; }
+.mural-toolbar .mural-compare-btn:hover { background:rgba(201,162,39,0.16); border-color:var(--gold); }
+.mural-info-btn { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border2); background:var(--glass2); color:var(--muted); cursor:pointer; transition:color .2s, border-color .2s, background .2s; }
+.mural-toolbar .mural-info-btn { width:33px; height:33px; background:var(--gold-dim); border-color:var(--gold-mid); color:var(--gold-light); }
+.mural-info-btn:hover, .mural-info-btn[aria-expanded="true"] { color:var(--gold-light); border-color:var(--gold); background:rgba(201,162,39,0.16); }
 .mural-info-btn svg { width:15px; height:15px; }
 .mural-instrucoes { display:grid; gap:14px; padding:16px; margin-bottom:20px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-md); }
 .mural-instrucao-tit { display:flex; align-items:center; gap:7px; font-size:var(--fs-sm); font-weight:600; color:var(--white); margin-bottom:4px; }
@@ -2115,7 +2118,7 @@ function fechadoMural() {
   const strip = mural.slice(-8);
   return `
     <div class="card-eyebrow">${ic('images')} Mural de imagens</div>
-    <div class="card-titulo">${mural.length ? mural.length + ' foto(s) registradas' : 'Sua evolução, em fotos'}</div>
+    <div class="card-titulo">A memória viva da sua trajetória que torna tudo mais especial</div>
     <div class="card-corpo">
       ${strip.length ? `<div class="mural-strip">${strip.map(f => `<img src="${f.url}">`).join('')}</div>` : `<div class="card-convite">${marcarPalavras('Fotografe cada passo desta jornada — este mural é a memória viva da sua conquista.')}</div>`}
     </div>
