@@ -650,25 +650,38 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .marco-add-btn:hover { border-color: var(--gold-mid); background: var(--gold-dim); border-style: solid; }
 
 /* glossário + quiz */
-.tab-switch { display: flex; gap: 8px; margin-bottom: 20px; }
-.tab-btn { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 8px 16px; font-size: var(--fs-xs); color: var(--muted); cursor: pointer; text-transform: uppercase; letter-spacing: .05em; font-family:'Outfit',sans-serif; }
-.tab-btn.ativa { color: var(--gold-light); border-color: var(--gold-mid); background: var(--gold-dim); }
+/* cápsulas Termos/Quiz — largura total do card, 50/50, fonte maior (item 0.2 da revisão) */
+.tab-switch { display: flex; width: 100%; gap: 8px; margin-bottom: 22px; }
+.tab-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 13px 18px; font-size: var(--fs-md); font-weight: 600; color: var(--muted); cursor: pointer; font-family:'Outfit',sans-serif; transition: all .2s; }
+.tab-btn.ativa { color: var(--black); border-color: var(--gold); background: var(--gold); }
+.tab-btn:hover:not(.ativa) { border-color: var(--gold-mid); color: var(--off); }
 .glossario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 14px; }
-.flip-card { perspective: 1200px; height: 130px; cursor: pointer; }
+.flip-card { perspective: 1200px; height: 140px; cursor: pointer; }
 .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .55s; transform-style: preserve-3d; }
 .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
 .flip-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--r-md); border: 1px solid var(--border2); padding: 16px; display: flex; align-items: center; justify-content: center; text-align: center; }
-.flip-front { background: var(--glass2); font-family: 'Sora', sans-serif; font-weight: 600; color: var(--gold-light); font-size: var(--fs-md); }
+.flip-front { background: var(--glass2); font-family: 'Sora', sans-serif; font-weight: 600; color: var(--gold-light); font-size: var(--fs-base); }
 .flip-back { background: rgba(201,162,39,0.08); transform: rotateY(180deg); font-size: var(--fs-xs); color: var(--off); line-height: 1.55; }
 
 .quiz-card { background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 24px; }
 .quiz-pergunta { font-family:'Sora',sans-serif; font-weight:600; font-size:var(--fs-md); color:var(--white); margin-bottom: 18px; }
+.quiz-opcoes { margin-bottom: 4px; }
 .quiz-opcao { display:block; width:100%; text-align:left; background:var(--card2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:12px 14px; margin-bottom:10px; color:var(--off); font-family:'Outfit',sans-serif; font-size:var(--fs-base); cursor:pointer; transition: all .2s; }
 .quiz-opcao:hover { border-color: var(--gold-mid); }
+.quiz-opcao.sel { border-color: var(--gold); background: var(--gold-dim); color: var(--white); }
 .quiz-opcao.correta { border-color: var(--green); background: var(--green-dim); color: var(--white); }
 .quiz-opcao.errada { border-color: var(--red); background: rgba(220,90,90,0.08); color: var(--white); }
+.quiz-opcao:disabled { cursor: default; }
 .quiz-feedback { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; margin-top: 12px; }
-.quiz-progresso { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .05em; }
+.quiz-feedback.certa { color: var(--green); }
+.quiz-feedback.errada { color: var(--alerta-light); }
+.quiz-feedback strong { color: var(--white); }
+.quiz-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+/* barra de progresso — fase + pergunta dentro da fase */
+.quiz-progresso-wrap { margin-bottom: 16px; }
+.quiz-progresso-labels { display: flex; justify-content: space-between; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+.quiz-progresso-track { width: 100%; height: 6px; border-radius: var(--r-pill); background: var(--border2); overflow: hidden; }
+.quiz-progresso-fill { height: 100%; background: var(--gold); border-radius: var(--r-pill); transition: width .3s ease; }
 
 /* diário */
 .humor-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
@@ -1537,32 +1550,206 @@ const TEXTURAS_POR_ESTILO = {
 // frases instagramáveis prontas para o "Monte seu post"
 const FRASES_INSTA = ['vem aí...', 'sonho carregando...', 'a nossa próxima página', 'em construção (a melhor parte)'];
 
-const GLOSSARIO_PADRAO = [
-  { termo:'Briefing', explicacao:'A conversa inicial onde você conta seus sonhos, necessidades e estilo. É o alicerce de todo o projeto.' },
-  { termo:'Layout', explicacao:'A distribuição dos ambientes e móveis no espaço. Define por onde você anda, onde descansa, onde recebe.' },
-  { termo:'Projeto executivo', explicacao:'O conjunto de desenhos técnicos com todas as medidas e especificações que orientam a obra. É o mapa que o pedreiro e o marceneiro seguem.' },
-  { termo:'Planta baixa', explicacao:'O desenho do apartamento visto de cima, como se o teto fosse removido. Mostra a posição de paredes, portas e móveis.' },
-  { termo:'Render (imagem 3D)', explicacao:'Uma imagem realista de como o ambiente vai ficar pronto, feita no computador antes da obra.' },
-  { termo:'Marcenaria', explicacao:'Móveis planejados feitos sob medida para o seu espaço: armários, painéis, estantes.' },
-  { termo:'Drywall', explicacao:'Placas de gesso para construir paredes e forros de forma rápida e limpa, sem quebra-quebra.' },
-  { termo:'Ponto elétrico / hidráulico', explicacao:'Locais onde ficam tomadas, interruptores e saídas de água. Definir bem evita dor de cabeça depois.' },
-  { termo:'Revestimento', explicacao:'O material que cobre pisos e paredes: porcelanato, cerâmica, papel de parede, tinta.' },
-  { termo:'Iluminação indireta', explicacao:'Luz que não vem direto de uma lâmpada visível, criando aconchego e destacando ambientes.' },
-  { termo:'Cronograma de obra', explicacao:'O calendário que organiza cada etapa da reforma, do início à entrega.' },
-  { termo:'Memorial descritivo', explicacao:'Documento que lista todos os materiais e acabamentos escolhidos para a obra.' },
-  { termo:'Vistoria', explicacao:'A conferência do imóvel antes de receber as chaves, para garantir que está tudo certo.' },
-  { termo:'Habite-se', explicacao:'Documento da prefeitura que atesta que o prédio está pronto e apto para ser habitado.' },
-  { termo:'Marcenaria sob medida vs. modulada', explicacao:'Sob medida é feita exatamente para o seu espaço; modulada usa peças de tamanhos padrão, mais econômica.' },
+// Glossário Guide — lista editorial única (132 termos). Fonte da verdade no código:
+// não depende mais da tabela `glossario_termos` do Supabase.
+const GLOSSARIO_TERMOS = [
+  { id:'briefing', termo:'Briefing', explicacao:'Conversa inicial em que o arquiteto levanta sua rotina, gostos e necessidades' },
+  { id:'partido-arquitetonico', termo:'Partido arquitetônico', explicacao:'A ideia central que guia todas as decisões do projeto' },
+  { id:'conceito', termo:'Conceito', explicacao:'O fio condutor de intenção e estética por trás do projeto' },
+  { id:'moodboard', termo:'Moodboard', explicacao:'Painel de imagens, cores e materiais que traduz o clima do projeto' },
+  { id:'layout', termo:'Layout', explicacao:'A distribuição dos móveis e funções no espaço' },
+  { id:'planta-baixa', termo:'Planta baixa', explicacao:'Desenho do espaço visto de cima, como se o teto fosse removido' },
+  { id:'planta-humanizada', termo:'Planta humanizada', explicacao:'Planta colorida e ilustrada, fácil do cliente entender' },
+  { id:'estudo-preliminar', termo:'Estudo preliminar', explicacao:'A primeira versão do projeto, ainda aberta a ajustes' },
+  { id:'projeto-executivo', termo:'Projeto executivo', explicacao:'O conjunto de desenhos técnicos que a obra segue para construir' },
+  { id:'memorial-descritivo', termo:'Memorial descritivo', explicacao:'Documento que lista todos os materiais e acabamentos escolhidos' },
+  { id:'croqui', termo:'Croqui', explicacao:'Esboço rápido à mão usado para explicar uma ideia' },
+  { id:'escala', termo:'Escala', explicacao:'A proporção entre o desenho e o tamanho real' },
+  { id:'boneca', termo:'Boneca', explicacao:'O desenho na planta que indica para que lado a porta abre' },
+  { id:'vistas', termo:'Vistas', explicacao:'Desenhos que mostram cada parede de frente' },
+  { id:'corte', termo:'Corte', explicacao:'Desenho que mostra o ambiente "fatiado" na vertical, revelando alturas' },
+  { id:'elevacao', termo:'Elevação', explicacao:'Desenho de uma parede vista de frente, com medidas e detalhes' },
+  { id:'detalhamento', termo:'Detalhamento', explicacao:'Desenho ampliado de um trecho, explicando como executá-lo' },
+  { id:'modulacao', termo:'Modulação', explicacao:'Divisão do espaço numa grade para organizar piso, forro ou marcenaria' },
+  { id:'paginacao', termo:'Paginação', explicacao:'O planejamento de como cada peça de revestimento será alinhada' },
+  { id:'render', termo:'Render', explicacao:'Imagem 3D realista que mostra o projeto antes de existir' },
+  { id:'isometrica', termo:'Isométrica', explicacao:'Desenho 3D sem distorção, onde tudo mantém proporção real' },
+  { id:'perspectiva', termo:'Perspectiva', explicacao:'Desenho que simula a profundidade como o olho humano vê' },
+  { id:'fluxo', termo:'Fluxo', explicacao:'Os caminhos livres para circular pelo ambiente com conforto' },
+  { id:'ponto-focal', termo:'Ponto focal', explicacao:'O elemento que atrai o olhar ao entrar no ambiente' },
+  { id:'zoneamento', termo:'Zoneamento', explicacao:'A divisão do espaço em áreas por função (social, íntima, serviço)' },
+  { id:'ergonomia', termo:'Ergonomia', explicacao:'O estudo das medidas ideais para o corpo usar o espaço com conforto' },
+  { id:'pe-direito', termo:'Pé-direito', explicacao:'A altura entre o piso e o teto' },
+  { id:'pe-direito-duplo', termo:'Pé-direito duplo', explicacao:'Quando o ambiente tem a altura de dois andares' },
+  { id:'mezanino', termo:'Mezanino', explicacao:'Piso intermediário que aproveita a altura de um pé-direito alto' },
+  { id:'programa-de-necessidades', termo:'Programa de necessidades', explicacao:'A lista de ambientes e funções que o projeto deve atender' },
+  { id:'alvenaria', termo:'Alvenaria', explicacao:'Construção feita com tijolos ou blocos assentados com argamassa' },
+  { id:'laje', termo:'Laje', explicacao:'A estrutura de concreto que separa um andar do outro' },
+  { id:'viga', termo:'Viga', explicacao:'A estrutura horizontal que sustenta lajes e paredes' },
+  { id:'pilar', termo:'Pilar', explicacao:'A estrutura vertical que sustenta o peso do edifício' },
+  { id:'parede-estrutural', termo:'Parede estrutural', explicacao:'Parede que sustenta o prédio e não pode ser demolida' },
+  { id:'parede-de-vedacao', termo:'Parede de vedação', explicacao:'Parede que só divide ambientes e pode ser removida' },
+  { id:'prumo', termo:'Prumo', explicacao:'O alinhamento perfeitamente vertical de uma parede' },
+  { id:'prumada', termo:'Prumada', explicacao:'A linha vertical que se repete de andar a andar no prédio, alinhando shafts e tubulações' },
+  { id:'nivel', termo:'Nível', explicacao:'O alinhamento perfeitamente horizontal de uma superfície' },
+  { id:'esquadro', termo:'Esquadro', explicacao:'A checagem se dois lados formam um ângulo reto perfeito' },
+  { id:'shaft', termo:'Shaft', explicacao:'O duto vertical do prédio por onde passam tubulações e fiações' },
+  { id:'chapisco', termo:'Chapisco', explicacao:'A primeira camada áspera que ajuda o reboco a grudar na parede' },
+  { id:'emboco', termo:'Emboço', explicacao:'Camada intermediária que regulariza a parede' },
+  { id:'reboco', termo:'Reboco', explicacao:'A camada que alisa a parede antes da pintura' },
+  { id:'contrapiso', termo:'Contrapiso', explicacao:'A base de concreto que nivela o chão antes do piso final' },
+  { id:'regularizacao', termo:'Regularização', explicacao:'O processo de deixar a superfície plana e nivelada' },
+  { id:'impermeabilizacao', termo:'Impermeabilização', explicacao:'A proteção que impede a água de infiltrar em áreas molhadas' },
+  { id:'caimento', termo:'Caimento', explicacao:'A leve inclinação do piso que direciona a água ao ralo' },
+  { id:'junta-de-dilatacao', termo:'Junta de dilatação', explicacao:'O espaço deixado para o piso se movimentar sem trincar' },
+  { id:'junta-seca', termo:'Junta seca', explicacao:'Encontro entre dois materiais sem rejunte aparente, para um acabamento mais limpo' },
+  { id:'verga', termo:'Verga', explicacao:'A viga pequena sobre portas e janelas que segura o peso da parede acima' },
+  { id:'contraverga', termo:'Contraverga', explicacao:'A peça sob a janela que evita trincas nos cantos' },
+  { id:'demolicao', termo:'Demolição', explicacao:'A etapa de remover paredes, pisos ou estruturas antigas' },
+  { id:'bota-fora', termo:'Bota-fora', explicacao:'A retirada e o descarte do entulho da obra' },
+  { id:'marcacao', termo:'Marcação', explicacao:'Quando os pontos de elétrica e hidráulica são riscados na parede' },
+  { id:'mestre-de-obra', termo:'Mestre de obra', explicacao:'Quem coordena o time e o dia a dia do canteiro' },
+  { id:'rebaixo-de-forro', termo:'Rebaixo de forro', explicacao:'Quando parte do teto é abaixada para esconder instalações ou criar desenho' },
+  { id:'forro-de-gesso', termo:'Forro de gesso', explicacao:'Teto de placas de gesso para nivelar ou embutir luz' },
+  { id:'drywall', termo:'Drywall', explicacao:'Parede seca de placas de gesso sobre estrutura metálica' },
+  { id:'sanca', termo:'Sanca', explicacao:'A moldura no encontro entre teto e parede, geralmente com luz embutida' },
+  { id:'sanca-tecnica', termo:'Sanca técnica', explicacao:'Sanca dimensionada para esconder ar-condicionado, motores de cortina ou outros equipamentos' },
+  { id:'tabica', termo:'Tabica', explicacao:'O rasgo de sombra proposital entre forro e parede, sem moldura' },
+  { id:'roda-teto', termo:'Roda-teto', explicacao:'O acabamento no encontro do teto com a parede' },
+  { id:'rodape', termo:'Rodapé', explicacao:'O acabamento no encontro do piso com a parede' },
+  { id:'rodape-embutido', termo:'Rodapé embutido', explicacao:'Rodapé alinhado à parede, sem sobressair, visual mais limpo' },
+  { id:'meia-esquadria', termo:'Meia-esquadria', explicacao:'O corte a 45° que une dois acabamentos no canto sem emenda aparente' },
+  { id:'esquadria', termo:'Esquadria', explicacao:'O conjunto de portas e janelas com seus caixilhos' },
+  { id:'caixilho', termo:'Caixilho', explicacao:'A moldura que sustenta os vidros da janela' },
+  { id:'batente', termo:'Batente', explicacao:'A estrutura fixada na parede onde a porta se encaixa' },
+  { id:'guarnicao', termo:'Guarnição / alizar', explicacao:'A moldura que cobre o encontro do batente com a parede' },
+  { id:'soleira', termo:'Soleira', explicacao:'A peça que faz a transição de piso na passagem entre ambientes' },
+  { id:'peitoril', termo:'Peitoril', explicacao:'A peça que fecha a base interna da janela' },
+  { id:'guarda-corpo', termo:'Guarda-corpo', explicacao:'A proteção de segurança em sacadas, escadas e aberturas com desnível' },
+  { id:'pingadeira', termo:'Pingadeira', explicacao:'O acabamento externo da janela que escoa a água da chuva' },
+  { id:'friso', termo:'Friso', explicacao:'A ranhura ou faixa fina que cria um detalhe de sombra' },
+  { id:'ralo-linear', termo:'Ralo linear', explicacao:'Ralo em forma de fenda alongada, mais discreto que o quadrado' },
+  { id:'nicho', termo:'Nicho', explicacao:'O vão aberto na parede ou marcenaria para apoiar objetos' },
+  { id:'assentamento', termo:'Assentamento', explicacao:'O processo de fixar pisos e revestimentos na superfície' },
+  { id:'ladrilho-hidraulico', termo:'Ladrilho hidráulico', explicacao:'Piso artesanal de cimento com padrões coloridos' },
+  { id:'laminado', termo:'Laminado', explicacao:'Piso de madeira reconstituída que se encaixa sobre o contrapiso' },
+  { id:'boiserie', termo:'Boiserie', explicacao:'Painéis de moldura clássica aplicados na parede' },
+  { id:'muxarabi', termo:'Muxarabi', explicacao:'Painel vazado de madeira que filtra luz e cria privacidade' },
+  { id:'cobogo', termo:'Cobogó', explicacao:'Bloco vazado que divide ambientes deixando o ar e a luz passarem' },
+  { id:'porcelanato-retificado', termo:'Porcelanato com borda retificada', explicacao:'Porcelanato cortado a laser para encaixar com junta quase invisível' },
+  { id:'fita-de-borda', termo:'Fita de borda', explicacao:'O acabamento que reveste as laterais cortadas das chapas' },
+  { id:'marcenaria', termo:'Marcenaria', explicacao:'Os móveis planejados e feitos sob medida' },
+  { id:'marmoraria', termo:'Marmoraria', explicacao:'A empresa que corta e instala pedras como bancadas e soleiras' },
+  { id:'tampo', termo:'Tampo', explicacao:'A superfície superior de uma bancada, mesa ou móvel' },
+  { id:'testeira', termo:'Testeira', explicacao:'O painel que fecha a frente superior de um armário' },
+  { id:'armario-aereo', termo:'Armário aéreo', explicacao:'Armário fixado na parede acima da bancada, sem tocar o chão' },
+  { id:'corredica', termo:'Corrediça', explicacao:'O trilho que faz a gaveta deslizar' },
+  { id:'ferragem', termo:'Ferragem', explicacao:'As peças metálicas dos móveis (dobradiças, trilhos, puxadores)' },
+  { id:'puxador-cava', termo:'Puxador cava / perfil', explicacao:'O puxador embutido, sem peça saliente' },
+  { id:'basculante', termo:'Basculante', explicacao:'A porta de armário que abre para cima' },
+  { id:'nicho-iluminado', termo:'Nicho iluminado', explicacao:'O nicho com fita de luz embutida para destaque' },
+  { id:'bancada', termo:'Bancada', explicacao:'A superfície de trabalho da cozinha, banheiro ou área de serviço' },
+  { id:'ilha', termo:'Ilha', explicacao:'A bancada central e solta da cozinha, acessível por todos os lados' },
+  { id:'peninsula', termo:'Península', explicacao:'A bancada presa à parede por um lado, avançando no ambiente' },
+  { id:'cuba-esculpida', termo:'Cuba esculpida', explicacao:'A cuba talhada na própria pedra da bancada, sem emenda' },
+  { id:'frontao', termo:'Frontão / saia', explicacao:'A faixa vertical na borda da bancada que esconde a estrutura' },
+  { id:'marcenaria-suspensa', termo:'Marcenaria suspensa', explicacao:'Móvel fixado sem tocar o chão, dá leveza ao ambiente' },
+  { id:'caixa-de-passagem', termo:'Caixa de passagem', explicacao:'Caixa embutida na parede onde os fios se conectam antes de seguir para o ponto final' },
+  { id:'quadro-de-distribuicao', termo:'Quadro de distribuição', explicacao:'O painel onde ficam os disjuntores do imóvel' },
+  { id:'disjuntor', termo:'Disjuntor', explicacao:'O dispositivo que corta a energia em caso de sobrecarga' },
+  { id:'circuito', termo:'Circuito', explicacao:'O grupo de pontos elétricos ligados ao mesmo disjuntor' },
+  { id:'watts', termo:'Watts', explicacao:'A unidade que mede o consumo de energia de um equipamento ou lâmpada' },
+  { id:'busway', termo:'Busway', explicacao:'Trilho condutor de energia usado para levar eletricidade a longas distâncias com flexibilidade' },
+  { id:'bypass', termo:'Bypass', explicacao:'Desvio que permite manter um sistema funcionando enquanto parte dele é isolada ou trocada' },
+  { id:'aterramento', termo:'Aterramento', explicacao:'A ligação de segurança que protege contra choques' },
+  { id:'automacao', termo:'Automação', explicacao:'O sistema para controlar luz, som e clima à distância' },
+  { id:'split', termo:'Split', explicacao:'O ar-condicionado dividido em unidade interna e externa' },
+  { id:'infra-de-ar', termo:'Infra de ar', explicacao:'A tubulação e o dreno deixados prontos para instalar o ar depois' },
+  { id:'vp', termo:'VP (ventilação permanente)', explicacao:'Abertura obrigatória por norma que garante a troca constante de ar no ambiente' },
+  { id:'exaustao', termo:'Exaustão', explicacao:'O sistema que retira o ar quente ou úmido do ambiente' },
+  { id:'aquecedor-de-passagem', termo:'Aquecedor de passagem', explicacao:'Aquecedor que esquenta a água na hora do uso, sem reservatório' },
+  { id:'hidrometro', termo:'Hidrômetro', explicacao:'O medidor que registra o consumo de água do imóvel' },
+  { id:'cavalete-de-agua', termo:'Cavalete de água', explicacao:'A estrutura externa onde fica o hidrômetro e o registro geral de água' },
+  { id:'projeto-luminotecnico', termo:'Projeto luminotécnico', explicacao:'O projeto que planeja toda a iluminação do espaço' },
+  { id:'temperatura-de-cor', termo:'Temperatura de cor', explicacao:'Se a luz puxa para o amarelo (quente) ou o branco (frio)' },
+  { id:'kelvin', termo:'Kelvin', explicacao:'A unidade que mede a temperatura de cor da luz' },
+  { id:'dimerizacao', termo:'Dimerização', explicacao:'O recurso de regular a intensidade da luz' },
+  { id:'spot', termo:'Spot', explicacao:'A luminária pontual embutida ou sobreposta no teto' },
+  { id:'trilho-eletrificado', termo:'Trilho eletrificado', explicacao:'A barra no teto onde se encaixam e deslizam spots' },
+  { id:'perfil-de-led', termo:'Perfil de LED', explicacao:'A estrutura embutida que abriga a fita e dá acabamento' },
+  { id:'vistoria', termo:'Vistoria', explicacao:'A inspeção do imóvel antes da obra para registrar o estado original' },
+  { id:'as-built', termo:'As built', explicacao:'O desenho atualizado que mostra como a obra ficou de fato' },
+  { id:'comissionamento', termo:'Comissionamento', explicacao:'A checagem final de que tudo funciona antes da entrega' },
+  { id:'pos-obra', termo:'Pós-obra', explicacao:'A limpeza pesada que retira a poeira fina deixada pela obra' },
+  { id:'checklist-de-entrega', termo:'Checklist de entrega', explicacao:'A lista conferida item a item ao receber a obra' },
+  { id:'habite-se', termo:'Habite-se', explicacao:'O documento que atesta que o imóvel pode ser habitado' },
+  { id:'matricula', termo:'Matrícula', explicacao:'O documento no cartório que identifica o imóvel e seu histórico legal' },
+  { id:'escritura', termo:'Escritura', explicacao:'O documento que formaliza a transferência de propriedade do imóvel' },
 ];
+// mantém o nome antigo como alias (código legado que ainda referencie a lista)
+const GLOSSARIO_PADRAO = GLOSSARIO_TERMOS;
 
+// Quiz do glossário — 50 perguntas em 5 fases de 10 (divisão só organizacional).
+// `correta` é sempre o índice na lista `opcoes`; a ordem é embaralhada ao exibir.
+// `termoId` liga a pergunta ao termo do glossário (para conexão futura entre os módulos).
+const QUIZ_FASES_N = 5;
+const QUIZ_POR_FASE = 10;
 const QUIZ = [
-  { pergunta:'O que é um projeto executivo?', opcoes:['A conversa inicial sobre seus sonhos e estilo','O conjunto de desenhos técnicos com todas as medidas que orientam a obra','Uma imagem realista de como o ambiente vai ficar','O calendário que organiza a obra'], correta:1 },
-  { pergunta:'O que é uma planta baixa?', opcoes:['O desenho do apartamento visto de cima','Uma reunião de condomínio','O documento que atesta que o prédio está pronto','O material que cobre pisos e paredes'], correta:0 },
-  { pergunta:'Para que serve o memorial descritivo?', opcoes:['Para escolher a paleta de cores','Para listar todos os materiais e acabamentos escolhidos','Para marcar a vistoria','Para desenhar a planta baixa'], correta:1 },
-  { pergunta:"O que é 'render'?", opcoes:['Um tipo de revestimento','Um documento técnico','Uma imagem realista de como o ambiente vai ficar pronto','Um tipo de iluminação'], correta:2 },
-  { pergunta:'Qual a diferença entre marcenaria sob medida e modulada?', opcoes:['Não há diferença','Sob medida é feita para o seu espaço; modulada usa peças padrão','Modulada é sempre mais cara','Sob medida é sempre mais rápida'], correta:1 },
-  { pergunta:'O que é o Habite-se?', opcoes:['Um tipo de acabamento','O documento da prefeitura que atesta que o prédio está pronto para ser habitado','A vistoria final do cliente','O contrato de obra'], correta:1 },
-  { pergunta:'Drywall é...', opcoes:['Um tipo de piso','Placas de gesso para construir paredes e forros de forma rápida','Um software de projeto','Um tipo de tinta'], correta:1 },
+  // ── Fase 1 — do briefing ao projeto ──
+  { id:'q01', termoId:'briefing', pergunta:"O que acontece no briefing?", opcoes:["O arquiteto levanta sua rotina, seus gostos e necessidades","A obra é entregue e vistoriada","Os móveis são instalados no espaço","O contrato com a construtora é assinado"], correta:0 },
+  { id:'q02', termoId:'partido-arquitetonico', pergunta:"O que é o partido arquitetônico?", opcoes:["A ideia central que guia todas as decisões do projeto","A lista de materiais da obra","O orçamento aprovado pelo cliente","A planta do apartamento vista de cima"], correta:0 },
+  { id:'q03', termoId:'moodboard', pergunta:"Para que serve um moodboard?", opcoes:["Traduzir o clima do projeto com imagens, cores e materiais","Registrar o consumo de energia da casa","Mostrar por onde passam os canos","Listar os prazos de cada etapa"], correta:0 },
+  { id:'q04', termoId:'layout', pergunta:"O que o layout define?", opcoes:["A distribuição dos móveis e das funções no espaço","A cor das paredes","A marca dos eletrodomésticos","O valor do condomínio"], correta:0 },
+  { id:'q05', termoId:'planta-baixa', pergunta:"O que é uma planta baixa?", opcoes:["O desenho do espaço visto de cima, como se o teto fosse removido","Uma foto realista do ambiente pronto","O documento que libera a moradia","A parede que não pode ser demolida"], correta:0 },
+  { id:'q06', termoId:'planta-humanizada', pergunta:"O que diferencia a planta humanizada?", opcoes:["É colorida e ilustrada, mais fácil do cliente entender","É feita só com medidas técnicas","Mostra o prédio por fora","Registra o estado do imóvel antes da obra"], correta:0 },
+  { id:'q07', termoId:'estudo-preliminar', pergunta:"O que é o estudo preliminar?", opcoes:["A primeira versão do projeto, ainda aberta a ajustes","O desenho final que a obra segue","A vistoria de entrega das chaves","O painel de referências visuais"], correta:0 },
+  { id:'q08', termoId:'projeto-executivo', pergunta:"Para que serve o projeto executivo?", opcoes:["Reunir os desenhos técnicos que a obra segue para construir","Escolher a paleta de cores","Apresentar a ideia inicial ao cliente","Medir o consumo de água"], correta:0 },
+  { id:'q09', termoId:'memorial-descritivo', pergunta:"O que o memorial descritivo lista?", opcoes:["Todos os materiais e acabamentos escolhidos","As perguntas do briefing","Os nomes dos pedreiros","As datas das reuniões de condomínio"], correta:0 },
+  { id:'q10', termoId:'escala', pergunta:"O que a escala de um desenho indica?", opcoes:["A proporção entre o desenho e o tamanho real","A ordem das etapas da obra","A altura do pé-direito","O peso que a estrutura aguenta"], correta:0 },
+  // ── Fase 2 — desenhos e representação ──
+  { id:'q11', termoId:'croqui', pergunta:"O que é um croqui?", opcoes:["Um esboço rápido à mão para explicar uma ideia","Um desenho técnico com todas as medidas","Uma imagem 3D realista","A lista de materiais da obra"], correta:0 },
+  { id:'q12', termoId:'boneca', pergunta:"Na planta, o que a 'boneca' de uma porta mostra?", opcoes:["Para que lado a porta abre","A cor da porta","O material da fechadura","A altura da porta"], correta:0 },
+  { id:'q13', termoId:'vistas', pergunta:"O que são as vistas em um projeto?", opcoes:["Desenhos que mostram cada parede de frente","Fotos tiradas durante a obra","O caminho livre para circular","As referências de estilo do projeto"], correta:0 },
+  { id:'q14', termoId:'corte', pergunta:"O que um desenho de corte revela?", opcoes:["O ambiente cortado na vertical, mostrando as alturas","A planta vista de cima","A fachada do prédio","O orçamento por ambiente"], correta:0 },
+  { id:'q15', termoId:'elevacao', pergunta:"O que é uma elevação?", opcoes:["O desenho de uma parede vista de frente, com medidas e detalhes","A inclinação do piso para o ralo","O piso intermediário de um pé-direito alto","A checagem do ângulo reto"], correta:0 },
+  { id:'q16', termoId:'detalhamento', pergunta:"Para que serve um detalhamento?", opcoes:["Ampliar um trecho e explicar como executá-lo","Resumir o projeto em uma página","Mostrar o prédio inteiro","Registrar o estado original do imóvel"], correta:0 },
+  { id:'q17', termoId:'render', pergunta:"O que é um render?", opcoes:["Uma imagem 3D realista que mostra o projeto antes de existir","Um documento técnico da obra","Um tipo de revestimento de parede","Uma ferramenta de medição"], correta:0 },
+  { id:'q18', termoId:'perspectiva', pergunta:"O que a perspectiva simula em um desenho?", opcoes:["A profundidade, como o olho humano enxerga","O consumo de energia","A ordem das etapas da obra","A planta vista de cima sem profundidade"], correta:0 },
+  { id:'q19', termoId:'isometrica', pergunta:"O que caracteriza um desenho isométrico?", opcoes:["É 3D sem distorção: tudo mantém a proporção real","É sempre feito à mão livre","Mostra só uma parede de frente","É uma foto do ambiente pronto"], correta:0 },
+  { id:'q20', termoId:'paginacao', pergunta:"O que é a paginação de um revestimento?", opcoes:["O planejamento de como cada peça será alinhada","A quantidade de caixas a comprar","A cor do rejunte","O prazo de assentamento"], correta:0 },
+  // ── Fase 3 — estrutura e alvenaria ──
+  { id:'q21', termoId:'alvenaria', pergunta:"O que é alvenaria?", opcoes:["Construção com tijolos ou blocos assentados com argamassa","Móvel planejado sob medida","Parede de placas de gesso","O acabamento entre piso e parede"], correta:0 },
+  { id:'q22', termoId:'laje', pergunta:"Qual a função da laje?", opcoes:["Separar um andar do outro","Sustentar as janelas","Cobrir o piso do banheiro","Filtrar a luz do sol"], correta:0 },
+  { id:'q23', termoId:'viga', pergunta:"O que a viga faz na estrutura?", opcoes:["Sustenta lajes e paredes na horizontal","Leva água até as torneiras","Divide ambientes sem sustentar peso","Escoa a água da chuva da janela"], correta:0 },
+  { id:'q24', termoId:'pilar', pergunta:"Qual o papel do pilar?", opcoes:["Sustentar o peso do edifício na vertical","Alisar a parede antes da pintura","Nivelar o chão antes do piso","Esconder o ar-condicionado"], correta:0 },
+  { id:'q25', termoId:'parede-estrutural', pergunta:"O que define uma parede estrutural?", opcoes:["Ela sustenta o prédio e não pode ser demolida","Ela só divide ambientes e pode sair","Ela é sempre feita de vidro","Ela fica apenas na fachada"], correta:0 },
+  { id:'q26', termoId:'parede-de-vedacao', pergunta:"O que é uma parede de vedação?", opcoes:["Uma parede que só divide ambientes e pode ser removida","Uma parede que sustenta a laje","A base de concreto do piso","O duto vertical de tubulações"], correta:0 },
+  { id:'q27', termoId:'prumo', pergunta:"O que significa uma parede estar 'no prumo'?", opcoes:["Perfeitamente vertical, sem inclinação","Perfeitamente horizontal","Com caimento para o ralo","Com ângulo reto no canto"], correta:0 },
+  { id:'q28', termoId:'nivel', pergunta:"O que o nível verifica em uma superfície?", opcoes:["Se está perfeitamente horizontal","Se está perfeitamente vertical","Se o ângulo do canto é reto","Se a tinta já secou"], correta:0 },
+  { id:'q29', termoId:'shaft', pergunta:"O que passa dentro de um shaft?", opcoes:["Tubulações e fiações, num duto vertical do prédio","Somente água quente","Os móveis planejados","A iluminação indireta"], correta:0 },
+  { id:'q30', termoId:'verga', pergunta:"Para que serve a verga?", opcoes:["Segurar o peso da parede acima de portas e janelas","Escoar a água da chuva","Nivelar o contrapiso","Esconder a fiação no forro"], correta:0 },
+  // ── Fase 4 — revestimentos e acabamentos ──
+  { id:'q31', termoId:'contrapiso', pergunta:"Qual a função do contrapiso?", opcoes:["Nivelar o chão antes do piso final","Impedir a água de infiltrar","Cobrir o encontro do piso com a parede","Dar acabamento à janela por fora"], correta:0 },
+  { id:'q32', termoId:'impermeabilizacao', pergunta:"O que a impermeabilização faz?", opcoes:["Impede a água de infiltrar em áreas molhadas","Deixa a parede lisa para pintar","Nivela superfícies tortas","Ilumina os nichos"], correta:0 },
+  { id:'q33', termoId:'caimento', pergunta:"O que é o caimento de um piso?", opcoes:["A leve inclinação que leva a água até o ralo","O alinhamento vertical da parede","O corte a 45° no canto","A folga para o piso se movimentar"], correta:0 },
+  { id:'q34', termoId:'junta-de-dilatacao', pergunta:"Para que serve a junta de dilatação?", opcoes:["Deixar o piso se movimentar sem trincar","Unir dois materiais sem rejunte aparente","Esconder o ar-condicionado no forro","Escoar a água da janela"], correta:0 },
+  { id:'q35', termoId:'reboco', pergunta:"O que é o reboco?", opcoes:["A camada que alisa a parede antes da pintura","A primeira camada áspera na parede","A base de concreto do piso","O acabamento entre teto e parede"], correta:0 },
+  { id:'q36', termoId:'chapisco', pergunta:"Qual a função do chapisco?", opcoes:["Ser a primeira camada áspera que ajuda o reboco a grudar","Alisar a parede para a pintura","Nivelar o piso","Impermeabilizar o box"], correta:0 },
+  { id:'q37', termoId:'rodape', pergunta:"O que é o rodapé?", opcoes:["O acabamento no encontro do piso com a parede","O acabamento no encontro do teto com a parede","A moldura da porta","A peça que fecha a base da janela"], correta:0 },
+  { id:'q38', termoId:'sanca', pergunta:"O que é uma sanca?", opcoes:["A moldura no encontro do teto com a parede, geralmente com luz embutida","O rasgo de sombra sem moldura entre forro e parede","O painel vazado que filtra a luz","A viga sobre a porta"], correta:0 },
+  { id:'q39', termoId:'tabica', pergunta:"O que caracteriza a tabica?", opcoes:["Um rasgo de sombra proposital entre forro e parede, sem moldura","Uma moldura clássica aplicada na parede","Um bloco vazado que divide ambientes","O trilho onde deslizam os spots"], correta:0 },
+  { id:'q40', termoId:'porcelanato-retificado', pergunta:"O que é um porcelanato com borda retificada?", opcoes:["É cortado a laser para encaixar com junta quase invisível","Tem padrões coloridos feitos à mão","É de madeira reconstituída","Vem com fita de borda nas laterais"], correta:0 },
+  // ── Fase 5 — instalações e entrega ──
+  { id:'q41', termoId:'disjuntor', pergunta:"O que o disjuntor faz?", opcoes:["Corta a energia em caso de sobrecarga","Mede o consumo de água","Aquece a água na hora do uso","Regula a intensidade da luz"], correta:0 },
+  { id:'q42', termoId:'circuito', pergunta:"O que é um circuito elétrico no projeto?", opcoes:["O grupo de pontos ligados ao mesmo disjuntor","O painel com todos os disjuntores","A ligação de segurança contra choques","O trilho que leva energia a longas distâncias"], correta:0 },
+  { id:'q43', termoId:'aterramento', pergunta:"Para que serve o aterramento?", opcoes:["Proteger as pessoas contra choques elétricos","Aumentar a potência das lâmpadas","Medir o consumo de energia","Controlar a luz à distância"], correta:0 },
+  { id:'q44', termoId:'split', pergunta:"O que é um ar-condicionado split?", opcoes:["Um aparelho dividido em unidade interna e externa","A tubulação deixada pronta para instalar o ar depois","A abertura obrigatória de ventilação","O sistema que só retira o ar quente"], correta:0 },
+  { id:'q45', termoId:'temperatura-de-cor', pergunta:"O que a temperatura de cor da luz indica?", opcoes:["Se a luz puxa para o amarelo (quente) ou o branco (frio)","A intensidade em watts","Se a lâmpada pode ser dimerizada","A distância entre os spots"], correta:0 },
+  { id:'q46', termoId:'kelvin', pergunta:"O que se mede em Kelvin na iluminação?", opcoes:["A temperatura de cor da luz","O consumo de energia","A área iluminada","A vida útil da lâmpada"], correta:0 },
+  { id:'q47', termoId:'dimerizacao', pergunta:"O que a dimerização permite?", opcoes:["Regular a intensidade da luz","Mudar a cor da parede","Desligar a energia na sobrecarga","Trocar o spot de lugar no trilho"], correta:0 },
+  { id:'q48', termoId:'spot', pergunta:"O que é um spot?", opcoes:["Uma luminária pontual, embutida ou sobreposta no teto","A barra no teto onde se encaixam luminárias","O perfil que abriga a fita de LED","O painel de disjuntores"], correta:0 },
+  { id:'q49', termoId:'habite-se', pergunta:"O que o Habite-se atesta?", opcoes:["Que o imóvel pode ser habitado","Que a obra de reforma acabou","Que o condomínio foi instalado","Que a vistoria não achou problemas"], correta:0 },
+  { id:'q50', termoId:'as-built', pergunta:"O que é o desenho as built?", opcoes:["O desenho atualizado que mostra como a obra ficou de fato","O primeiro esboço do projeto","A imagem 3D feita antes da obra","A lista de materiais escolhidos"], correta:0 },
 ];
 
 // cada marco: nome, explicação e conforto ficam sempre visíveis; `detalhe` é a instrução
@@ -1629,8 +1816,7 @@ let muralVincularId = null;
 let muralSelVinc = [];
 let muralVerVinculadasId = null;
 let palpites = [];
-let quizIndex = 0;
-let quizAcertos = 0;
+let quiz = null; // sessão do quiz em andamento (null = ainda não iniciado nesta abertura do card)
 let glossarioAba = 'termos';
 
 // ─────────────────────────────────────────────────────────────
@@ -1743,7 +1929,7 @@ async function inicializar() {
   briefing = bf;
   marcos = marcosRow;
   marcosPersonalizados = marcosPersRows || [];
-  glossario = gloss && gloss.length ? gloss : GLOSSARIO_PADRAO;
+  glossario = GLOSSARIO_TERMOS; // lista fixa no código — `gloss` (Supabase) não é mais usado aqui
   const empreendimento = (bfDados()||{})['empreendimento'];
   comunidade = empreendimento ? await tentar(sb.from('comunidade_posts').select('*').eq('empreendimento', empreendimento).order('criado_em', { ascending: false }), []) : comum;
   parceiros = parc;
@@ -2092,8 +2278,8 @@ function fechadoParceiros() {
 function fechadoGlossario() {
   return `
     <div class="card-eyebrow">${ic('book-open')} Glossário</div>
-    <div class="card-titulo">${glossario.length} termos + quiz</div>
-    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Toque para virar as cartas e teste o que aprendeu no quiz.')}</div></div>
+    <div class="card-titulo">Fale a língua do seu projeto</div>
+    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Passe o mouse (ou toque) nas cartas para revelar cada termo — e teste o que aprendeu no quiz.')}</div></div>
   `;
 }
 
@@ -2186,6 +2372,7 @@ function fecharExpandido() {
   const inner = document.getElementById('modal-inner');
   inner.classList.remove('vis');
   overlay.classList.remove('vis');
+  quiz = null; // ao reabrir o Glossário, o quiz reavalia se há progresso salvo
 
   const origem = cardOrigemAtual;
   setTimeout(() => {
@@ -3273,12 +3460,13 @@ function expandidoParceiros() {
 
 // ── Glossário + Quiz ──
 function expandidoGlossario() {
+  if (glossarioAba === 'quiz' && !quiz) abrirQuiz();
   return `
     <div class="modal-eyebrow">${ic('book-open')} Glossário</div>
     <div class="modal-titulo">Fale a língua do seu projeto</div>
     <div class="tab-switch">
-      <button class="tab-btn ${glossarioAba==='termos'?'ativa':''}" data-aba="termos">${ic('book-open','ic-sm')} Termos</button>
-      <button class="tab-btn ${glossarioAba==='quiz'?'ativa':''}" data-aba="quiz">${ic('help-circle','ic-sm')} Quiz</button>
+      <button class="tab-btn ${glossarioAba==='termos'?'ativa':''}" data-aba="termos">📖 Termos</button>
+      <button class="tab-btn ${glossarioAba==='quiz'?'ativa':''}" data-aba="quiz">❓ Quiz</button>
     </div>
     <div id="glossario-conteudo">${glossarioAba === 'termos' ? renderTermos() : renderQuiz()}</div>
   `;
@@ -3294,70 +3482,216 @@ function renderTermos() {
     </div>`).join('')}</div>`;
 }
 
-function renderQuiz() {
-  if (quizIndex >= QUIZ.length) {
-    return `
-      <div class="quiz-card" style="text-align:center;">
-        <div style="color:var(--gold);margin-bottom:12px;">${ic('trophy','ic-xl')}</div>
-        <div class="quiz-pergunta">Você acertou ${quizAcertos} de ${QUIZ.length}!</div>
-        <div class="quiz-feedback">Agora você já fala a língua do seu projeto. A Guide está aqui para guiar cada passo.</div>
-        <button class="card-cta" id="btn-quiz-reiniciar" style="margin-top:16px;">Refazer quiz ${ic('arrow-right')}</button>
-      </div>
-    `;
+// ── Quiz: 5 fases de 10 perguntas, 2 tentativas por pergunta, progresso salvo por Guider ──
+function quizLSKey() { return 'quiz-glossario-' + (projeto && projeto.id ? projeto.id : 'anon'); }
+function lerProgressoQuiz() {
+  try { return JSON.parse(localStorage.getItem(quizLSKey()) || 'null'); } catch (e) { return null; }
+}
+function salvarProgressoQuiz() {
+  if (!quiz) return;
+  try { localStorage.setItem(quizLSKey(), JSON.stringify({ fase: quiz.fase, perg: quiz.perg, acertosFase: quiz.acertosFase, feito: false })); } catch (e) {}
+}
+function marcarQuizFeito() {
+  try { localStorage.setItem(quizLSKey(), JSON.stringify({ fase: 0, perg: 0, acertosFase: 0, feito: true })); } catch (e) {}
+}
+function limparProgressoQuiz() {
+  try { localStorage.removeItem(quizLSKey()); } catch (e) {}
+}
+
+function abrirQuiz() {
+  quiz = { fase: 0, perg: 0, acertosFase: 0, sel: null, estado: 'respondendo', tentativas: 0, ordem: [], corretaIdx: 0, vista: 'pergunta', retomar: null };
+  const salvo = lerProgressoQuiz();
+  if (salvo && !salvo.feito && (salvo.fase > 0 || salvo.perg > 0)) {
+    quiz.vista = 'retomar';
+    quiz.retomar = salvo;
+  } else {
+    prepararPergunta();
   }
-  const q = QUIZ[quizIndex];
+}
+
+// embaralha as opções da pergunta atual (mantendo a correta rastreável)
+function prepararPergunta() {
+  const q = QUIZ[quiz.fase * QUIZ_POR_FASE + quiz.perg];
+  const ordem = q.opcoes.map((_, i) => i);
+  for (let i = ordem.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ordem[i], ordem[j]] = [ordem[j], ordem[i]]; }
+  quiz.ordem = ordem;
+  quiz.corretaIdx = ordem.indexOf(q.correta);
+  quiz.sel = null;
+  quiz.estado = 'respondendo';
+  quiz.tentativas = 0;
+}
+
+function renderQuiz() {
+  if (!quiz) return '';
+  if (quiz.vista === 'retomar') return renderQuizRetomar();
+  if (quiz.vista === 'fimFase') return renderQuizFimFase();
+  if (quiz.vista === 'fimTudo') return renderQuizFimTudo();
+  return renderQuizPergunta();
+}
+
+function renderQuizRetomar() {
+  const s = quiz.retomar;
   return `
-    <div class="quiz-card">
-      <div class="quiz-progresso">Pergunta ${quizIndex+1} de ${QUIZ.length}</div>
-      <div class="quiz-pergunta">${q.pergunta}</div>
-      ${q.opcoes.map((op,i) => `<button class="quiz-opcao" data-i="${i}">${op}</button>`).join('')}
-      <div class="quiz-feedback" id="quiz-feedback" style="display:none;"></div>
+    <div class="quiz-card" style="text-align:center;">
+      <div style="color:var(--gold);margin-bottom:12px;">${ic('bookmark','ic-xl')}</div>
+      <div class="quiz-pergunta">Você tem um quiz em andamento</div>
+      <div class="quiz-feedback">Você parou na Fase ${s.fase + 1}, pergunta ${Math.min(s.perg + 1, QUIZ_POR_FASE)} de ${QUIZ_POR_FASE}.</div>
+      <div class="quiz-acoes" style="justify-content:center;">
+        <button class="btn-primario" data-quiz-acao="continuar">Continuar de onde parei</button>
+        <button class="card-cta" data-quiz-acao="recomecar">Recomeçar do zero</button>
+      </div>
+    </div>`;
+}
+
+function renderQuizPergunta() {
+  const q = QUIZ[quiz.fase * QUIZ_POR_FASE + quiz.perg];
+  const pct = ((quiz.perg + 1) / QUIZ_POR_FASE) * 100;
+  const respondida = quiz.estado === 'certo' || quiz.estado === 'revelado';
+  const opcoesHTML = quiz.ordem.map((idxOriginal, i) => {
+    const cls = ['quiz-opcao'];
+    if (quiz.sel === i && !respondida) cls.push('sel');
+    if (respondida && i === quiz.corretaIdx) cls.push('correta');
+    if (quiz.estado === 'revelado' && quiz.sel === i && i !== quiz.corretaIdx) cls.push('errada');
+    return `<button type="button" class="${cls.join(' ')}" data-quiz-op="${i}" ${respondida ? 'disabled' : ''}>${q.opcoes[idxOriginal]}</button>`;
+  }).join('');
+  let feedback = '';
+  if (quiz.estado === 'erro1') feedback = `<div class="quiz-feedback errada">Não foi dessa vez. Tente mais uma vez!</div>`;
+  if (quiz.estado === 'certo') feedback = `<div class="quiz-feedback certa">Isso mesmo! 🎉</div>`;
+  if (quiz.estado === 'revelado') feedback = `<div class="quiz-feedback">A resposta certa era: <strong>${q.opcoes[q.correta]}</strong></div>`;
+  const acaoBtn = respondida
+    ? `<button type="button" class="btn-primario" data-quiz-acao="proxima">${quiz.perg + 1 < QUIZ_POR_FASE ? 'Próxima pergunta' : 'Concluir fase'} ${ic('arrow-right','ic-sm')}</button>`
+    : `<button type="button" class="btn-primario" data-quiz-acao="confirmar" ${quiz.sel === null ? 'disabled' : ''}>Confirmar resposta</button>`;
+  return `
+    <div class="quiz-progresso-wrap">
+      <div class="quiz-progresso-labels"><span>Fase ${quiz.fase + 1} de ${QUIZ_FASES_N}</span><span>Pergunta ${quiz.perg + 1} de ${QUIZ_POR_FASE}</span></div>
+      <div class="quiz-progresso-track"><div class="quiz-progresso-fill" style="width:${pct}%"></div></div>
     </div>
-  `;
+    <div class="quiz-card">
+      <div class="quiz-pergunta">${q.pergunta}</div>
+      <div class="quiz-opcoes">${opcoesHTML}</div>
+      ${feedback}
+      <div class="quiz-acoes">${acaoBtn}</div>
+    </div>`;
+}
+
+function renderQuizFimFase() {
+  const ultima = quiz.fase + 1 >= QUIZ_FASES_N;
+  return `
+    <div class="quiz-card" style="text-align:center;">
+      <div style="color:var(--gold);margin-bottom:12px;">${ic('circle-check','ic-xl')}</div>
+      <div class="quiz-pergunta">Fase ${quiz.fase + 1} concluída</div>
+      <div class="quiz-feedback">Você acertou ${quiz.acertosFase} de ${QUIZ_POR_FASE}.</div>
+      <div class="quiz-acoes" style="justify-content:center;">
+        <button type="button" class="btn-primario" data-quiz-acao="proximaFase">${ultima ? 'Ver resultado final' : 'Ir para a próxima fase'} ${ic('arrow-right','ic-sm')}</button>
+      </div>
+    </div>`;
+}
+
+function renderQuizFimTudo() {
+  return `
+    <div class="quiz-card" style="text-align:center;">
+      <div style="color:var(--gold);margin-bottom:12px;">${ic('trophy','ic-xl')}</div>
+      <div class="quiz-pergunta">Quiz completo!</div>
+      <div class="quiz-feedback">Você passou pelas 5 fases do glossário Guide. Agora você já fala a língua do seu projeto.</div>
+      <div class="quiz-acoes" style="justify-content:center;">
+        <button type="button" class="card-cta" data-quiz-acao="refazer">Refazer o quiz ${ic('arrow-right','ic-sm')}</button>
+      </div>
+    </div>`;
+}
+
+function repintarQuiz() {
+  const c = document.getElementById('glossario-conteudo');
+  if (c) { c.innerHTML = renderQuiz(); icons(); }
+}
+
+function quizConfirmar() {
+  if (quiz.sel === null) return;
+  if (quiz.sel === quiz.corretaIdx) {
+    quiz.estado = 'certo';
+    quiz.acertosFase++;
+  } else {
+    quiz.tentativas++;
+    if (quiz.tentativas === 1) { quiz.estado = 'erro1'; quiz.sel = null; }
+    else quiz.estado = 'revelado';
+  }
+  salvarProgressoQuiz();
+  repintarQuiz();
+}
+
+function quizProxima() {
+  if (quiz.perg + 1 < QUIZ_POR_FASE) {
+    quiz.perg++;
+    prepararPergunta();
+  } else {
+    quiz.vista = 'fimFase';
+  }
+  salvarProgressoQuiz();
+  repintarQuiz();
+}
+
+function quizProximaFase() {
+  if (quiz.fase + 1 < QUIZ_FASES_N) {
+    quiz.fase++;
+    quiz.perg = 0;
+    quiz.acertosFase = 0;
+    quiz.vista = 'pergunta';
+    prepararPergunta();
+    salvarProgressoQuiz();
+  } else {
+    quiz.vista = 'fimTudo';
+    marcarQuizFeito();
+  }
+  repintarQuiz();
+}
+
+function onQuizClick(e) {
+  if (!quiz) return;
+  const op = e.target.closest('[data-quiz-op]');
+  if (op) {
+    if (quiz.estado === 'certo' || quiz.estado === 'revelado') return;
+    quiz.sel = parseInt(op.dataset.quizOp, 10);
+    repintarQuiz();
+    return;
+  }
+  const btn = e.target.closest('[data-quiz-acao]');
+  if (!btn) return;
+  const acao = btn.dataset.quizAcao;
+  if (acao === 'confirmar') quizConfirmar();
+  else if (acao === 'proxima') quizProxima();
+  else if (acao === 'proximaFase') quizProximaFase();
+  else if (acao === 'continuar') {
+    quiz.fase = quiz.retomar.fase; quiz.perg = Math.min(quiz.retomar.perg, QUIZ_POR_FASE - 1); quiz.acertosFase = quiz.retomar.acertosFase;
+    quiz.vista = 'pergunta'; prepararPergunta(); repintarQuiz();
+  } else if (acao === 'recomecar' || acao === 'refazer') {
+    limparProgressoQuiz();
+    quiz = { fase: 0, perg: 0, acertosFase: 0, sel: null, estado: 'respondendo', tentativas: 0, ordem: [], corretaIdx: 0, vista: 'pergunta', retomar: null };
+    prepararPergunta();
+    repintarQuiz();
+  }
 }
 
 function ligarGlossario() {
   document.querySelectorAll('#modal-inner .tab-btn').forEach(b => {
     b.addEventListener('click', () => {
+      if (b.dataset.aba === glossarioAba) return;
       glossarioAba = b.dataset.aba;
       document.getElementById('modal-inner').innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoGlossario();
       ligarGlossario();
       icons();
     });
   });
-  document.querySelectorAll('#modal-inner .flip-card').forEach(c => c.addEventListener('click', () => c.classList.toggle('flipped')));
-  ligarQuizOpcoes();
-}
-
-function ligarQuizOpcoes() {
-  document.querySelectorAll('#modal-inner .quiz-opcao').forEach(b => {
-    b.addEventListener('click', () => {
-      if (b.disabled) return;
-      const opcoes = document.querySelectorAll('#modal-inner .quiz-opcao');
-      opcoes.forEach(o => o.disabled = true);
-      const i = parseInt(b.dataset.i, 10);
-      const q = QUIZ[quizIndex];
-      const feedback = document.getElementById('quiz-feedback');
-      if (i === q.correta) {
-        b.classList.add('correta');
-        quizAcertos++;
-        feedback.textContent = 'Isso mesmo! ' + q.opcoes[q.correta] + '.';
-      } else {
-        b.classList.add('errada');
-        opcoes[q.correta].classList.add('correta');
-        feedback.textContent = 'A resposta certa é: ' + q.opcoes[q.correta] + '.';
-      }
-      feedback.style.display = 'block';
-      setTimeout(() => {
-        quizIndex++;
-        document.getElementById('glossario-conteudo').innerHTML = renderQuiz();
-        ligarQuizOpcoes();
-        const reiniciar = document.getElementById('btn-quiz-reiniciar');
-        if (reiniciar) reiniciar.addEventListener('click', () => { quizIndex = 0; quizAcertos = 0; document.getElementById('glossario-conteudo').innerHTML = renderQuiz(); ligarQuizOpcoes(); });
-        icons();
-      }, 1400);
-    });
+  // termos — vira ao passar o mouse (desktop); no toque, o clique é o fallback
+  const suportaHover = window.matchMedia('(hover: hover)').matches;
+  document.querySelectorAll('#modal-inner .flip-card').forEach(c => {
+    if (suportaHover) {
+      c.addEventListener('mouseenter', () => c.classList.add('flipped'));
+      c.addEventListener('mouseleave', () => c.classList.remove('flipped'));
+    } else {
+      c.addEventListener('click', () => c.classList.toggle('flipped'));
+    }
   });
+  const cont = document.getElementById('glossario-conteudo');
+  if (cont) cont.addEventListener('click', onQuizClick);
 }
 
 // ── Seu diário ──
