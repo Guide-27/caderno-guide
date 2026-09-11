@@ -860,6 +860,17 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .mural-compare-btn { display:inline-flex; align-items:center; gap:7px; font-size: var(--fs-xs); font-weight:500; color: var(--off); background: var(--glass2); border:1px solid var(--border2); border-radius: var(--r-pill); padding: 7px 14px; margin-bottom: 16px; cursor:pointer; font-family:'Outfit',sans-serif; transition: border-color .2s, color .2s; }
 .mural-compare-btn:hover { border-color: var(--gold); color: var(--gold-light); }
 
+/* barra de topo: comparar + info */
+.mural-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+.mural-toolbar .mural-compare-btn { margin-bottom:0; }
+.mural-info-btn { width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border2); background:var(--glass2); color:var(--muted); cursor:pointer; transition:color .2s, border-color .2s; }
+.mural-info-btn:hover, .mural-info-btn[aria-expanded="true"] { color:var(--gold-light); border-color:var(--gold); }
+.mural-info-btn svg { width:15px; height:15px; }
+.mural-instrucoes { display:grid; gap:14px; padding:16px; margin-bottom:20px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-md); }
+.mural-instrucao-tit { display:flex; align-items:center; gap:7px; font-size:var(--fs-sm); font-weight:600; color:var(--white); margin-bottom:4px; }
+.mural-instrucao-tit svg { width:14px; height:14px; color:var(--gold-light); }
+.mural-instrucao p { margin:0; font-size:var(--fs-xs); color:var(--muted); line-height:1.6; }
+
 .mural-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 14px; }
 .mural-item { position: relative; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
 .mural-item > img { width: 100%; height: 130px; object-fit: cover; display: block; }
@@ -875,9 +886,17 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .mural-item-del svg { width: 15px; height: 15px; }
 .mural-item-acoes { display:flex; align-items:center; gap:8px; padding: 0 12px 12px; }
 .mural-tag-select { flex:1; min-width:0; background: var(--dark); border:1px solid var(--border2); border-radius: var(--r-sm); padding: 6px 8px; color: var(--off); font-family:'Outfit',sans-serif; font-size: var(--fs-2xs); }
-.mural-item-share { background:none; border:none; padding:4px; color: var(--muted); cursor:pointer; display:inline-flex; transition: color .2s; }
-.mural-item-share:hover { color: var(--gold-light); }
-.mural-item-share svg { width: 15px; height: 15px; }
+.mural-item-icone { background:none; border:none; padding:4px; color: var(--muted); cursor:pointer; display:inline-flex; transition: color .2s; }
+.mural-item-icone:hover { color: var(--gold-light); }
+.mural-item-icone svg { width: 15px; height: 15px; }
+/* acesso "N imagens vinculadas" / desvincular */
+.mural-item-vinc { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:0; background:none; border:none; color:var(--gold-light); font-family:'Outfit',sans-serif; font-size:var(--fs-2xs); cursor:pointer; text-align:left; }
+.mural-item-vinc svg { width:12px; height:12px; }
+.mural-item-vinc:hover { text-decoration:underline; }
+/* foto de referência no modo vincular */
+.mural-vinc-ref { display:flex; align-items:center; gap:12px; padding:10px; margin-bottom:14px; background:var(--glass2); border:1px solid var(--border2); border-radius:var(--r-sm); }
+.mural-vinc-ref img { width:64px; height:48px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+.mural-vinc-ref span { font-size:var(--fs-xs); color:var(--muted); }
 /* confirmação inline da remoção (sem modal de tela cheia) */
 .mural-item-confirm { position: absolute; inset: 0; z-index: 3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center; padding: 16px; background: rgba(8,8,10,0.92); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
 .mural-item-confirm p { margin:0; font-size: var(--fs-xs); color: var(--off); line-height: 1.5; }
@@ -895,6 +914,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .mural-compare-pick img { width:100%; height:78px; object-fit:cover; display:block; }
 .mural-compare-pick.sel { border-color: var(--gold); }
 .mural-compare-pick-num { position:absolute; top:4px; left:4px; width:18px; height:18px; border-radius:50%; background: var(--gold); color: var(--black); font-size: 10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.mural-compare-pick-num svg { width:11px; height:11px; }
 .mural-compare-viewport { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: var(--r-md); overflow: hidden; border:1px solid var(--border2); user-select: none; touch-action: none; }
 .mural-compare-viewport img { position:absolute; inset:0; width:100%; height:100%; object-fit: cover; }
 .mural-compare-top { z-index: 2; clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0); }
@@ -1601,6 +1621,10 @@ let cartaGuiaAberta = false;
 let mural = [];
 let muralComparando = false;
 let muralSel = [];
+let muralInfoAberta = false;
+let muralVincularId = null;
+let muralSelVinc = [];
+let muralVerVinculadasId = null;
 let palpites = [];
 let quizIndex = 0;
 let quizAcertos = 0;
@@ -3925,12 +3949,18 @@ const MURAL_TAGS = [
 const MURAL_SUGESTOES = [
   'Primeira visita ao imóvel',
   'Obra iniciada',
+  'Instalação das torneiras',
   'Primeiro cômodo pronto',
+  'Momento divertido',
   'Dia da mudança',
+  'Um detalhe que você ama',
   'Primeiro café em casa',
 ];
 
 function expandidoMural() {
+  muralComparando = false; muralSel = [];
+  muralInfoAberta = false;
+  muralVincularId = null; muralSelVinc = []; muralVerVinculadasId = null;
   return `
     <div class="modal-eyebrow">${ic('images')} Mural de imagens</div>
     <div class="modal-titulo">A memória viva da sua trajetória torna tudo mais especial</div>
@@ -3948,7 +3978,7 @@ function expandidoMural() {
 }
 
 function renderMuralSugestoes() {
-  if (mural.length >= 5 || muralComparando) return '';
+  if (mural.length >= 5 || muralComparando || muralVincularId || muralVerVinculadasId) return '';
   return `
     <div class="mural-sugestoes">
       <div class="mural-sugestoes-titulo">Sugestões de momentos para registrar</div>
@@ -3960,11 +3990,38 @@ function renderMuralSugestoes() {
 
 function renderMuralConteudo() {
   if (muralComparando) return renderMuralComparar();
+  if (muralVincularId) return renderMuralVincular();
+  if (muralVerVinculadasId) return renderMuralVinculadas();
   if (!mural.length) return `<div class="card-convite">Seu mural está esperando pelo primeiro momento.</div>`;
   const btnComparar = mural.length >= 2
     ? `<button type="button" class="mural-compare-btn" data-acao="mural-comparar">${ic('arrow-left-right','ic-sm')} Comparar dois momentos</button>`
     : '';
-  return `${btnComparar}<div class="mural-grid" id="mural-grid">${renderMuralGrid()}</div>`;
+  const toolbar = `
+    <div class="mural-toolbar">
+      ${btnComparar}
+      <button type="button" class="mural-info-btn" data-acao="mural-info" aria-label="Como usar o mural" aria-expanded="${muralInfoAberta}">${ic('info')}</button>
+    </div>
+    ${muralInfoAberta ? renderMuralInstrucoes() : ''}`;
+  return `${toolbar}<div class="mural-grid" id="mural-grid">${renderMuralGrid()}</div>`;
+}
+
+function renderMuralInstrucoes() {
+  const bloco = (icone, titulo, texto) => `
+    <div class="mural-instrucao">
+      <div class="mural-instrucao-tit">${ic(icone,'ic-sm')} ${titulo}</div>
+      <p>${texto}</p>
+    </div>`;
+  return `
+    <div class="mural-instrucoes">
+      ${bloco('arrow-left-right', 'Comparar antes e depois', 'Registre ângulos do seu imóvel vazio e use os mesmos ângulos para registrar quando ele estiver pronto. Assim você compara o antes e o depois de um jeito interativo, arrastando a alça sobre a foto.')}
+      ${bloco('link-2', 'Vincular fotos', 'Vincule as fotos que mostram o mesmo canto do imóvel em fases diferentes. Elas continuam aparecendo no mural normalmente, e dentro de cada foto você acessa as imagens vinculadas para ver aquele canto evoluir.')}
+      ${bloco('tag', 'Classificar', 'Marque cada foto como Antes, Durante, Depois ou Favorita. A marcação vira um selo na miniatura e ajuda a montar as comparações. É sempre opcional.')}
+      ${bloco('share-2', 'Compartilhar', 'Se quiser, compartilhe um momento com a comunidade de Guiders — pessoas passando pela mesma jornada. Você escolhe o que mostrar, e nada é publicado sem a sua confirmação.')}
+    </div>`;
+}
+
+function contarVinculadas(f) {
+  return f.grupo ? mural.filter(x => x.grupo === f.grupo).length : 0;
 }
 
 function renderMuralGrid() {
@@ -3972,6 +4029,10 @@ function renderMuralGrid() {
     const tag = MURAL_TAGS.find(t => t.v === f.tag);
     const badge = tag ? `<div class="mural-item-badge">${tag.label}</div>` : '';
     const opcoes = MURAL_TAGS.map(t => `<option value="${t.v}"${f.tag === t.v ? ' selected' : ''}>${t.label}</option>`).join('');
+    const nVinc = contarVinculadas(f);
+    const vinculadas = nVinc > 1
+      ? `<button type="button" class="mural-item-vinc" data-acao="mural-ver-vinculadas">${ic('images','ic-sm')} ${nVinc} imagens vinculadas</button>`
+      : '';
     return `
     <div class="mural-item" data-id="${f.id}">
       <img src="${f.url}" alt="${(f.legenda || 'Foto do mural').replace(/"/g, '&quot;')}">
@@ -3980,15 +4041,70 @@ function renderMuralGrid() {
       <div class="mural-item-corpo">
         <div class="mural-item-data">${formatarData(f.criado_em)}</div>
         ${f.legenda ? `<div class="mural-item-legenda">${f.legenda}</div>` : ''}
+        ${vinculadas}
       </div>
       <div class="mural-item-acoes">
         <select class="mural-tag-select" data-acao="mural-tag" aria-label="Marcação da foto">
           <option value="">Sem marcação</option>${opcoes}
         </select>
-        <button type="button" class="mural-item-share" data-acao="mural-share" aria-label="Compartilhar este momento">${ic('share-2')}</button>
+        <button type="button" class="mural-item-icone" data-acao="mural-vincular" aria-label="Vincular fotos do mesmo ângulo">${ic('link-2')}</button>
+        <button type="button" class="mural-item-icone" data-acao="mural-share" aria-label="Compartilhar este momento">${ic('share-2')}</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderMuralVincular() {
+  const ref = mural.find(f => String(f.id) === String(muralVincularId));
+  if (!ref) { muralVincularId = null; return renderMuralConteudo(); }
+  const outras = mural.filter(f => String(f.id) !== String(ref.id));
+  const corpo = outras.length ? `
+    <div class="mural-compare-picker">
+      ${outras.map(f => {
+        const sel = muralSelVinc.includes(String(f.id));
+        return `<button type="button" class="mural-compare-pick${sel ? ' sel' : ''}" data-acao="mural-vinc-pick" data-id="${f.id}">
+          ${sel ? `<span class="mural-compare-pick-num">${ic('check')}</span>` : ''}
+          <img src="${f.url}" alt="">
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="mural-compare-acoes">
+      <button type="button" class="btn-primario" data-acao="mural-vinc-salvar">${ic('check','ic-sm')} Salvar vínculo</button>
+    </div>`
+    : `<p class="mural-compare-hint">Adicione mais fotos ao mural para poder vincular.</p>`;
+  return `
+    <button type="button" class="mural-compare-btn" data-acao="mural-vincular-sair">${ic('arrow-left','ic-sm')} Voltar ao mural</button>
+    <p class="mural-compare-hint">Escolha as fotos que mostram este mesmo canto do imóvel. Elas ficam vinculadas entre si e continuam aparecendo no mural.</p>
+    <div class="mural-vinc-ref">
+      <img src="${ref.url}" alt="">
+      <span>${formatarData(ref.criado_em)}${ref.legenda ? ' · ' + ref.legenda : ''}</span>
+    </div>
+    ${corpo}`;
+}
+
+function renderMuralVinculadas() {
+  const ref = mural.find(f => String(f.id) === String(muralVerVinculadasId));
+  if (!ref || !ref.grupo) { muralVerVinculadasId = null; return renderMuralConteudo(); }
+  const grupo = mural.filter(f => f.grupo === ref.grupo)
+    .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+  return `
+    <button type="button" class="mural-compare-btn" data-acao="mural-vinculadas-sair">${ic('arrow-left','ic-sm')} Voltar ao mural</button>
+    <p class="mural-compare-hint">Fotos vinculadas do mesmo canto do imóvel, da mais antiga para a mais recente.</p>
+    <div class="mural-grid">
+      ${grupo.map(f => {
+        const tag = MURAL_TAGS.find(t => t.v === f.tag);
+        return `<div class="mural-item" data-id="${f.id}">
+          <img src="${f.url}" alt="">
+          ${tag ? `<div class="mural-item-badge">${tag.label}</div>` : ''}
+          <div class="mural-item-corpo">
+            <div class="mural-item-data">${formatarData(f.criado_em)}</div>
+            ${f.legenda ? `<div class="mural-item-legenda">${f.legenda}</div>` : ''}
+            <button type="button" class="mural-item-vinc" data-acao="mural-desvincular">${ic('link-2','ic-sm')} Desvincular</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${grupo.length >= 2 ? `<div class="mural-compare-acoes"><button type="button" class="mural-compare-btn" data-acao="mural-comparar-grupo">${ic('arrow-left-right','ic-sm')} Comparar estas fotos</button></div>` : ''}`;
 }
 
 function renderMuralComparar() {
@@ -4061,6 +4177,18 @@ async function removerFotoMural(id) {
   }
   mural = mural.filter(f => String(f.id) !== String(id));
   muralSel = muralSel.filter(x => x !== String(id));
+  muralSelVinc = muralSelVinc.filter(x => x !== String(id));
+  // se o grupo da foto removida ficou com só 1 membro, solta esse membro
+  if (foto && foto.grupo) {
+    const restante = mural.filter(f => f.grupo === foto.grupo);
+    if (restante.length === 1) {
+      restante[0].grupo = null;
+      if (!(usuarioAtual && usuarioAtual.email === 'demo@demo.com')) {
+        sb.from('mural_fotos').update({ grupo: null }).eq('id', restante[0].id);
+      }
+    }
+  }
+  if (muralVerVinculadasId && String(muralVerVinculadasId) === String(id)) muralVerVinculadasId = null;
   repintarMural();
   toast('Foto removida do mural.');
 }
@@ -4072,6 +4200,94 @@ async function atualizarTagFoto(id, tag) {
   if (usuarioAtual && usuarioAtual.email === 'demo@demo.com') return;
   const { error } = await sb.from('mural_fotos').update({ tag: tag || null }).eq('id', id);
   if (error) { toast('Não foi possível salvar a marcação.'); console.error(error); }
+}
+
+function novoGrupoId() {
+  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'g' + Date.now() + Math.random().toString(36).slice(2);
+}
+
+function entrarModoVincular(id) {
+  const ref = mural.find(f => String(f.id) === String(id));
+  muralVincularId = id;
+  muralSelVinc = ref && ref.grupo
+    ? mural.filter(f => f.grupo === ref.grupo && String(f.id) !== String(id)).map(f => String(f.id))
+    : [];
+  repintarMural();
+}
+
+function togglePickVincular(btn) {
+  const id = String(btn.dataset.id);
+  const i = muralSelVinc.indexOf(id);
+  if (i > -1) muralSelVinc.splice(i, 1);
+  else muralSelVinc.push(id);
+  const c = document.getElementById('mural-conteudo');
+  if (c) { c.innerHTML = renderMuralConteudo(); icons(); }
+}
+
+async function salvarVinculo() {
+  const ref = mural.find(f => String(f.id) === String(muralVincularId));
+  if (!ref) { muralVincularId = null; muralSelVinc = []; repintarMural(); return; }
+  const demo = usuarioAtual && usuarioAtual.email === 'demo@demo.com';
+  const grupoAntigo = ref.grupo || null;
+  const membrosAntes = grupoAntigo ? mural.filter(f => f.grupo === grupoAntigo).map(f => String(f.id)) : [];
+
+  if (!muralSelVinc.length) {
+    // nada escolhido → desfaz o vínculo desta foto
+    ref.grupo = null;
+    const restante = grupoAntigo ? mural.filter(f => f.grupo === grupoAntigo) : [];
+    if (restante.length === 1) restante[0].grupo = null;
+    muralVincularId = null; muralSelVinc = [];
+    repintarMural();
+    toast('Vínculo desfeito.');
+    if (!demo) {
+      await sb.from('mural_fotos').update({ grupo: null }).eq('id', ref.id);
+      if (restante.length === 1) await sb.from('mural_fotos').update({ grupo: null }).eq('id', restante[0].id);
+    }
+    return;
+  }
+
+  const grupoId = grupoAntigo || novoGrupoId();
+  const vinculados = new Set([String(ref.id), ...muralSelVinc.map(String)]);
+  const soltar = membrosAntes.filter(id => !vinculados.has(id));
+  mural.forEach(f => {
+    const id = String(f.id);
+    if (vinculados.has(id)) f.grupo = grupoId;
+    else if (soltar.includes(id)) f.grupo = null;
+  });
+  muralVincularId = null; muralSelVinc = [];
+  repintarMural();
+  toast(vinculados.size > 1 ? 'Fotos vinculadas.' : 'Vínculo atualizado.');
+  if (demo) return;
+  await sb.from('mural_fotos').update({ grupo: grupoId }).in('id', [...vinculados]);
+  if (soltar.length) await sb.from('mural_fotos').update({ grupo: null }).in('id', soltar);
+}
+
+async function desvincularFoto(id) {
+  const foto = mural.find(f => String(f.id) === String(id));
+  if (!foto || !foto.grupo) return;
+  const grupo = foto.grupo;
+  foto.grupo = null;
+  const restante = mural.filter(f => f.grupo === grupo);
+  if (restante.length === 1) restante[0].grupo = null;
+  const ref = mural.find(f => String(f.id) === String(muralVerVinculadasId));
+  if (!ref || !ref.grupo || mural.filter(f => f.grupo === ref.grupo).length < 2) muralVerVinculadasId = null;
+  repintarMural();
+  toast('Foto desvinculada.');
+  if (usuarioAtual && usuarioAtual.email === 'demo@demo.com') return;
+  await sb.from('mural_fotos').update({ grupo: null }).eq('id', id);
+  if (restante.length === 1) await sb.from('mural_fotos').update({ grupo: null }).eq('id', restante[0].id);
+}
+
+function compararGrupo() {
+  const ref = mural.find(f => String(f.id) === String(muralVerVinculadasId));
+  if (!ref || !ref.grupo) return;
+  const grupo = mural.filter(f => f.grupo === ref.grupo)
+    .sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+  if (grupo.length < 2) return;
+  muralSel = [String(grupo[0].id), String(grupo[grupo.length - 1].id)];
+  muralVerVinculadasId = null;
+  muralComparando = true;
+  repintarMural();
 }
 
 function togglePickComparar(btn) {
@@ -4112,14 +4328,24 @@ function ligarMural() {
     const alvo = e.target.closest('[data-acao]');
     if (!alvo || !raiz.contains(alvo)) return;
     const acao = alvo.dataset.acao;
+    const item = alvo.closest('.mural-item');
     if (acao === 'mural-comparar')      { muralComparando = true; muralSel = []; repintarMural(); }
     if (acao === 'mural-comparar-sair') { muralComparando = false; muralSel = []; repintarMural(); }
     if (acao === 'mural-compare-pick')  togglePickComparar(alvo);
-    if (acao === 'mural-del')           pedirRemocaoFoto(alvo.closest('.mural-item'));
+    if (acao === 'mural-info')          { muralInfoAberta = !muralInfoAberta; repintarMural(); }
+    if (acao === 'mural-del')           pedirRemocaoFoto(item);
     if (acao === 'mural-del-cancelar')  { const c = alvo.closest('.mural-item-confirm'); if (c) c.remove(); }
-    if (acao === 'mural-del-confirmar') removerFotoMural(alvo.closest('.mural-item').dataset.id);
+    if (acao === 'mural-del-confirmar') removerFotoMural(item.dataset.id);
     if (acao === 'mural-share')         mostrarEmDesenvolvimento('mural-momento');
     if (acao === 'mural-salvar-registro') { muralComparando = false; muralSel = []; repintarMural(); toast('Comparação guardada no seu mural.'); }
+    if (acao === 'mural-vincular')      entrarModoVincular(item.dataset.id);
+    if (acao === 'mural-vincular-sair') { muralVincularId = null; muralSelVinc = []; repintarMural(); }
+    if (acao === 'mural-vinc-pick')     togglePickVincular(alvo);
+    if (acao === 'mural-vinc-salvar')   salvarVinculo();
+    if (acao === 'mural-ver-vinculadas') { muralVerVinculadasId = item.dataset.id; repintarMural(); }
+    if (acao === 'mural-vinculadas-sair') { muralVerVinculadasId = null; repintarMural(); }
+    if (acao === 'mural-desvincular')   desvincularFoto(item.dataset.id);
+    if (acao === 'mural-comparar-grupo') compararGrupo();
   });
 
   raiz.addEventListener('change', (e) => {

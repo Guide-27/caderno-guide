@@ -245,6 +245,8 @@ create table if not exists mural_fotos (
 );
 -- marcação manual opcional da foto: 'antes' | 'durante' | 'depois' | 'favorita'
 alter table mural_fotos add column if not exists tag text;
+-- vínculo entre fotos do mesmo ângulo do imóvel (mesmo id de grupo = fotos vinculadas)
+alter table mural_fotos add column if not exists grupo text;
 alter table mural_fotos enable row level security;
 drop policy if exists "cliente gerencia seu mural" on mural_fotos;
 create policy "cliente gerencia seu mural" on mural_fotos for all
