@@ -683,6 +683,43 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .quiz-progresso-track { width: 100%; height: 6px; border-radius: var(--r-pill); background: var(--border2); overflow: hidden; }
 .quiz-progresso-fill { height: 100%; background: var(--gold); border-radius: var(--r-pill); transition: width .3s ease; }
 
+/* parceiros guide — sessão quase de tela cheia */
+.parceiros-header { margin-bottom: 26px; }
+.parceiros-intro { font-size: var(--fs-base); color: var(--off); line-height: 1.65; margin: 14px 0 20px; max-width: 640px; }
+.parceiros-busca { width: 100%; max-width: 460px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 16px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); }
+.parceiros-busca:focus { outline: none; border-color: var(--gold-mid); }
+.parceiros-corpo { display: flex; flex-direction: column; gap: 32px; }
+.parceiros-categoria-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+.parceiros-categoria-icone { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.parceiros-categoria-nome { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); margin-bottom: 4px; }
+.parceiros-categoria-escopo { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; max-width: 560px; }
+.parceiros-categoria-vazia { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; padding: 4px 0 2px; }
+.parceiros-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; }
+
+.parceiro-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
+.parceiro-foto { width: 100%; height: 120px; object-fit: cover; display: block; }
+.parceiro-foto-vazia { display: flex; align-items: center; justify-content: center; font-size: 30px; background: var(--gold-dim); color: var(--gold); }
+.parceiro-corpo { padding: 14px 16px 4px; }
+.parceiro-badge { display: inline-block; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .06em; color: var(--gold-light); background: var(--gold-dim); border: 1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 3px 10px; margin-bottom: 8px; }
+.parceiro-nome { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); margin-bottom: 6px; }
+.parceiro-descricao { font-size: var(--fs-sm); color: var(--off); line-height: 1.55; margin-bottom: 6px; }
+.parceiro-cnpj { font-size: var(--fs-2xs); color: var(--muted); letter-spacing: .02em; }
+.parceiro-acoes { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 16px; margin-top: auto; }
+.btn-whatsapp, .btn-add-orcamento-parceiro, .btn-caderno-parceiro { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; border-radius: var(--r-sm); padding: 10px 14px; font-size: var(--fs-sm); font-family: 'Outfit', sans-serif; cursor: pointer; text-decoration: none; transition: all .2s; border: 1px solid var(--border2); }
+.btn-whatsapp { background: var(--green-dim); border-color: var(--green-border); color: var(--green); font-weight: 500; }
+.btn-whatsapp:hover { background: rgba(80,200,120,0.16); }
+.btn-add-orcamento-parceiro { background: var(--gold); border-color: var(--gold); color: var(--black); font-weight: 600; }
+.btn-add-orcamento-parceiro:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,162,39,0.22); }
+.btn-add-orcamento-parceiro:disabled { opacity: .45; cursor: default; }
+.btn-caderno-parceiro { background: transparent; color: var(--muted); cursor: not-allowed; }
+.parceiro-toast { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; margin: 0 16px 14px; padding: 10px 12px; background: var(--green-dim); border: 1px solid var(--green-border); border-radius: var(--r-sm); font-size: var(--fs-xs); color: var(--off); }
+.parceiro-ir-cotacoes { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: var(--gold-light); font-family: 'Outfit', sans-serif; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; padding: 0; }
+.parceiro-ir-cotacoes:hover { text-decoration: underline; }
+
+.parceiros-nota { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--border2); padding: 20px 0 2px; margin-top: 34px; font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; }
+.parceiros-nota svg { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+.parceiros-nota p { margin: 0; }
+
 /* diário */
 .humor-explicacao { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
 /* padrão de corpo dos outros cards — sem serif, sem itálico, sem dourado (era destoante) */
@@ -1791,6 +1828,37 @@ function marcosVisiveis() {
   return MARCOS_DEF.filter(m => !m.condicional || (marcos && marcos.revistoria_necessaria));
 }
 
+// Categorias de fornecedores — ids idênticos aos de DB.categorias no Acompanhamento de Obra
+// (obra.html), para que "Colocar no orçamento" caia na categoria certa sem mapeamento manual.
+const FORNECEDOR_CATEGORIAS = [
+  { id:'empreiteiro',      icon:'🏗',  label:'Empreiteiro Geral',
+    escopo:'Responsável pela execução geral da obra — coordena as etapas estruturais e o time de trabalhadores no canteiro.' },
+  { id:'marceneiro',       icon:'🪵',  label:'Marceneiro / Loja de Planejados',
+    escopo:'Fabricação e instalação de móveis planejados — armários, painéis, bancadas de madeira e marcenaria sob medida.' },
+  { id:'pintor',           icon:'🎨',  label:'Pintor',
+    escopo:'Pintura de paredes, tetos e detalhes de acabamento. Entra próximo ao fim da obra, após os reparos estruturais.' },
+  { id:'eletricista',      icon:'⚡',  label:'Eletricista',
+    escopo:'Instalação de pontos de luz, tomadas, quadro de distribuição e toda a parte elétrica do projeto.' },
+  { id:'instalador',       icon:'🪨',  label:'Instalador de Pisos e Revestimentos',
+    escopo:'Aplicação de pisos, porcelanatos e revestimentos de parede — inclui preparo da base e rejunte.' },
+  { id:'marmoraria',       icon:'⬜',  label:'Marmoraria',
+    escopo:'Corte e instalação de bancadas, soleiras e peças em pedra (granito, mármore, quartzo).' },
+  { id:'serralheria',      icon:'🔩',  label:'Serralheria',
+    escopo:'Estruturas e peças metálicas — guarda-corpos, portões, estruturas de vidro e ferragens sob medida.' },
+  { id:'vidraceiro',       icon:'🪟',  label:'Vidraceiro / Box',
+    escopo:'Instalação de vidros, boxes de banheiro, espelhos e divisórias envidraçadas.' },
+  { id:'moveis',           icon:'🛋️', label:'Entrega e Instalação de Móveis',
+    escopo:'Transporte, montagem e posicionamento de móveis soltos ao final da obra.' },
+  { id:'gesseiro',         icon:'🏠',  label:'Gesseiro',
+    escopo:'Execução de forros, sancas, rebaixos e estruturas em drywall. Entra após a fase estrutural, antes da pintura.' },
+  { id:'ar_condicionado',  icon:'❄️',  label:'Ar-condicionado',
+    escopo:'Venda, instalação e manutenção de sistemas de climatização (split, multi-split e centrais).' },
+  { id:'automacao',        icon:'📱',  label:'Automação Residencial',
+    escopo:'Instalação de sistemas para controlar luz, som, cortinas e climatização remotamente.' },
+  { id:'envelopamento',    icon:'🎞️', label:'Envelopamento',
+    escopo:'Aplicação de películas adesivas sobre móveis, portas ou eletrodomésticos para trocar cor ou textura sem trocar a peça — ótimo custo-benefício quando o item está estruturalmente bom.' },
+];
+
 // ─────────────────────────────────────────────────────────────
 // ESTADO GLOBAL
 // ─────────────────────────────────────────────────────────────
@@ -1805,6 +1873,8 @@ let marcosPersonalizados = [];
 let glossario = [];
 let comunidade = [];
 let parceiros = [];
+let parceirosBusca = '';
+let parceirosMostrandoCta = {}; // { [fornecedorId]: true } — confirmação "colocar no orçamento" exibida
 let humores = [];
 let cartas = [];
 let cartaGuiaAberta = false;
@@ -2271,7 +2341,7 @@ function fechadoParceiros() {
   return `
     <div class="card-eyebrow">${ic('handshake')} Parceiros Guide</div>
     <div class="card-titulo">Indicações de confiança</div>
-    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Estamos reunindo fornecedores de confiança para você.')}</div></div>
+    <div class="card-corpo"><div class="card-convite">${marcarPalavras('Fornecedores selecionados pela Guide para cada etapa da sua obra.')}</div></div>
   `;
 }
 
@@ -2336,7 +2406,7 @@ function abrirCard(key, origemEl) {
 
   requestAnimationFrame(() => {
     overlay.classList.add('vis');
-    const alvo = alvoExpandido();
+    const alvo = alvoExpandido(key);
     void win.offsetWidth;
     win.style.top = alvo.top + 'px';
     win.style.left = alvo.left + 'px';
@@ -2357,8 +2427,13 @@ function abrirCard(key, origemEl) {
   overlay.onclick = fecharExpandido;
 }
 
-function alvoExpandido() {
+function alvoExpandido(key) {
   const vw = window.innerWidth, vh = window.innerHeight;
+  // Parceiros Guide abre em sessão quase de tela cheia, não no modal centrado padrão
+  if (key === 'parceiros') {
+    const m = 16;
+    return { top: m, left: m, width: vw - m * 2, height: vh - m * 2 };
+  }
   const w = Math.min(780, vw - 48);
   const h = Math.min(vh - 80, 660);
   return { top: (vh - h) / 2, left: (vw - w) / 2, width: w, height: h };
@@ -2413,6 +2488,7 @@ function ligarEventosExpandido(key) {
   if (key === 'mural') ligarMural();
   if (key === 'ateaqui') ligarAteAqui();
   if (key === 'sonhou') ligarSonhou();
+  if (key === 'parceiros') ligarParceiros();
 }
 
 // ── "O que você sonhou" — flip das promessas, reveal escalonado, compartilhar, 1º acesso ──
@@ -3446,16 +3522,122 @@ function expandidoGuiders() {
   `;
 }
 
-// ── Parceiros — convite caprichado ──
+// ── Parceiros Guide — sessão quase de tela cheia, vitrine de fornecedores ──
 function expandidoParceiros() {
+  parceirosBusca = '';
+  parceirosMostrandoCta = {};
   return `
-    <div class="convite-hero">
-      <div class="convite-icone">${ic('handshake', 'ic-xl')}</div>
-      <div class="convite-titulo">Parceiros Guide</div>
-      <div class="convite-texto">${marcarPalavras('Estamos reunindo fornecedores e prestadores de confiança para facilitar cada etapa da sua reforma. Em breve, tudo o que você precisa em um só lugar.')}</div>
-      <div class="convite-selo">${ic('sparkles','ic-sm')} Em desenvolvimento dedicado</div>
+    <div id="parceiros-root" class="parceiros-fullscreen">
+      <div class="parceiros-header">
+        <div class="modal-eyebrow">${ic('handshake')} Parceiros Guide</div>
+        <div class="modal-titulo">Indicações de confiança</div>
+        <p class="parceiros-intro">${marcarPalavras('Escolher quem vai colocar a mão na sua obra é uma das decisões mais delicadas dessa jornada. Por isso a Guide seleciona parceiros de confiança para cada etapa — para que você não precise arriscar sozinho.')}</p>
+        <input type="text" class="parceiros-busca" id="parceiros-busca-input" placeholder="Buscar por nome ou categoria de fornecedor...">
+      </div>
+      <div class="parceiros-corpo" id="parceiros-corpo">${renderParceirosCorpo()}</div>
+      <div class="parceiros-nota">${ic('info','ic-sm')}<p>A Guide seleciona esses parceiros com cuidado, mas cada contratação e negociação é feita diretamente entre você e o fornecedor. A Guide não se responsabiliza pelos serviços prestados — estamos aqui para aproximar você de boas indicações, com carinho e atenção em cada escolha.</p></div>
     </div>
   `;
+}
+
+function renderParceirosCorpo() {
+  const termo = parceirosBusca.trim().toLowerCase();
+  const ativos = parceiros.filter(f => (f.status || 'ativo') !== 'inativo');
+  const blocos = FORNECEDOR_CATEGORIAS.map(cat => {
+    const doCategoria = ativos.filter(f => f.categoria === cat.id);
+    const filtrados = termo
+      ? doCategoria.filter(f => (f.nome || '').toLowerCase().includes(termo) || cat.label.toLowerCase().includes(termo))
+      : doCategoria;
+    if (termo && !filtrados.length) return ''; // busca sem resultado nesta categoria: não exibe o bloco
+    return renderParceirosCategoria(cat, filtrados);
+  }).join('');
+  if (termo && !blocos.trim()) {
+    return `<div class="card-convite" style="padding:12px 0 24px;">Nenhum fornecedor encontrado para "${parceirosBusca}".</div>`;
+  }
+  return blocos;
+}
+
+function renderParceirosCategoria(cat, lista) {
+  const corpo = lista.length
+    ? `<div class="parceiros-grid">${lista.map(f => renderParceiroCard(f, cat)).join('')}</div>`
+    : `<p class="parceiros-categoria-vazia">Estamos formalizando parcerias em ${cat.label} — em breve você verá as indicações aqui.</p>`;
+  return `
+    <div class="parceiros-categoria">
+      <div class="parceiros-categoria-header">
+        <span class="parceiros-categoria-icone">${cat.icon}</span>
+        <div>
+          <div class="parceiros-categoria-nome">${cat.label}</div>
+          <p class="parceiros-categoria-escopo">${cat.escopo}</p>
+        </div>
+      </div>
+      ${corpo}
+    </div>`;
+}
+
+function renderParceiroCard(f, cat) {
+  const foto = f.foto_url
+    ? `<img src="${f.foto_url}" class="parceiro-foto" alt="">`
+    : `<div class="parceiro-foto parceiro-foto-vazia">${cat.icon}</div>`;
+  const numWhats = (f.whatsapp || f.telefone || '').replace(/\D/g, '');
+  const linkWhats = numWhats ? `https://wa.me/55${numWhats}` : '';
+  const confirmado = !!parceirosMostrandoCta[f.id];
+  return `
+    <div class="parceiro-card" data-id="${f.id}" data-categoria="${cat.id}">
+      ${foto}
+      <div class="parceiro-corpo">
+        <span class="parceiro-badge">Parceiro Guide</span>
+        <div class="parceiro-nome">${f.nome}</div>
+        ${f.descricao ? `<p class="parceiro-descricao">${f.descricao}</p>` : ''}
+        ${f.cnpj ? `<p class="parceiro-cnpj">${f.cnpj}</p>` : ''}
+      </div>
+      <div class="parceiro-acoes">
+        ${linkWhats ? `<a class="btn-whatsapp" href="${linkWhats}" target="_blank" rel="noopener noreferrer">${ic('message-circle', 'ic-sm')} WhatsApp</a>` : ''}
+        <button type="button" class="btn-add-orcamento-parceiro" data-acao="parceiro-orcamento" ${confirmado ? 'disabled' : ''}>${ic('plus', 'ic-sm')} Colocar no orçamento</button>
+        <button type="button" class="btn-caderno-parceiro" disabled title="Em breve">${ic('clipboard-list', 'ic-sm')} Enviar caderno de ${cat.label}</button>
+      </div>
+      ${confirmado ? `
+      <div class="parceiro-toast">
+        ${ic('check', 'ic-sm')} Fornecedor adicionado às cotações de ${cat.label}
+        <button type="button" class="parceiro-ir-cotacoes" data-acao="parceiro-ir-cotacoes" data-cat="${cat.id}">Ir para Cotações ${ic('arrow-right', 'ic-sm')}</button>
+      </div>` : ''}
+    </div>`;
+}
+
+function repintarParceiros() {
+  const c = document.getElementById('parceiros-corpo');
+  if (c) { c.innerHTML = renderParceirosCorpo(); icons(); }
+}
+
+// Handoff para o Acompanhamento de Obra: como obra.html ainda não é ligado ao Supabase
+// (é uma tela local, sem persistência própria), a fila fica no localStorage do navegador
+// e obra.html a lê/consome ao carregar. Quando obra.html ganhar backend, troca-se só isto aqui.
+function colocarNoOrcamento(card) {
+  const id = card.dataset.id;
+  const catId = card.dataset.categoria;
+  const f = parceiros.find(p => String(p.id) === String(id));
+  if (!f) return;
+  const cat = FORNECEDOR_CATEGORIAS.find(c => c.id === catId);
+  const contato = f.whatsapp || f.telefone || '';
+  let fila = [];
+  try { fila = JSON.parse(localStorage.getItem('guide-orcamentos-pendentes') || '[]'); } catch (e) {}
+  fila.push({ categoria: catId, nome: f.nome, contato });
+  try { localStorage.setItem('guide-orcamentos-pendentes', JSON.stringify(fila)); } catch (e) {}
+  parceirosMostrandoCta[id] = true;
+  repintarParceiros();
+  toast(`Fornecedor adicionado às cotações de ${cat ? cat.label : 'obra'}.`);
+}
+
+function ligarParceiros() {
+  const input = document.getElementById('parceiros-busca-input');
+  if (input) input.addEventListener('input', () => { parceirosBusca = input.value; repintarParceiros(); });
+  const root = document.getElementById('parceiros-root');
+  if (!root) return;
+  root.addEventListener('click', (e) => {
+    const alvo = e.target.closest('[data-acao]');
+    if (!alvo) return;
+    if (alvo.dataset.acao === 'parceiro-orcamento') colocarNoOrcamento(alvo.closest('.parceiro-card'));
+    if (alvo.dataset.acao === 'parceiro-ir-cotacoes') window.location.href = '/obra?categoria=' + encodeURIComponent(alvo.dataset.cat);
+  });
 }
 
 // ── Glossário + Quiz ──

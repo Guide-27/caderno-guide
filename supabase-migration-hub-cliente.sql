@@ -166,6 +166,22 @@ drop policy if exists "todos autenticados leem parceiros" on parceiros;
 create policy "todos autenticados leem parceiros" on parceiros for select
   using (auth.role() = 'authenticated');
 
+-- ─── 5b. Parceiros → cadastro completo de fornecedores (função "Fornecedores" do arquiteto) ───
+-- `categoria` passa a guardar o id fixo da categoria (ex.: 'empreiteiro', 'eletricista'...),
+-- os mesmos ids usados em DB.categorias no Acompanhamento de Obra.
+alter table parceiros add column if not exists cnpj text;
+alter table parceiros add column if not exists telefone text;
+alter table parceiros add column if not exists whatsapp text;
+alter table parceiros add column if not exists descricao text;
+alter table parceiros add column if not exists foto_url text;
+alter table parceiros add column if not exists status text default 'ativo';
+alter table parceiros add column if not exists criado_em timestamptz default now();
+alter table parceiros add column if not exists atualizado_em timestamptz default now();
+drop policy if exists "arquiteto gerencia parceiros" on parceiros;
+create policy "arquiteto gerencia parceiros" on parceiros for all
+  using (exists (select 1 from arquitetos a where a.email = auth.email()))
+  with check (exists (select 1 from arquitetos a where a.email = auth.email()));
+
 -- ─── 6. Seu diário — histórico de emoções ao longo da jornada ───
 -- Dados privados: só o próprio cliente enxerga (nunca aparece no painel do arquiteto).
 -- Os registros de emoção ficam sempre visíveis e navegáveis (sem lacre).
@@ -306,6 +322,44 @@ drop policy if exists "cliente gerencia sua vistoria" on vistorias;
 create policy "cliente gerencia sua vistoria" on vistorias for all
   using (exists (select 1 from projetos p where p.id = vistorias.projeto_id and p.email = auth.email()))
   with check (exists (select 1 from projetos p where p.id = vistorias.projeto_id and p.email = auth.email()));
+
+-- ─── 11. Acompanhamento de Obra (/obra) — fornecedores, orçamentos e parcelas ───
+-- Antes esta tela era só um mock em memória (sem banco); agora persiste de verdade por
+-- projeto. Privado do cliente — SEM política para arquiteto, nunca aparece no painel admin.
+-- `categoria_id` guarda o id fixo (ex.: 'eletricista', igual a FORNECEDOR_CATEGORIAS em
+-- meu-projeto.html/admin-fornecedores.html) ou o uuid de uma linha de obra_categorias_extra.
+create table if not exists obra_categorias_extra (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade,
+  nome text not null,
+  icon text default '📦',
+  ordem int default 0,
+  criado_em timestamptz default now()
+);
+alter table obra_categorias_extra enable row level security;
+drop policy if exists "cliente gerencia categorias extra da obra" on obra_categorias_extra;
+create policy "cliente gerencia categorias extra da obra" on obra_categorias_extra for all
+  using (exists (select 1 from projetos p where p.id = obra_categorias_extra.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = obra_categorias_extra.projeto_id and p.email = auth.email()));
+
+create table if not exists obra_orcamentos (
+  id uuid primary key default gen_random_uuid(),
+  projeto_id uuid not null references projetos(id) on delete cascade,
+  categoria_id text not null,
+  status text default 'cotando', -- 'cotando' | 'escolhido' | 'descartado'
+  nome text,
+  contato text,
+  valor numeric default 0,
+  obs text,
+  parcelas jsonb default '[]'::jsonb, -- [ {id, data, valor, pago} ]
+  criado_em timestamptz default now(),
+  atualizado_em timestamptz default now()
+);
+alter table obra_orcamentos enable row level security;
+drop policy if exists "cliente gerencia orcamentos da obra" on obra_orcamentos;
+create policy "cliente gerencia orcamentos da obra" on obra_orcamentos for all
+  using (exists (select 1 from projetos p where p.id = obra_orcamentos.projeto_id and p.email = auth.email()))
+  with check (exists (select 1 from projetos p where p.id = obra_orcamentos.projeto_id and p.email = auth.email()));
 
 -- ─── Seed do glossário (conteúdo editorial — pode editar/expandir pelo Table Editor) ───
 -- Remove duplicatas de `termo` antes de criar a constraint única (idempotente: não faz nada

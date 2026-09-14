@@ -299,8 +299,8 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
   <h1 class="capa-titulo">Acompanhamento<br><em>de Obra</em></h1>
   <p class="capa-sub">Fornecedores · Financeiro · Execução</p>
   <div class="capa-meta">
-    <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val">Mariana Souza</span></div>
-    <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val">Ap. 72m² — Vila Olímpia</span></div>
+    <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val" id="meta-cliente">Carregando...</span></div>
+    <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val" id="meta-imovel">—</span></div>
     <div class="meta-item"><span class="meta-label">Arquiteto</span><span class="meta-val">Guide Arquitetura</span></div>
     <div class="meta-item"><span class="meta-label">Início da obra</span><span class="meta-val">[A definir]</span></div>
   </div>
@@ -450,7 +450,29 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 </main>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script>
+// ── SUPABASE — esta página passou a persistir fornecedores/orçamentos de verdade,
+// por projeto do cliente logado (antes era só um mock em memória, sem banco) ──
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+else { console.error('Biblioteca Supabase não carregou.'); }
+let usuarioAtual = null;
+let projeto = null;
+function ehDemo() { return usuarioAtual && usuarioAtual.email === 'demo@demo.com'; }
+async function tentar(promessa, fallback) {
+  try {
+    const { data, error } = await promessa;
+    if (error) { console.warn('Aviso Supabase:', error.message || error); return fallback; }
+    return data !== undefined && data !== null ? data : fallback;
+  } catch (err) {
+    console.warn('Tabela ainda não existe ou falhou (rode a migração):', err.message || err);
+    return fallback;
+  }
+}
+
 // ── BG CANVAS ──
 (function(){
   const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
@@ -498,19 +520,51 @@ function mudarAba(id){
 // ════════════════════════════════════════
 // DADOS GLOBAIS
 // ════════════════════════════════════════
-const DB = {
-  categorias: [
-    {id:'empreiteiro', icon:'🏗', nome:'Empreiteiro Geral', orcamentos:[]},
-    {id:'marceneiro',  icon:'🪵', nome:'Marceneiro / Loja de Planejados', orcamentos:[]},
-    {id:'pintor',      icon:'🎨', nome:'Pintor', orcamentos:[]},
-    {id:'eletricista', icon:'⚡', nome:'Eletricista', orcamentos:[]},
-    {id:'instalador',  icon:'🪨', nome:'Instalador de Pisos e Revestimentos', orcamentos:[]},
-    {id:'marmoraria',  icon:'⬜', nome:'Marmoraria', orcamentos:[]},
-    {id:'serralheria', icon:'🔩', nome:'Serralheria', orcamentos:[]},
-    {id:'vidraceiro',  icon:'🪟', nome:'Vidraceiro / Box', orcamentos:[]},
-    {id:'moveis',      icon:'🛋️', nome:'Entrega e Instalação de Móveis', orcamentos:[]},
-  ]
-};
+// Categorias fixas (ids iguais aos de FORNECEDOR_CATEGORIAS em meu-projeto.html e
+// admin-fornecedores.html — não renomear sem atualizar os três lugares).
+const CATEGORIAS_FIXAS = [
+  {id:'empreiteiro', icon:'🏗', nome:'Empreiteiro Geral'},
+  {id:'marceneiro',  icon:'🪵', nome:'Marceneiro / Loja de Planejados'},
+  {id:'pintor',      icon:'🎨', nome:'Pintor'},
+  {id:'eletricista', icon:'⚡', nome:'Eletricista'},
+  {id:'instalador',  icon:'🪨', nome:'Instalador de Pisos e Revestimentos'},
+  {id:'marmoraria',  icon:'⬜', nome:'Marmoraria'},
+  {id:'serralheria', icon:'🔩', nome:'Serralheria'},
+  {id:'vidraceiro',  icon:'🪟', nome:'Vidraceiro / Box'},
+  {id:'moveis',      icon:'🛋️', nome:'Entrega e Instalação de Móveis'},
+  {id:'gesseiro',        icon:'🏠', nome:'Gesseiro'},
+  {id:'ar_condicionado', icon:'❄️', nome:'Ar-condicionado'},
+  {id:'automacao',       icon:'📱', nome:'Automação Residencial'},
+  {id:'envelopamento',   icon:'🎞️', nome:'Envelopamento'},
+];
+// Populado em inicializarObra() com as categorias fixas + extras do projeto,
+// cada uma já com seus orçamentos carregados do Supabase (tabela obra_orcamentos).
+const DB = { categorias: [] };
+
+// Recebe fornecedores enviados pelo card "Parceiros Guide" (meu-projeto.html) enquanto
+// esta aba estava fechada. Viajam pelo localStorage do navegador (mesma máquina) e,
+// ao carregar, são gravados de verdade no projeto do cliente.
+async function aplicarOrcamentosPendentes(){
+  let fila = [];
+  try { fila = JSON.parse(localStorage.getItem('guide-orcamentos-pendentes') || '[]'); } catch(e) {}
+  if (!fila.length) return;
+  for (const item of fila) {
+    const cat = DB.categorias.find(c => c.id === item.categoria);
+    if (!cat) continue;
+    const novo = { status:'cotando', nome:item.nome||'', contato:item.contato||'', valor:0, obs:'', parcelas:[] };
+    if (!ehDemo()) {
+      const { data, error } = await sb.from('obra_orcamentos')
+        .insert({ projeto_id: projeto.id, categoria_id: cat.id, ...novo }).select().single();
+      if (error) { console.error(error); continue; }
+      novo.id = data.id;
+    } else {
+      novo.id = 'o' + Date.now() + Math.random().toString(36).slice(2);
+    }
+    cat.orcamentos.push(novo);
+  }
+  try { localStorage.removeItem('guide-orcamentos-pendentes'); } catch(e) {}
+  renderTodasCategorias();
+}
 
 // ════════════════════════════════════════
 // ABA 1 — PROPOSTAS
@@ -608,38 +662,57 @@ function buildParcelasHTML(orc){
 }
 
 // Salvar campo sem re-renderizar
-function saveField(catId,orcId,field,val){
+async function saveField(catId,orcId,field,val){
   const cat=DB.categorias.find(c=>c.id===catId);
   if(!cat)return;
   const orc=cat.orcamentos.find(o=>o.id===orcId);
-  if(orc)orc[field]=val;
+  if(!orc)return;
+  orc[field]=val;
+  if(ehDemo())return;
+  const { error } = await sb.from('obra_orcamentos').update({ [field]: val, atualizado_em: new Date().toISOString() }).eq('id', orcId);
+  if(error) console.error(error);
 }
 
-function saveParcela(orcId,parcId,field,val){
+async function saveParcela(orcId,parcId,field,val){
+  let achado=null;
   for(const cat of DB.categorias){
     const orc=cat.orcamentos.find(o=>o.id===orcId);
-    if(orc){const p=orc.parcelas?.find(x=>x.id===parcId);if(p)p[field]=val;return;}
+    if(orc){const p=orc.parcelas?.find(x=>x.id===parcId);if(p){p[field]=val;achado=orc;}break;}
   }
+  if(!achado||ehDemo())return;
+  const { error } = await sb.from('obra_orcamentos').update({ parcelas: achado.parcelas, atualizado_em: new Date().toISOString() }).eq('id', orcId);
+  if(error) console.error(error);
 }
 
-function addOrcamento(catId){
+async function addOrcamento(catId){
   const cat=DB.categorias.find(c=>c.id===catId);
   if(!cat)return;
-  const orc={id:'o'+Date.now(),status:'cotando',nome:'',contato:'',valor:'',obs:'',parcelas:[]};
+  const orc={status:'cotando',nome:'',contato:'',valor:0,obs:'',parcelas:[]};
+  if(!ehDemo()){
+    const { data, error } = await sb.from('obra_orcamentos').insert({ projeto_id: projeto.id, categoria_id: catId, ...orc }).select().single();
+    if(error){ toast('Não foi possível adicionar o orçamento agora.'); console.error(error); return; }
+    orc.id = data.id;
+  } else {
+    orc.id = 'o'+Date.now();
+  }
   cat.orcamentos.push(orc);
   reRenderCat(catId);
   toast('Orçamento adicionado');
 }
 
-function delOrcamento(catId,orcId){
+async function delOrcamento(catId,orcId){
   const cat=DB.categorias.find(c=>c.id===catId);
   if(!cat)return;
+  if(!ehDemo()){
+    const { error } = await sb.from('obra_orcamentos').delete().eq('id', orcId);
+    if(error){ toast('Não foi possível remover agora.'); console.error(error); return; }
+  }
   cat.orcamentos=cat.orcamentos.filter(o=>o.id!==orcId);
   reRenderCat(catId);
   toast('Orçamento removido');
 }
 
-function setStatus(catId,orcId,status){
+async function setStatus(catId,orcId,status){
   // Salvar valores atuais dos inputs antes de re-render
   const card=document.getElementById('orc-el-'+orcId);
   if(card){
@@ -662,13 +735,22 @@ function setStatus(catId,orcId,status){
   }
   const cat=DB.categorias.find(c=>c.id===catId);
   const orc=cat?.orcamentos.find(o=>o.id===orcId);
-  if(orc)orc.status=status;
+  if(orc){
+    orc.status=status;
+    if(!ehDemo()){
+      const { error } = await sb.from('obra_orcamentos').update({
+        status, nome: orc.nome||'', contato: orc.contato||'', valor: orc.valor||0, obs: orc.obs||'',
+        parcelas: orc.parcelas||[], atualizado_em: new Date().toISOString(),
+      }).eq('id', orcId);
+      if(error) console.error(error);
+    }
+  }
   reRenderCat(catId);
   const msgs={escolhido:'Fornecedor escolhido ✓ — aparece no Controle Financeiro',cotando:'Status atualizado para Em cotação',descartado:'Orçamento descartado'};
   toast(msgs[status]);
 }
 
-function addParcela(catId,orcId){
+async function addParcela(catId,orcId){
   const cat=DB.categorias.find(c=>c.id===catId);
   const orc=cat?.orcamentos.find(o=>o.id===orcId);
   if(!orc)return;
@@ -684,12 +766,24 @@ function addParcela(catId,orcId){
   orc.parcelas.push({id:'p'+Date.now(),data:'',valor:''});
   const listaEl=document.getElementById('parc-'+orcId);
   if(listaEl)listaEl.innerHTML=buildParcelasHTML(orc);
+  if(!ehDemo()){
+    const { error } = await sb.from('obra_orcamentos').update({ parcelas: orc.parcelas, atualizado_em: new Date().toISOString() }).eq('id', orcId);
+    if(error) console.error(error);
+  }
 }
 
-function delParcela(orcId,parcId){
+async function delParcela(orcId,parcId){
   for(const cat of DB.categorias){
     const orc=cat.orcamentos.find(o=>o.id===orcId);
-    if(orc){orc.parcelas=orc.parcelas.filter(p=>p.id!==parcId);const el=document.getElementById('parc-item-'+parcId);if(el)el.remove();return;}
+    if(orc){
+      orc.parcelas=orc.parcelas.filter(p=>p.id!==parcId);
+      const el=document.getElementById('parc-item-'+parcId);if(el)el.remove();
+      if(!ehDemo()){
+        const { error } = await sb.from('obra_orcamentos').update({ parcelas: orc.parcelas, atualizado_em: new Date().toISOString() }).eq('id', orcId);
+        if(error) console.error(error);
+      }
+      return;
+    }
   }
 }
 
@@ -702,11 +796,19 @@ function reRenderCat(catId){
   catEl.replaceWith(novo);
 }
 
-function addCategoria(){
+async function addCategoria(){
   const nome=prompt('Nome da nova categoria:');
   if(!nome||!nome.trim())return;
   const icons=['🪴','🖼','💡','🛠','📦','🎭','🧹','🪞'];
-  const cat={id:'cx'+Date.now(),icon:icons[DB.categorias.length%icons.length],nome:nome.trim(),orcamentos:[]};
+  const icon=icons[DB.categorias.length%icons.length];
+  let id='cx'+Date.now();
+  if(!ehDemo()){
+    const { data, error } = await sb.from('obra_categorias_extra')
+      .insert({ projeto_id: projeto.id, nome: nome.trim(), icon, ordem: DB.categorias.length }).select().single();
+    if(error){ toast('Não foi possível adicionar a categoria agora.'); console.error(error); return; }
+    id = data.id;
+  }
+  const cat={id,icon,nome:nome.trim(),orcamentos:[]};
   DB.categorias.push(cat);
   const container=document.getElementById('categorias-container');
   container.appendChild(buildCategoriaEl(cat));
@@ -800,11 +902,19 @@ function renderFinanceiro(){
   }
 }
 
-function togglePago(catId,orcId,parcId){
+async function togglePago(catId,orcId,parcId){
   const cat=DB.categorias.find(c=>c.id===catId);
   const orc=cat?.orcamentos.find(o=>o.id===orcId);
   const p=orc?.parcelas?.find(x=>x.id===parcId);
-  if(p){p.pago=!p.pago;renderFinanceiro();toast(p.pago?'Parcela marcada como paga ✓':'Parcela desmarcada');}
+  if(p){
+    p.pago=!p.pago;
+    renderFinanceiro();
+    toast(p.pago?'Parcela marcada como paga ✓':'Parcela desmarcada');
+    if(!ehDemo()){
+      const { error } = await sb.from('obra_orcamentos').update({ parcelas: orc.parcelas, atualizado_em: new Date().toISOString() }).eq('id', orcId);
+      if(error) console.error(error);
+    }
+  }
 }
 
 // ════════════════════════════════════════
@@ -921,14 +1031,57 @@ function addStep(listaId, ambId){
 
 function toggleAmb(id){document.getElementById(id).classList.toggle('aberto');}
 
-// ── INIT ──
-renderTodasCategorias();
-Object.entries(checkData).forEach(([listaId,items])=>{
-  const lista=document.getElementById(listaId);
-  if(!lista)return;
-  const ambId='amb-'+listaId.replace('cl-','');
-  items.forEach(it=>lista.appendChild(buildCheckItem(it.txt,it.tags||[],false,listaId,ambId)));
-});
+// ── INIT — agora carrega o projeto do cliente logado antes de renderizar ──
+async function inicializarObra(){
+  if (!sb) { toast('Erro de conexão. Recarregue a página.'); return; }
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = '/login'; return; }
+  usuarioAtual = data.session.user;
+
+  const proj = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).single(), null);
+  if (!proj) { toast('Não encontramos seu projeto. Fale com a Guide.'); return; }
+  projeto = proj;
+  if (projeto.nome_cliente) document.getElementById('meta-cliente').textContent = projeto.nome_cliente;
+  if (projeto.endereco) document.getElementById('meta-imovel').textContent = projeto.endereco;
+
+  const extras = await tentar(sb.from('obra_categorias_extra').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []);
+  DB.categorias = [
+    ...CATEGORIAS_FIXAS.map(c => ({ ...c, orcamentos: [] })),
+    ...extras.map(c => ({ id: c.id, icon: c.icon || '📦', nome: c.nome, orcamentos: [] })),
+  ];
+
+  const orcs = await tentar(sb.from('obra_orcamentos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: true }), []);
+  orcs.forEach(o => {
+    const cat = DB.categorias.find(c => c.id === o.categoria_id);
+    if (cat) cat.orcamentos.push({ id: o.id, status: o.status, nome: o.nome, contato: o.contato, valor: o.valor, obs: o.obs, parcelas: o.parcelas || [] });
+  });
+
+  renderTodasCategorias();
+  await aplicarOrcamentosPendentes();
+
+  Object.entries(checkData).forEach(([listaId,items])=>{
+    const lista=document.getElementById(listaId);
+    if(!lista)return;
+    const ambId='amb-'+listaId.replace('cl-','');
+    items.forEach(it=>lista.appendChild(buildCheckItem(it.txt,it.tags||[],false,listaId,ambId)));
+  });
+
+  // veio do card "Parceiros Guide" com uma categoria pra destacar
+  const paramsObra = new URLSearchParams(window.location.search);
+  const categoriaDestaque = paramsObra.get('categoria');
+  if (categoriaDestaque) {
+    const elCat = document.getElementById('cat-' + categoriaDestaque);
+    if (elCat) {
+      setTimeout(() => {
+        elCat.scrollIntoView({ behavior:'smooth', block:'start' });
+        elCat.style.outline = '2px solid var(--gold)';
+        elCat.style.outlineOffset = '4px';
+        setTimeout(() => { elCat.style.outline = ''; elCat.style.outlineOffset = ''; }, 2200);
+      }, 200);
+    }
+  }
+}
+inicializarObra();
 </script>
 </body>
 </html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fornecedores — Painel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#7a7870; --muted2:#4a4845;
+  --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
+  --green:#50C878; --green-dim:rgba(80,200,120,0.09); --green-border:rgba(80,200,120,0.28);
+  --red:rgba(220,90,90,0.9); --red-dim:rgba(220,90,90,0.09);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--black); color: var(--off); font-family: 'Outfit', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+#bg-canvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+.noise { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size: 200px; }
+.top-bar { position: fixed; top: 24px; left: 28px; right: 28px; min-height: 60px; background: rgba(255,255,255,0.06); backdrop-filter: blur(32px) saturate(160%); -webkit-backdrop-filter: blur(32px) saturate(160%); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 18px 44px rgba(0,0,0,0.45), 0 0 24px rgba(201,162,39,0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 300; flex-wrap: wrap; gap: 10px; }
+.top-left { display: flex; align-items: center; gap: 12px; }
+.top-logo-img { height: 30px; width: auto; display: block; }
+.top-painel-badge { font-size: 9px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--gold-dim); }
+.btn-voltar { background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 7px 13px; font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; white-space: nowrap; }
+.btn-voltar:hover { color: var(--gold); border-color: var(--border); }
+.top-right { display: flex; align-items: center; gap: 16px; }
+.top-arquiteto { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+.btn-logout { background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 6px 14px; font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; letter-spacing: 0.06em; text-transform: uppercase; }
+.btn-logout:hover { color: var(--gold); border-color: var(--border); }
+.main { max-width: 1100px; margin: 0 auto; padding: 130px 28px 80px; position: relative; z-index: 2; }
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 16px; }
+.page-titulo-wrap { display: flex; flex-direction: column; gap: 6px; }
+.page-saudacao { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.page-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; }
+.btn-novo { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: 12px; padding: 11px 20px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.3s; letter-spacing: 0.04em; }
+.btn-novo:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(201,162,39,0.2); }
+.filtros-wrap { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+.busca-input, .filtro-select { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 12px; padding: 11px 16px; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--white); outline: none; transition: border-color 0.2s; }
+.busca-input { flex: 1; min-width: 220px; max-width: 360px; }
+.busca-input::placeholder { color: var(--muted2); }
+.busca-input:focus, .filtro-select:focus { border-color: var(--gold-mid); }
+.filtro-select { min-width: 220px; }
+.filtro-select option { background: var(--card2); }
+
+.categoria-grupo { margin-bottom: 30px; }
+.categoria-grupo-titulo { display: flex; align-items: center; gap: 10px; font-family: 'Quicksand', sans-serif; font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+.categoria-grupo-icone { font-size: 17px; }
+.categoria-grupo-escopo { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; max-width: 640px; }
+.fornecedor-lista { display: flex; flex-direction: column; gap: 10px; }
+.fornecedor-vazio { font-size: 12px; color: var(--muted2); padding: 4px 0 2px; }
+.fornecedor-row { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border2); border-radius: 14px; padding: 12px 16px; transition: all 0.2s; }
+.fornecedor-row.inativo { opacity: 0.55; }
+.fornecedor-row:hover { border-color: var(--gold-mid); }
+.fornecedor-thumb { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.fornecedor-row-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fornecedor-nome { font-size: 13px; color: var(--white); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fornecedor-meta { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-badge { flex-shrink: 0; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 7px; white-space: nowrap; }
+.status-badge.ativo { color: var(--green); background: var(--green-dim); border: 1px solid var(--green-border); }
+.status-badge.inativo { color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid var(--border2); }
+.fornecedor-row-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-icone-row { background: transparent; border: 1px solid var(--border2); border-radius: 9px; padding: 6px 11px; font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; white-space: nowrap; }
+.btn-icone-row:hover { color: var(--gold); border-color: var(--border); }
+.btn-icone-row.perigo:hover { color: var(--red); border-color: var(--red-dim); }
+
+.loading { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 13px; }
+.spinner { display: inline-block; width: 26px; height: 26px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.vazio { text-align: center; padding: 80px 20px; }
+.vazio-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+.vazio-titulo { font-family: 'Quicksand', sans-serif; font-size: 18px; color: var(--off); margin-bottom: 8px; }
+.vazio-txt { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+.modal-overlay.vis { display: flex; }
+.modal { background: var(--card2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.6); margin: auto; }
+.modal-titulo { font-family: 'Quicksand', sans-serif; font-size: 20px; font-weight: 600; color: var(--white); margin-bottom: 22px; }
+.modal-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 15px; }
+.modal-label { font-size: 11px; font-weight: 500; color: var(--white); letter-spacing: 0.06em; text-transform: uppercase; }
+.modal-hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: -2px; }
+.modal-input, .modal-select, .modal-textarea { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 11px; padding: 12px 14px; font-family: 'Outfit', sans-serif; font-size: 14px; color: var(--white); outline: none; transition: border-color 0.2s; width: 100%; }
+.modal-select option { background: var(--card2); }
+.modal-textarea { resize: vertical; min-height: 60px; }
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: var(--gold-mid); }
+.modal-input::placeholder, .modal-textarea::placeholder { color: var(--muted2); }
+.modal-foto-linha { display: flex; align-items: center; gap: 12px; }
+.modal-foto-preview { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; background: var(--gold-dim); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--gold); }
+.modal-foto-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.modal-toggle { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--off); margin-bottom: 8px; cursor: pointer; }
+.modal-actions { display: flex; gap: 12px; margin-top: 22px; }
+.btn-cancelar { flex: 1; background: transparent; border: 1px solid var(--border2); border-radius: 11px; padding: 12px; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.btn-cancelar:hover { color: var(--off); border-color: var(--muted2); }
+.btn-salvar { flex: 1; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border: none; border-radius: 11px; padding: 12px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: var(--black); cursor: pointer; transition: all 0.3s; }
+.btn-salvar:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(201,162,39,0.2); }
+.btn-salvar:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(20,20,24,0.96); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 11px; padding: 13px 22px; font-size: 12px; color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; white-space: nowrap; }
+.toast.vis { opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="top-bar">
+  <div class="top-left">
+    <button class="btn-voltar" onclick="window.location.href='/admin-projetos'">← Projetos</button>
+    <span class="top-painel-badge">Fornecedores</span>
+  </div>
+  <div class="top-right">
+    <span class="top-arquiteto" id="top-arquiteto"></span>
+    <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div class="page-titulo-wrap">
+      <span class="page-saudacao">Painel Guide</span>
+      <h1 class="page-titulo">Fornecedores</h1>
+    </div>
+    <button class="btn-novo" onclick="abrirNovo()"><span>+</span><span>Novo fornecedor</span></button>
+  </div>
+
+  <div class="filtros-wrap">
+    <input type="text" class="busca-input" id="busca" placeholder="Buscar fornecedor..." oninput="renderLista()">
+    <select class="filtro-select" id="filtro-categoria" onchange="renderLista()">
+      <option value="all">Todas as categorias</option>
+    </select>
+  </div>
+
+  <div id="conteudo">
+    <div class="loading"><div class="spinner"></div><p>Carregando fornecedores...</p></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-titulo">Novo fornecedor</div>
+
+    <div class="modal-field">
+      <label class="modal-label">Nome do fornecedor</label>
+      <input type="text" class="modal-input" id="f-nome" placeholder="Ex: Marcenaria Santos">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Categoria</label>
+      <select class="modal-select" id="f-categoria" onchange="atualizarEscopoForm()"></select>
+      <p class="modal-hint" id="f-categoria-escopo"></p>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">CNPJ</label>
+      <input type="text" class="modal-input" id="f-cnpj" placeholder="00.000.000/0000-00">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Telefone</label>
+      <input type="text" class="modal-input" id="f-telefone" placeholder="(00) 00000-0000">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">WhatsApp</label>
+      <input type="text" class="modal-input" id="f-whatsapp" placeholder="(00) 00000-0000">
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Descrição breve (opcional)</label>
+      <textarea class="modal-textarea" id="f-descricao" placeholder="Algo que descreva bem esse parceiro..." rows="2"></textarea>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Foto / logo (opcional)</label>
+      <div class="modal-foto-linha">
+        <div class="modal-foto-preview" id="f-foto-preview">🏢</div>
+        <input type="file" id="f-foto-input" accept="image/*" onchange="enviarFotoFornecedor(this.files[0])">
+      </div>
+    </div>
+
+    <label class="modal-toggle">
+      <input type="checkbox" id="f-status" checked>
+      Fornecedor ativo (visível para os Guiders)
+    </label>
+
+    <div class="modal-actions">
+      <button class="btn-cancelar" onclick="fecharModalForm()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar-fornecedor" onclick="salvarFornecedor()">Salvar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+else { console.error('Biblioteca Supabase não carregou.'); }
+
+// Mesmos ids/ícones de DB.categorias no Acompanhamento de Obra (obra.html) e do
+// card "Parceiros Guide" (meu-projeto.html) — não renomear sem atualizar os três lugares.
+const FORNECEDOR_CATEGORIAS = [
+  { id:'empreiteiro',      icon:'🏗',  label:'Empreiteiro Geral', escopo:'Responsável pela execução geral da obra — coordena as etapas estruturais e o time de trabalhadores no canteiro.' },
+  { id:'marceneiro',       icon:'🪵',  label:'Marceneiro / Loja de Planejados', escopo:'Fabricação e instalação de móveis planejados — armários, painéis, bancadas de madeira e marcenaria sob medida.' },
+  { id:'pintor',           icon:'🎨',  label:'Pintor', escopo:'Pintura de paredes, tetos e detalhes de acabamento. Entra próximo ao fim da obra, após os reparos estruturais.' },
+  { id:'eletricista',      icon:'⚡',  label:'Eletricista', escopo:'Instalação de pontos de luz, tomadas, quadro de distribuição e toda a parte elétrica do projeto.' },
+  { id:'instalador',       icon:'🪨',  label:'Instalador de Pisos e Revestimentos', escopo:'Aplicação de pisos, porcelanatos e revestimentos de parede — inclui preparo da base e rejunte.' },
+  { id:'marmoraria',       icon:'⬜',  label:'Marmoraria', escopo:'Corte e instalação de bancadas, soleiras e peças em pedra (granito, mármore, quartzo).' },
+  { id:'serralheria',      icon:'🔩',  label:'Serralheria', escopo:'Estruturas e peças metálicas — guarda-corpos, portões, estruturas de vidro e ferragens sob medida.' },
+  { id:'vidraceiro',       icon:'🪟',  label:'Vidraceiro / Box', escopo:'Instalação de vidros, boxes de banheiro, espelhos e divisórias envidraçadas.' },
+  { id:'moveis',           icon:'🛋️', label:'Entrega e Instalação de Móveis', escopo:'Transporte, montagem e posicionamento de móveis soltos ao final da obra.' },
+  { id:'gesseiro',         icon:'🏠',  label:'Gesseiro', escopo:'Execução de forros, sancas, rebaixos e estruturas em drywall. Entra após a fase estrutural, antes da pintura.' },
+  { id:'ar_condicionado',  icon:'❄️',  label:'Ar-condicionado', escopo:'Venda, instalação e manutenção de sistemas de climatização (split, multi-split e centrais).' },
+  { id:'automacao',        icon:'📱',  label:'Automação Residencial', escopo:'Instalação de sistemas para controlar luz, som, cortinas e climatização remotamente.' },
+  { id:'envelopamento',    icon:'🎞️', label:'Envelopamento', escopo:'Aplicação de películas adesivas sobre móveis, portas ou eletrodomésticos para trocar cor ou textura sem trocar a peça — ótimo custo-benefício quando o item está estruturalmente bom.' },
+];
+
+let todosFornecedores = [];
+let editandoId = null;
+let fotoUrlForm = '';
+
+(function(){
+  const c = document.getElementById('bg-canvas'); const ctx = c.getContext('2d'); let W, H, t = 0;
+  const orbs = [ { x: 0.15, y: 0.2, r: 0.42, c: [201,162,39], a: 0.045 }, { x: 0.85, y: 0.8, r: 0.36, c: [201,162,39], a: 0.03 }, { x: 0.5, y: 0.5, r: 0.28, c: [80,100,200], a: 0.02 } ];
+  function resize() { W = c.width = innerWidth; H = c.height = innerHeight; }
+  function draw() { ctx.clearRect(0,0,W,H); t += 0.0025; orbs.forEach((o,i) => { const dx = Math.sin(t*0.7+i*1.3)*0.05; const dy = Math.cos(t*0.5+i*0.9)*0.04; const x=(o.x+dx)*W, y=(o.y+dy)*H; const r=o.r*Math.min(W,H); const g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,`rgba(${o.c}, ${o.a})`); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(draw); }
+  window.addEventListener('resize', resize); resize(); draw();
+})();
+
+async function inicializar() {
+  if (!sb) { mostrarToast('Erro de conexão. Recarregue a página.'); return; }
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = '/admin'; return; }
+  const email = data.session.user.email;
+  const { data: arq, error } = await sb.from('arquitetos').select('nome').eq('email', email).single();
+  if (error || !arq) { await sb.auth.signOut(); window.location.href = '/admin'; return; }
+  document.getElementById('top-arquiteto').textContent = arq.nome;
+  montarSelects();
+  carregarFornecedores();
+}
+
+function montarSelects() {
+  const filtro = document.getElementById('filtro-categoria');
+  const form = document.getElementById('f-categoria');
+  FORNECEDOR_CATEGORIAS.forEach(cat => {
+    filtro.insertAdjacentHTML('beforeend', `<option value="${cat.id}">${cat.icon} ${cat.label}</option>`);
+    form.insertAdjacentHTML('beforeend', `<option value="${cat.id}">${cat.icon} ${cat.label}</option>`);
+  });
+  atualizarEscopoForm();
+}
+
+function atualizarEscopoForm() {
+  const cat = FORNECEDOR_CATEGORIAS.find(c => c.id === document.getElementById('f-categoria').value);
+  document.getElementById('f-categoria-escopo').textContent = cat ? cat.escopo : '';
+}
+
+async function carregarFornecedores() {
+  const { data, error } = await sb.from('parceiros').select('*').order('nome', { ascending: true });
+  if (error) {
+    document.getElementById('conteudo').innerHTML = `<div class="vazio"><div class="vazio-icon">⚠</div><div class="vazio-titulo">Erro ao carregar</div><div class="vazio-txt">Não foi possível buscar os fornecedores.<br>Tente recarregar a página.</div></div>`;
+    console.error(error); return;
+  }
+  todosFornecedores = data || [];
+  renderLista();
+}
+
+function renderLista() {
+  const termo = document.getElementById('busca').value.toLowerCase().trim();
+  const catFiltro = document.getElementById('filtro-categoria').value;
+  const filtrados = todosFornecedores.filter(f => {
+    const casaBusca = !termo || (f.nome || '').toLowerCase().includes(termo);
+    const casaCategoria = catFiltro === 'all' || f.categoria === catFiltro;
+    return casaBusca && casaCategoria;
+  });
+
+  const conteudo = document.getElementById('conteudo');
+  if (!todosFornecedores.length) {
+    conteudo.innerHTML = `<div class="vazio"><div class="vazio-icon">🤝</div><div class="vazio-titulo">Nenhum fornecedor ainda</div><div class="vazio-txt">Clique em "Novo fornecedor" para cadastrar<br>o primeiro parceiro da Guide.</div></div>`;
+    return;
+  }
+  if (!filtrados.length) {
+    conteudo.innerHTML = `<div class="vazio"><div class="vazio-icon">🔍</div><div class="vazio-titulo">Nada encontrado</div><div class="vazio-txt">Ajuste a busca ou o filtro de categoria.</div></div>`;
+    return;
+  }
+
+  const categoriasParaMostrar = catFiltro === 'all' ? FORNECEDOR_CATEGORIAS : FORNECEDOR_CATEGORIAS.filter(c => c.id === catFiltro);
+  let html = '';
+  categoriasParaMostrar.forEach(cat => {
+    const doGrupo = filtrados.filter(f => f.categoria === cat.id);
+    if (!doGrupo.length) return;
+    html += `
+      <div class="categoria-grupo">
+        <div class="categoria-grupo-titulo"><span class="categoria-grupo-icone">${cat.icon}</span> ${cat.label}</div>
+        <p class="categoria-grupo-escopo">${cat.escopo}</p>
+        <div class="fornecedor-lista">${doGrupo.map(f => linhaFornecedor(f, cat)).join('')}</div>
+      </div>`;
+  });
+  // fornecedores com categoria fora da lista fixa (dado antigo/legado) — mostra num grupo à parte
+  const orfaos = filtrados.filter(f => !FORNECEDOR_CATEGORIAS.some(c => c.id === f.categoria));
+  if (orfaos.length) {
+    html += `
+      <div class="categoria-grupo">
+        <div class="categoria-grupo-titulo"><span class="categoria-grupo-icone">📁</span> Outra categoria</div>
+        <div class="fornecedor-lista">${orfaos.map(f => linhaFornecedor(f, { icon:'📁', label: f.categoria || '—' })).join('')}</div>
+      </div>`;
+  }
+  conteudo.innerHTML = html || `<div class="vazio"><div class="vazio-icon">🔍</div><div class="vazio-titulo">Nada encontrado</div><div class="vazio-txt">Ajuste a busca ou o filtro de categoria.</div></div>`;
+}
+
+function linhaFornecedor(f, cat) {
+  const ativo = (f.status || 'ativo') !== 'inativo';
+  const thumb = f.foto_url ? `<img class="fornecedor-thumb" src="${f.foto_url}" alt="">` : `<div class="fornecedor-thumb">${cat.icon}</div>`;
+  const meta = [f.cnpj, f.telefone].filter(Boolean).join(' · ') || 'Sem CNPJ/telefone cadastrado';
+  return `
+    <div class="fornecedor-row ${ativo ? '' : 'inativo'}">
+      ${thumb}
+      <div class="fornecedor-row-info">
+        <span class="fornecedor-nome">${f.nome}</span>
+        <span class="fornecedor-meta">${meta}</span>
+      </div>
+      <span class="status-badge ${ativo ? 'ativo' : 'inativo'}">${ativo ? 'Ativo' : 'Inativo'}</span>
+      <div class="fornecedor-row-acoes">
+        <button class="btn-icone-row" onclick="abrirEditar('${f.id}')">Editar</button>
+        <button class="btn-icone-row" onclick="alternarStatus('${f.id}')">${ativo ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn-icone-row perigo" onclick="excluirFornecedor('${f.id}')">Excluir</button>
+      </div>
+    </div>`;
+}
+
+function abrirNovo() {
+  editandoId = null;
+  fotoUrlForm = '';
+  document.getElementById('modal-titulo').textContent = 'Novo fornecedor';
+  document.getElementById('f-nome').value = '';
+  document.getElementById('f-categoria').value = FORNECEDOR_CATEGORIAS[0].id;
+  document.getElementById('f-cnpj').value = '';
+  document.getElementById('f-telefone').value = '';
+  document.getElementById('f-whatsapp').value = '';
+  document.getElementById('f-descricao').value = '';
+  document.getElementById('f-status').checked = true;
+  document.getElementById('f-foto-preview').innerHTML = '🏢';
+  document.getElementById('f-foto-input').value = '';
+  atualizarEscopoForm();
+  document.getElementById('modal-overlay').classList.add('vis');
+}
+
+function abrirEditar(id) {
+  const f = todosFornecedores.find(x => String(x.id) === String(id));
+  if (!f) return;
+  editandoId = id;
+  fotoUrlForm = f.foto_url || '';
+  document.getElementById('modal-titulo').textContent = 'Editar fornecedor';
+  document.getElementById('f-nome').value = f.nome || '';
+  document.getElementById('f-categoria').value = f.categoria || FORNECEDOR_CATEGORIAS[0].id;
+  document.getElementById('f-cnpj').value = f.cnpj || '';
+  document.getElementById('f-telefone').value = f.telefone || '';
+  document.getElementById('f-whatsapp').value = f.whatsapp || '';
+  document.getElementById('f-descricao').value = f.descricao || '';
+  document.getElementById('f-status').checked = (f.status || 'ativo') !== 'inativo';
+  document.getElementById('f-foto-preview').innerHTML = fotoUrlForm ? `<img src="${fotoUrlForm}" alt="">` : '🏢';
+  document.getElementById('f-foto-input').value = '';
+  atualizarEscopoForm();
+  document.getElementById('modal-overlay').classList.add('vis');
+}
+
+function fecharModalForm() {
+  document.getElementById('modal-overlay').classList.remove('vis');
+}
+
+async function enviarFotoFornecedor(file) {
+  if (!file) return;
+  mostrarToast('Enviando foto...');
+  const seguro = file.name.replace(/[^\w.\-]/g, '_');
+  const caminho = `fornecedores/${Date.now()}_${seguro}`;
+  const { error } = await sb.storage.from('projetos-imagens').upload(caminho, file, { contentType: file.type });
+  if (error) { mostrarToast('Não foi possível enviar a foto.'); console.error(error); return; }
+  const { data } = sb.storage.from('projetos-imagens').getPublicUrl(caminho);
+  fotoUrlForm = data.publicUrl;
+  document.getElementById('f-foto-preview').innerHTML = `<img src="${fotoUrlForm}" alt="">`;
+  mostrarToast('Foto enviada.');
+}
+
+async function salvarFornecedor() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const categoria = document.getElementById('f-categoria').value;
+  const cnpj = document.getElementById('f-cnpj').value.trim();
+  const telefone = document.getElementById('f-telefone').value.trim();
+  const whatsapp = document.getElementById('f-whatsapp').value.trim();
+  const descricao = document.getElementById('f-descricao').value.trim();
+  const status = document.getElementById('f-status').checked ? 'ativo' : 'inativo';
+
+  if (!nome || !categoria || !cnpj || !telefone || !whatsapp) {
+    mostrarToast('Preencha nome, categoria, CNPJ, telefone e WhatsApp.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-salvar-fornecedor');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const payload = {
+    nome, categoria, cnpj, telefone, whatsapp,
+    descricao: descricao || null,
+    foto_url: fotoUrlForm || null,
+    status,
+    atualizado_em: new Date().toISOString(),
+  };
+
+  let error;
+  if (editandoId) {
+    ({ error } = await sb.from('parceiros').update(payload).eq('id', editandoId));
+  } else {
+    ({ error } = await sb.from('parceiros').insert({ ...payload, criado_em: new Date().toISOString() }));
+  }
+
+  btn.disabled = false; btn.textContent = 'Salvar';
+  if (error) { mostrarToast('Não foi possível salvar o fornecedor.'); console.error(error); return; }
+  fecharModalForm();
+  mostrarToast(editandoId ? 'Fornecedor atualizado.' : 'Fornecedor cadastrado.');
+  carregarFornecedores();
+}
+
+async function alternarStatus(id) {
+  const f = todosFornecedores.find(x => String(x.id) === String(id));
+  if (!f) return;
+  const novoStatus = (f.status || 'ativo') !== 'inativo' ? 'inativo' : 'ativo';
+  const { error } = await sb.from('parceiros').update({ status: novoStatus, atualizado_em: new Date().toISOString() }).eq('id', id);
+  if (error) { mostrarToast('Não foi possível atualizar o status.'); console.error(error); return; }
+  f.status = novoStatus;
+  renderLista();
+  mostrarToast(novoStatus === 'ativo' ? 'Fornecedor ativado.' : 'Fornecedor desativado.');
+}
+
+async function excluirFornecedor(id) {
+  const f = todosFornecedores.find(x => String(x.id) === String(id));
+  if (!f) return;
+  if (!confirm(`Remover ${f.nome}? Essa ação não pode ser desfeita.`)) return;
+  const { error } = await sb.from('parceiros').delete().eq('id', id);
+  if (error) { mostrarToast('Não foi possível remover o fornecedor.'); console.error(error); return; }
+  todosFornecedores = todosFornecedores.filter(x => String(x.id) !== String(id));
+  renderLista();
+  mostrarToast('Fornecedor removido.');
+}
+
+async function fazerLogout() { await sb.auth.signOut(); window.location.href = '/admin'; }
+function mostrarToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('vis'); setTimeout(() => t.classList.remove('vis'), 3500); }
+document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') fecharModalForm(); });
+inicializar();
+</script>
+</body>
+</html>
