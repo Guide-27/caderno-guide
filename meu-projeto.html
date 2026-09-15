@@ -328,10 +328,11 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .card-ateaqui { grid-column: 3 / 4; grid-row: 2 / 3; }
 /* Gui ocupa a antiga posição de "Rumo às chaves" (item 2x1, coluna 4) */
 .card-gui     { grid-column: 4 / 5; grid-row: 1 / 3; }
-.gui-capa { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px; text-align: center; min-height: 0; }
+/* título fica acima, no topo do card; a imagem ocupa e centraliza o espaço restante */
+.gui-capa { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
 /* imagem maior dentro do card, mas sempre inteira (sem recorte): proporção preservada + teto de altura */
 .gui-img { width: 100%; max-width: 230px; max-height: 300px; height: auto; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 12px 26px rgba(0,0,0,0.5)); }
-.gui-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); line-height: 1.4; }
+.gui-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); line-height: 1.4; text-align: center; margin-top: 4px; }
 .gui-titulo .rev-word { display: inline-block; }
 .card-guiders   { grid-column: 1 / 2; grid-row: 3 / 4; }
 .card-parceiros { grid-column: 2 / 3; grid-row: 3 / 4; }
@@ -1031,7 +1032,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .fx-marquee .trilho { animation: none; } }
 
-.sonhou-capa-wrap { position: relative; margin-top: auto; }
+.sonhou-capa-wrap { position: relative; }
 .sonhou-marquee { border-radius: var(--r-md); }
 .sonhou-marquee .sonhou-slide { flex: 0 0 auto; width: 118px; height: 92px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--border2); }
 .sonhou-marquee.grande { margin: 6px 0 20px; }
@@ -2298,9 +2299,6 @@ function fechadoSonhou() {
     <div class="sonhou-capa-overlay">
       <span class="sonhou-capa-cta">${ic('sparkles','ic-sm')} Toque para começar o seu</span>
     </div>`;
-  const frase = preenchido
-    ? 'As inspirações, cores e sonhos que você compartilhou — reunidos aqui.'
-    : 'Seu estilo, suas cores e inspirações vão morar aqui. Vamos começar?';
   return `
     <div class="card-eyebrow">${ic('heart')} O que você sonhou</div>
     <div class="card-titulo">Seu estilo, em resumo</div>
@@ -2309,7 +2307,6 @@ function fechadoSonhou() {
         ${marqueeSonhou(urls)}
         ${overlay}
       </div>
-      <div class="card-convite">${marcarPalavras(frase)}</div>
     </div>
   `;
 }
@@ -2341,9 +2338,9 @@ function montarTimeline() {
 function fechadoGui() {
   return `
     <div class="card-eyebrow">${ic('sparkles','ic-sm')} Assistente</div>
+    <div class="gui-titulo">${marcarPalavras('Eu sou o Gui, seu assistente.')}</div>
     <div class="gui-capa">
       <img src="/assets/character-1.png" alt="Gui" class="gui-img">
-      <div class="gui-titulo">${marcarPalavras('Eu sou o Gui, seu assistente.')}</div>
     </div>
   `;
 }
