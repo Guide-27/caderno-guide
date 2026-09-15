@@ -686,28 +686,58 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 /* parceiros guide — sessão quase de tela cheia */
 .parceiros-header { margin-bottom: 26px; }
 .parceiros-intro { font-size: var(--fs-base); color: var(--off); line-height: 1.65; margin: 14px 0 20px; max-width: 640px; }
-.parceiros-busca { width: 100%; max-width: 460px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 16px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); }
+.parceiros-topo { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.parceiros-busca { flex: 1; min-width: 240px; max-width: 460px; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 16px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: var(--fs-base); }
 .parceiros-busca:focus { outline: none; border-color: var(--gold-mid); }
-.parceiros-corpo { display: flex; flex-direction: column; gap: 32px; }
-.parceiros-categoria-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-.parceiros-categoria-icone { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
-.parceiros-categoria-nome { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); margin-bottom: 4px; }
-.parceiros-categoria-escopo { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; max-width: 560px; }
-.parceiros-categoria-vazia { font-size: var(--fs-sm); color: var(--muted); line-height: 1.6; padding: 4px 0 2px; }
-.parceiros-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; }
 
-.parceiro-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--glass2); }
+/* cápsula de filtro por categoria, no topo */
+.parceiros-filtro-capsula { position: relative; }
+.parceiros-filtro-toggle { display: flex; align-items: center; gap: 8px; height: 100%; background: var(--glass2); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 16px; color: var(--off); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); cursor: pointer; transition: border-color .2s, color .2s; }
+.parceiros-filtro-toggle:hover, .parceiros-filtro-toggle[aria-expanded="true"] { border-color: var(--gold-mid); color: var(--gold-light); }
+.parceiros-filtro-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--gold); color: var(--black); font-size: var(--fs-2xs); font-weight: 700; }
+.parceiros-filtro-badge:empty { display: none; }
+.parceiros-filtro-opcoes { position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; width: 280px; max-height: 360px; overflow-y: auto; background: var(--card2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; box-shadow: 0 20px 44px rgba(0,0,0,0.45); display: grid; gap: 4px; }
+.parceiros-filtro-opcoes[hidden] { display: none; }
+.parceiros-filtro-opcao { display: flex; align-items: center; gap: 9px; font-size: var(--fs-sm); color: var(--off); padding: 7px 6px; border-radius: var(--r-sm); cursor: pointer; }
+.parceiros-filtro-opcao:hover { background: var(--glass2); }
+.parceiros-filtro-opcao input { accent-color: var(--gold); flex-shrink: 0; }
+.parceiros-filtro-opcao svg { width: 15px; height: 15px; color: var(--muted); flex-shrink: 0; }
+.parceiros-filtro-limpar { margin-top: 6px; background: none; border: none; color: var(--gold-light); font-family: 'Outfit', sans-serif; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; text-align: left; padding: 6px; }
+.parceiros-filtro-limpar:hover { text-decoration: underline; }
+
+.parceiros-corpo { display: flex; flex-direction: column; gap: 16px; margin-top: 26px; }
+
+/* cápsula de categoria — título + descrição + cards, minimizável */
+.parceiros-capsula { border: 1px solid var(--border2); border-radius: var(--r-lg); background: var(--glass2); overflow: hidden; }
+.parceiros-capsula-header { display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: none; padding: 18px 20px; cursor: pointer; text-align: left; font-family: 'Outfit', sans-serif; }
+.parceiros-capsula-icone { display: flex; color: var(--gold); flex-shrink: 0; }
+.parceiros-capsula-icone svg { width: 19px; height: 19px; }
+.parceiros-capsula-titulo { flex: 1; font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); }
+.parceiros-capsula-chevron { display: flex; color: var(--muted); flex-shrink: 0; transition: transform .25s ease; }
+.parceiros-capsula-chevron svg { width: 16px; height: 16px; }
+.parceiros-capsula.fechada .parceiros-capsula-chevron { transform: rotate(-90deg); }
+.parceiros-capsula-corpo { padding: 0 20px 22px; }
+.parceiros-capsula.fechada .parceiros-capsula-corpo { display: none; }
+.parceiros-categoria-escopo { font-size: var(--fs-sm); color: var(--muted); line-height: 1.65; max-width: 720px; margin-bottom: 18px; }
+.parceiros-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .parceiros-grid { grid-template-columns: 1fr; } }
+
+.parceiro-card { position: relative; display: flex; flex-direction: column; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border2); background: var(--card2); }
+.parceiro-card-exemplo { border-style: dashed; opacity: .8; }
 .parceiro-foto { width: 100%; height: 120px; object-fit: cover; display: block; }
-.parceiro-foto-vazia { display: flex; align-items: center; justify-content: center; font-size: 30px; background: var(--gold-dim); color: var(--gold); }
+.parceiro-foto-vazia { display: flex; align-items: center; justify-content: center; background: var(--gold-dim); color: var(--gold); }
+.parceiro-foto-vazia svg { width: 26px; height: 26px; }
 .parceiro-corpo { padding: 14px 16px 4px; }
 .parceiro-badge { display: inline-block; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .06em; color: var(--gold-light); background: var(--gold-dim); border: 1px solid var(--gold-mid); border-radius: var(--r-pill); padding: 3px 10px; margin-bottom: 8px; }
+.parceiro-badge.exemplo { color: var(--muted); background: var(--glass2); border-color: var(--border2); }
 .parceiro-nome { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); margin-bottom: 6px; }
 .parceiro-descricao { font-size: var(--fs-sm); color: var(--off); line-height: 1.55; margin-bottom: 6px; }
 .parceiro-cnpj { font-size: var(--fs-2xs); color: var(--muted); letter-spacing: .02em; }
 .parceiro-acoes { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 16px; margin-top: auto; }
 .btn-whatsapp, .btn-add-orcamento-parceiro, .btn-caderno-parceiro { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; border-radius: var(--r-sm); padding: 10px 14px; font-size: var(--fs-sm); font-family: 'Outfit', sans-serif; cursor: pointer; text-decoration: none; transition: all .2s; border: 1px solid var(--border2); }
 .btn-whatsapp { background: var(--green-dim); border-color: var(--green-border); color: var(--green); font-weight: 500; }
-.btn-whatsapp:hover { background: rgba(80,200,120,0.16); }
+.btn-whatsapp:hover:not(:disabled) { background: rgba(80,200,120,0.16); }
+.btn-whatsapp:disabled { opacity: .45; cursor: default; }
 .btn-add-orcamento-parceiro { background: var(--gold); border-color: var(--gold); color: var(--black); font-weight: 600; }
 .btn-add-orcamento-parceiro:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(201,162,39,0.22); }
 .btn-add-orcamento-parceiro:disabled { opacity: .45; cursor: default; }
@@ -1830,32 +1860,33 @@ function marcosVisiveis() {
 
 // Categorias de fornecedores — ids idênticos aos de DB.categorias no Acompanhamento de Obra
 // (obra.html), para que "Colocar no orçamento" caia na categoria certa sem mapeamento manual.
+// ícones em lucide (sem emoji) — mesmos ids usados em admin-fornecedores.html e obra.html
 const FORNECEDOR_CATEGORIAS = [
-  { id:'empreiteiro',      icon:'🏗',  label:'Empreiteiro Geral',
-    escopo:'Responsável pela execução geral da obra — coordena as etapas estruturais e o time de trabalhadores no canteiro.' },
-  { id:'marceneiro',       icon:'🪵',  label:'Marceneiro / Loja de Planejados',
+  { id:'empreiteiro',      icon:'hard-hat',   label:'Empreiteiro Geral',
+    escopo:'Coordena diversos escopos da obra ao mesmo tempo — estrutura, elétrica, hidráulica, acabamentos — e responde pela equipe no canteiro do início ao fim. Contratar um empreiteiro geral significa concentrar vários serviços em um único fornecedor, com uma só pessoa respondendo pelo cronograma e pela qualidade do conjunto.' },
+  { id:'marceneiro',       icon:'hammer',     label:'Marceneiro / Loja de Planejados',
     escopo:'Fabricação e instalação de móveis planejados — armários, painéis, bancadas de madeira e marcenaria sob medida.' },
-  { id:'pintor',           icon:'🎨',  label:'Pintor',
+  { id:'pintor',           icon:'paintbrush', label:'Pintor',
     escopo:'Pintura de paredes, tetos e detalhes de acabamento. Entra próximo ao fim da obra, após os reparos estruturais.' },
-  { id:'eletricista',      icon:'⚡',  label:'Eletricista',
+  { id:'eletricista',      icon:'zap',        label:'Eletricista',
     escopo:'Instalação de pontos de luz, tomadas, quadro de distribuição e toda a parte elétrica do projeto.' },
-  { id:'instalador',       icon:'🪨',  label:'Instalador de Pisos e Revestimentos',
+  { id:'instalador',       icon:'grid-2x2',   label:'Instalador de Pisos e Revestimentos',
     escopo:'Aplicação de pisos, porcelanatos e revestimentos de parede — inclui preparo da base e rejunte.' },
-  { id:'marmoraria',       icon:'⬜',  label:'Marmoraria',
+  { id:'marmoraria',       icon:'gem',        label:'Marmoraria',
     escopo:'Corte e instalação de bancadas, soleiras e peças em pedra (granito, mármore, quartzo).' },
-  { id:'serralheria',      icon:'🔩',  label:'Serralheria',
+  { id:'serralheria',      icon:'wrench',     label:'Serralheria',
     escopo:'Estruturas e peças metálicas — guarda-corpos, portões, estruturas de vidro e ferragens sob medida.' },
-  { id:'vidraceiro',       icon:'🪟',  label:'Vidraceiro / Box',
+  { id:'vidraceiro',       icon:'square',     label:'Vidraceiro / Box',
     escopo:'Instalação de vidros, boxes de banheiro, espelhos e divisórias envidraçadas.' },
-  { id:'moveis',           icon:'🛋️', label:'Entrega e Instalação de Móveis',
+  { id:'moveis',           icon:'armchair',   label:'Entrega e Instalação de Móveis',
     escopo:'Transporte, montagem e posicionamento de móveis soltos ao final da obra.' },
-  { id:'gesseiro',         icon:'🏠',  label:'Gesseiro',
+  { id:'gesseiro',         icon:'layers',     label:'Gesseiro',
     escopo:'Execução de forros, sancas, rebaixos e estruturas em drywall. Entra após a fase estrutural, antes da pintura.' },
-  { id:'ar_condicionado',  icon:'❄️',  label:'Ar-condicionado',
+  { id:'ar_condicionado',  icon:'snowflake',  label:'Ar-condicionado',
     escopo:'Venda, instalação e manutenção de sistemas de climatização (split, multi-split e centrais).' },
-  { id:'automacao',        icon:'📱',  label:'Automação Residencial',
+  { id:'automacao',        icon:'smartphone', label:'Automação Residencial',
     escopo:'Instalação de sistemas para controlar luz, som, cortinas e climatização remotamente.' },
-  { id:'envelopamento',    icon:'🎞️', label:'Envelopamento',
+  { id:'envelopamento',    icon:'sticker',    label:'Envelopamento',
     escopo:'Aplicação de películas adesivas sobre móveis, portas ou eletrodomésticos para trocar cor ou textura sem trocar a peça — ótimo custo-benefício quando o item está estruturalmente bom.' },
 ];
 
@@ -1875,6 +1906,8 @@ let comunidade = [];
 let parceiros = [];
 let parceirosBusca = '';
 let parceirosMostrandoCta = {}; // { [fornecedorId]: true } — confirmação "colocar no orçamento" exibida
+let parceirosFiltroCategorias = []; // ids ticados no filtro do topo; vazio = mostra todas as categorias
+let parceirosCapsulasFechadas = {}; // { [categoriaId]: true } — cápsula da categoria minimizada
 let humores = [];
 let cartas = [];
 let cartaGuiaAberta = false;
@@ -2340,7 +2373,7 @@ function fechadoGuiders() {
 function fechadoParceiros() {
   return `
     <div class="card-eyebrow">${ic('handshake')} Parceiros Guide</div>
-    <div class="card-titulo">Indicações de confiança</div>
+    <div class="card-titulo">A mão de obra que você precisa, aqui!</div>
     <div class="card-corpo"><div class="card-convite">${marcarPalavras('Fornecedores selecionados pela Guide para cada etapa da sua obra.')}</div></div>
   `;
 }
@@ -3526,13 +3559,32 @@ function expandidoGuiders() {
 function expandidoParceiros() {
   parceirosBusca = '';
   parceirosMostrandoCta = {};
+  parceirosFiltroCategorias = [];
+  parceirosCapsulasFechadas = {};
   return `
     <div id="parceiros-root" class="parceiros-fullscreen">
       <div class="parceiros-header">
         <div class="modal-eyebrow">${ic('handshake')} Parceiros Guide</div>
         <div class="modal-titulo">Indicações de confiança</div>
         <p class="parceiros-intro">${marcarPalavras('Escolher quem vai colocar a mão na sua obra é uma das decisões mais delicadas dessa jornada. Por isso a Guide seleciona parceiros de confiança para cada etapa — para que você não precise arriscar sozinho.')}</p>
-        <input type="text" class="parceiros-busca" id="parceiros-busca-input" placeholder="Buscar por nome ou categoria de fornecedor...">
+        <div class="parceiros-topo">
+          <input type="text" class="parceiros-busca" id="parceiros-busca-input" placeholder="Buscar por nome ou categoria de fornecedor...">
+          <div class="parceiros-filtro-capsula">
+            <button type="button" class="parceiros-filtro-toggle" data-acao="parceiro-filtro-toggle" aria-expanded="false">
+              ${ic('filter', 'ic-sm')} Filtrar por categoria
+              <span class="parceiros-filtro-badge" id="parceiros-filtro-contagem"></span>
+              ${ic('chevron-down', 'ic-sm')}
+            </button>
+            <div class="parceiros-filtro-opcoes" id="parceiros-filtro-opcoes" hidden>
+              ${FORNECEDOR_CATEGORIAS.map(cat => `
+                <label class="parceiros-filtro-opcao">
+                  <input type="checkbox" data-cat-filtro="${cat.id}">
+                  ${ic(cat.icon, 'ic-sm')} ${cat.label}
+                </label>`).join('')}
+              <button type="button" class="parceiros-filtro-limpar" data-acao="parceiro-filtro-limpar">Limpar filtro</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="parceiros-corpo" id="parceiros-corpo">${renderParceirosCorpo()}</div>
       <div class="parceiros-nota">${ic('info','ic-sm')}<p>A Guide seleciona esses parceiros com cuidado, mas cada contratação e negociação é feita diretamente entre você e o fornecedor. A Guide não se responsabiliza pelos serviços prestados — estamos aqui para aproximar você de boas indicações, com carinho e atenção em cada escolha.</p></div>
@@ -3543,7 +3595,10 @@ function expandidoParceiros() {
 function renderParceirosCorpo() {
   const termo = parceirosBusca.trim().toLowerCase();
   const ativos = parceiros.filter(f => (f.status || 'ativo') !== 'inativo');
-  const blocos = FORNECEDOR_CATEGORIAS.map(cat => {
+  const categoriasParaMostrar = parceirosFiltroCategorias.length
+    ? FORNECEDOR_CATEGORIAS.filter(c => parceirosFiltroCategorias.includes(c.id))
+    : FORNECEDOR_CATEGORIAS;
+  const blocos = categoriasParaMostrar.map(cat => {
     const doCategoria = ativos.filter(f => f.categoria === cat.id);
     const filtrados = termo
       ? doCategoria.filter(f => (f.nome || '').toLowerCase().includes(termo) || cat.label.toLowerCase().includes(termo))
@@ -3551,33 +3606,55 @@ function renderParceirosCorpo() {
     if (termo && !filtrados.length) return ''; // busca sem resultado nesta categoria: não exibe o bloco
     return renderParceirosCategoria(cat, filtrados);
   }).join('');
-  if (termo && !blocos.trim()) {
-    return `<div class="card-convite" style="padding:12px 0 24px;">Nenhum fornecedor encontrado para "${parceirosBusca}".</div>`;
+  if (!blocos.trim()) {
+    const msg = termo ? `Nenhum fornecedor encontrado para "${parceirosBusca}".` : 'Nenhuma categoria selecionada no filtro.';
+    return `<div class="card-convite" style="padding:12px 0 24px;">${msg}</div>`;
   }
   return blocos;
 }
 
+// Cada categoria é uma cápsula minimizável: título, descrição e cards verticais dos indicados.
+// Enquanto uma categoria não tiver indicações reais cadastradas, mostra 3 cards de exemplo —
+// a Guide vai começar com 3 indicações por categoria; os exemplos somem à medida que entram
+// fornecedores reais (cadastrados em admin-fornecedores.html).
 function renderParceirosCategoria(cat, lista) {
-  const corpo = lista.length
-    ? `<div class="parceiros-grid">${lista.map(f => renderParceiroCard(f, cat)).join('')}</div>`
-    : `<p class="parceiros-categoria-vazia">Estamos formalizando parcerias em ${cat.label} — em breve você verá as indicações aqui.</p>`;
+  const fechada = !!parceirosCapsulasFechadas[cat.id];
+  const cards = lista.length ? lista.map(f => renderParceiroCard(f, cat)).join('') : renderParceirosExemplos(cat);
   return `
-    <div class="parceiros-categoria">
-      <div class="parceiros-categoria-header">
-        <span class="parceiros-categoria-icone">${cat.icon}</span>
-        <div>
-          <div class="parceiros-categoria-nome">${cat.label}</div>
-          <p class="parceiros-categoria-escopo">${cat.escopo}</p>
-        </div>
+    <div class="parceiros-capsula${fechada ? ' fechada' : ''}" data-cat="${cat.id}">
+      <button type="button" class="parceiros-capsula-header" data-acao="parceiro-capsula-toggle" data-cat="${cat.id}" aria-expanded="${!fechada}">
+        <span class="parceiros-capsula-icone">${ic(cat.icon)}</span>
+        <span class="parceiros-capsula-titulo">${cat.label}</span>
+        <span class="parceiros-capsula-chevron">${ic('chevron-down', 'ic-sm')}</span>
+      </button>
+      <div class="parceiros-capsula-corpo">
+        <p class="parceiros-categoria-escopo">${cat.escopo}</p>
+        <div class="parceiros-grid">${cards}</div>
       </div>
-      ${corpo}
     </div>`;
+}
+
+function renderParceirosExemplos(cat) {
+  return [1, 2, 3].map(n => `
+    <div class="parceiro-card parceiro-card-exemplo">
+      <div class="parceiro-foto parceiro-foto-vazia">${ic(cat.icon)}</div>
+      <div class="parceiro-corpo">
+        <span class="parceiro-badge exemplo">Exemplo</span>
+        <div class="parceiro-nome">Fornecedor exemplo ${n}</div>
+        <p class="parceiro-descricao">Em breve, uma indicação real da Guide aparece aqui.</p>
+      </div>
+      <div class="parceiro-acoes">
+        <button type="button" class="btn-whatsapp" disabled>${ic('message-circle', 'ic-sm')} WhatsApp</button>
+        <button type="button" class="btn-add-orcamento-parceiro" disabled>${ic('plus', 'ic-sm')} Colocar no orçamento</button>
+        <button type="button" class="btn-caderno-parceiro" disabled title="Em breve">${ic('clipboard-list', 'ic-sm')} Enviar caderno de ${cat.label}</button>
+      </div>
+    </div>`).join('');
 }
 
 function renderParceiroCard(f, cat) {
   const foto = f.foto_url
     ? `<img src="${f.foto_url}" class="parceiro-foto" alt="">`
-    : `<div class="parceiro-foto parceiro-foto-vazia">${cat.icon}</div>`;
+    : `<div class="parceiro-foto parceiro-foto-vazia">${ic(cat.icon)}</div>`;
   const numWhats = (f.whatsapp || f.telefone || '').replace(/\D/g, '');
   const linkWhats = numWhats ? `https://wa.me/55${numWhats}` : '';
   const confirmado = !!parceirosMostrandoCta[f.id];
@@ -3608,6 +3685,11 @@ function repintarParceiros() {
   if (c) { c.innerHTML = renderParceirosCorpo(); icons(); }
 }
 
+function atualizarFiltroContagem() {
+  const el = document.getElementById('parceiros-filtro-contagem');
+  if (el) el.textContent = parceirosFiltroCategorias.length ? String(parceirosFiltroCategorias.length) : '';
+}
+
 // Handoff para o Acompanhamento de Obra: como obra.html ainda não é ligado ao Supabase
 // (é uma tela local, sem persistência própria), a fila fica no localStorage do navegador
 // e obra.html a lê/consome ao carregar. Quando obra.html ganhar backend, troca-se só isto aqui.
@@ -3635,8 +3717,33 @@ function ligarParceiros() {
   root.addEventListener('click', (e) => {
     const alvo = e.target.closest('[data-acao]');
     if (!alvo) return;
-    if (alvo.dataset.acao === 'parceiro-orcamento') colocarNoOrcamento(alvo.closest('.parceiro-card'));
-    if (alvo.dataset.acao === 'parceiro-ir-cotacoes') window.location.href = '/obra?categoria=' + encodeURIComponent(alvo.dataset.cat);
+    const acao = alvo.dataset.acao;
+    if (acao === 'parceiro-orcamento') colocarNoOrcamento(alvo.closest('.parceiro-card'));
+    if (acao === 'parceiro-ir-cotacoes') window.location.href = '/obra?categoria=' + encodeURIComponent(alvo.dataset.cat);
+    if (acao === 'parceiro-capsula-toggle') {
+      const cat = alvo.dataset.cat;
+      parceirosCapsulasFechadas[cat] = !parceirosCapsulasFechadas[cat];
+      repintarParceiros();
+    }
+    if (acao === 'parceiro-filtro-toggle') {
+      const painel = document.getElementById('parceiros-filtro-opcoes');
+      if (painel) { painel.hidden = !painel.hidden; alvo.setAttribute('aria-expanded', painel.hidden ? 'false' : 'true'); }
+    }
+    if (acao === 'parceiro-filtro-limpar') {
+      parceirosFiltroCategorias = [];
+      root.querySelectorAll('[data-cat-filtro]').forEach(chk => { chk.checked = false; });
+      atualizarFiltroContagem();
+      repintarParceiros();
+    }
+  });
+  root.addEventListener('change', (e) => {
+    const chk = e.target.closest('[data-cat-filtro]');
+    if (!chk) return;
+    const id = chk.dataset.catFiltro;
+    if (chk.checked) { if (!parceirosFiltroCategorias.includes(id)) parceirosFiltroCategorias.push(id); }
+    else parceirosFiltroCategorias = parceirosFiltroCategorias.filter(x => x !== id);
+    atualizarFiltroContagem();
+    repintarParceiros();
   });
 }
 
