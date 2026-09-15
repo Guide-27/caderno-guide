@@ -60,8 +60,13 @@ a{color:inherit;text-decoration:none;}
 
 /* ───── HERO ───── */
 .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 28px 80px;overflow:hidden;}
-.hero-bg{position:absolute;inset:0;background:url('/assets/background%201.jpg') center/cover;}
-.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.15) 0%,rgba(10,10,10,0.55) 60%,var(--bg) 100%);}
+/* fundo em vídeo controlado pela rolagem — mesmo sistema do painel do cliente (meu-projeto.html) */
+.bg-gradient{position:fixed;inset:0;z-index:0;background:url('/assets/bg-fluid.jpg') center/cover no-repeat;background-color:#0c0b09;}
+.bg-video{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;pointer-events:none;transform:translateZ(0) scale(1.04);backface-visibility:hidden;filter:blur(0.6px) saturate(1.04);}
+@media(prefers-reduced-motion:reduce){.bg-video{display:none;}}
+.bg-breath{position:fixed;inset:0;z-index:0;background:rgba(8,8,10,0.50);}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px;}
+.page-fg{position:relative;z-index:2;}
 .hero-in{position:relative;z-index:2;max-width:820px;}
 .hero-logo{width:min(300px,60vw);margin:0 auto 10px;}
 .hero-guide{font-size:clamp(28px,6vw,46px);font-weight:600;letter-spacing:0.55em;margin-left:0.55em;color:var(--gold);margin-bottom:44px;}
@@ -193,9 +198,15 @@ a{color:inherit;text-decoration:none;}
 </head>
 <body>
 
+<div class="bg-gradient"></div>
+<video class="bg-video" src="/assets/bg-fluid-scroll.mp4" muted playsinline preload="auto" poster="/assets/bg-fluid.jpg"></video>
+<div class="bg-breath"></div>
+<div class="noise"></div>
+
 <div class="cursor-dot" id="cursor-dot"></div>
 <div class="cursor-ring" id="cursor-ring"></div>
 
+<div class="page-fg">
 <!-- HEADER -->
 <header class="top-bar">
   <a href="/" class="tb-bubble tb-logo" aria-label="Guide Arquitetura — página inicial">
@@ -224,7 +235,6 @@ a{color:inherit;text-decoration:none;}
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-bg"></div>
   <div class="hero-in">
     <img class="hero-logo" src="/assets/logo-guide.svg" alt="Guide">
     <div class="hero-eyebrow">O PROJETO DO SEU NOVO APARTAMENTO 100% ONLINE</div>
@@ -498,6 +508,7 @@ a{color:inherit;text-decoration:none;}
     <div class="footer-base">© 2026 Guide Arquitetura. Todos os direitos reservados.</div>
   </div>
 </footer>
+</div>
 
 <script>
 const BRL = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
@@ -530,6 +541,44 @@ document.getElementById('mmenu').querySelectorAll('a').forEach(a=>{
 });
 
 if (window.lucide) lucide.createIcons();
+
+/* Fundo em vídeo controlado pela ROLAGEM — mesmo mecanismo do painel do cliente.
+   O vídeo não toca sozinho: avança quando você rola pra baixo,
+   recua quando rola pra cima e congela quando você para. */
+(function () {
+  var v = document.querySelector('.bg-video');
+  if (!v) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var dur = 0;
+
+  function progressoRolagem() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    if (max <= 0) return 0;
+    var p = window.scrollY / max;
+    return p < 0 ? 0 : (p > 1 ? 1 : p);
+  }
+
+  function aplicar() {
+    if (!dur || v.seeking) return;
+    var alvo = progressoRolagem() * dur;
+    if (Math.abs(v.currentTime - alvo) > 0.02) {
+      try { v.currentTime = alvo; } catch (e) {}
+    }
+  }
+
+  function iniciar() {
+    dur = v.duration || 0;
+    v.pause();
+    aplicar();
+  }
+  if (v.readyState >= 1) iniciar();
+  v.addEventListener('loadedmetadata', iniciar);
+  v.addEventListener('seeked', aplicar);
+
+  window.addEventListener('scroll', aplicar, { passive: true });
+  window.addEventListener('resize', aplicar, { passive: true });
+})();
 
 // cursor customizado — ponto + anel que reage sobre elementos interativos
 (function(){
