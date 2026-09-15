@@ -332,7 +332,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .gui-capa { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
 /* imagem maior dentro do card, mas sempre inteira (sem recorte): proporção preservada + teto de altura */
 .gui-img { width: 100%; max-width: 230px; max-height: 300px; height: auto; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 12px 26px rgba(0,0,0,0.5)); }
-.gui-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-md); color: var(--white); line-height: 1.4; text-align: center; margin-top: 4px; }
+.gui-titulo { font-family: 'Sora', sans-serif; font-weight: 700; font-size: var(--fs-lg); color: var(--white); line-height: 1.35; text-align: center; margin-top: 4px; }
 .gui-titulo .rev-word { display: inline-block; }
 .card-guiders   { grid-column: 1 / 2; grid-row: 3 / 4; }
 .card-parceiros { grid-column: 2 / 3; grid-row: 3 / 4; }
@@ -2338,7 +2338,7 @@ function montarTimeline() {
 function fechadoGui() {
   return `
     <div class="card-eyebrow">${ic('sparkles','ic-sm')} Assistente</div>
-    <div class="gui-titulo">${marcarPalavras('Eu sou o Gui, seu assistente.')}</div>
+    <div class="gui-titulo">${marcarPalavras('Eu sou o Gui,')}<br>${marcarPalavras('seu assistente.')}</div>
     <div class="gui-capa">
       <img src="/assets/character-1.png" alt="Gui" class="gui-img">
     </div>
