@@ -110,6 +110,9 @@ body {
 .form-hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: -3px; }
 
 .form-row { display: flex; justify-content: flex-end; margin-top: -4px; }
+.form-row-entre { justify-content: space-between; align-items: center; }
+.form-check-inline { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.form-check-inline input { margin-top: 0; }
 .link-inline { font-size: 12px; color: var(--gold); cursor: pointer; background: none; border: none; font-family: 'Outfit', sans-serif; transition: color .2s; }
 .link-inline:hover { color: var(--gold-light); }
 
@@ -235,7 +238,7 @@ body {
           <label class="form-label">Email</label>
           <div class="input-wrap">
             <i data-lucide="mail"></i>
-            <input type="email" class="form-input" id="login-email" placeholder="seu@email.com" autocomplete="email" required>
+            <input type="email" class="form-input" id="login-email" name="email" placeholder="seu@email.com" autocomplete="email" required>
           </div>
         </div>
 
@@ -243,12 +246,16 @@ body {
           <label class="form-label">Senha</label>
           <div class="input-wrap">
             <i data-lucide="lock"></i>
-            <input type="password" class="form-input" id="login-senha" placeholder="••••••••" autocomplete="current-password" required>
+            <input type="password" class="form-input" id="login-senha" name="password" placeholder="••••••••" autocomplete="current-password" required>
             <button type="button" class="olho-btn" onclick="toggleSenha(this)" aria-label="Mostrar senha"><i data-lucide="eye"></i></button>
           </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row form-row-entre">
+          <label class="form-check form-check-inline">
+            <input type="checkbox" id="login-lembrar" checked>
+            <span>Lembrar de mim</span>
+          </label>
           <button type="button" class="link-inline" onclick="esqueciSenha()">Esqueceu a senha?</button>
         </div>
 
@@ -269,7 +276,7 @@ body {
           <label class="form-label">Nome completo</label>
           <div class="input-wrap">
             <i data-lucide="user"></i>
-            <input type="text" class="form-input" id="signup-nome" placeholder="Seu nome" autocomplete="name" required>
+            <input type="text" class="form-input" id="signup-nome" name="name" placeholder="Seu nome" autocomplete="name" required>
           </div>
         </div>
 
@@ -277,7 +284,7 @@ body {
           <label class="form-label">Email</label>
           <div class="input-wrap">
             <i data-lucide="mail"></i>
-            <input type="email" class="form-input" id="signup-email" placeholder="seu@email.com" autocomplete="email" required>
+            <input type="email" class="form-input" id="signup-email" name="email" placeholder="seu@email.com" autocomplete="email" required>
           </div>
         </div>
 
@@ -285,7 +292,7 @@ body {
           <label class="form-label">Senha</label>
           <div class="input-wrap">
             <i data-lucide="lock"></i>
-            <input type="password" class="form-input" id="signup-senha" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+            <input type="password" class="form-input" id="signup-senha" name="new-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
             <button type="button" class="olho-btn" onclick="toggleSenha(this)" aria-label="Mostrar senha"><i data-lucide="eye"></i></button>
           </div>
           <div class="form-hint">Use 8+ caracteres, de preferência com números e símbolos.</div>
@@ -415,6 +422,11 @@ async function handleLogin(event){
   try {
     const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
     if (error) { erro(div, traduzErro(error.message)); btn.disabled = false; btn.textContent = 'Entrar'; return; }
+    if (document.getElementById('login-lembrar').checked) {
+      try { localStorage.setItem('guide-login-email', email); } catch (e) {}
+    } else {
+      try { localStorage.removeItem('guide-login-email'); } catch (e) {}
+    }
     window.location.href = '/meu-projeto';
   } catch (e) {
     erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Entrar';
@@ -486,11 +498,16 @@ function traduzErro(msg){
   return msg || 'Ocorreu um erro. Tente novamente.';
 }
 
-// ─────────────── JÁ LOGADO ───────────────
-(async () => {
-  if (!sb) return;
-  const { data } = await sb.auth.getSession();
-  if (data.session) window.location.href = '/meu-projeto';
+// ─────────────── LEMBRAR EMAIL ───────────────
+// A tela de login sempre aparece — nunca pula direto pro painel sozinha.
+// Se "lembrar de mim" estava marcado da última vez, só o email vem preenchido
+// (a senha quem preenche é o gerenciador de senhas do próprio navegador).
+(function(){
+  try {
+    const emailSalvo = localStorage.getItem('guide-login-email');
+    if (emailSalvo) document.getElementById('login-email').value = emailSalvo;
+    else document.getElementById('login-lembrar').checked = false;
+  } catch (e) {}
 })();
 </script>
 
