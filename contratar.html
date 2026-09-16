@@ -52,20 +52,20 @@ a{color:inherit;text-decoration:none;}
 .auth-modal-fechar:hover{background:rgba(255,255,255,0.18);}
 .auth-modal-fechar i{width:18px;height:18px;}
 .auth-wrap{position:relative;width:100%;max-width:880px;}
-.auth-card{position:relative;border-radius:28px;overflow:hidden;min-height:600px;background:rgba(255,255,255,0.055);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 1px 0 rgba(255,255,255,0.07) inset,0 24px 60px rgba(0,0,0,0.5),0 0 30px rgba(201,162,39,0.05);display:grid;grid-template-columns:1fr 1fr;}
+.auth-card{position:relative;border-radius:28px;overflow:hidden;min-height:600px;background:rgba(255,255,255,0.10);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 1px 0 rgba(255,255,255,0.07) inset,0 24px 60px rgba(0,0,0,0.5),0 0 30px rgba(201,162,39,0.05);display:grid;grid-template-columns:1fr 1fr;}
 .auth-side{padding:52px 46px;display:flex;flex-direction:column;justify-content:center;transition:opacity .3s .2s;}
 .auth-side-signup{opacity:0;pointer-events:none;}
 .auth-card.show-signup .auth-side-signup{opacity:1;pointer-events:auto;}
 .auth-card.show-signup .auth-side-signin{opacity:0;pointer-events:none;}
-.auth-logo img{height:32px;width:auto;margin-bottom:30px;}
+.auth-logo img{height:96px;width:auto;margin-bottom:26px;}
 .auth-eyebrow{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--a-gold);font-weight:500;margin-bottom:12px;}
 .auth-titulo{font-family:'Sora',sans-serif;font-size:27px;font-weight:700;color:var(--a-white);line-height:1.15;margin-bottom:28px;}
 .auth-form{display:flex;flex-direction:column;gap:16px;}
 .auth-card .form-field{display:flex;flex-direction:column;gap:7px;}
 .auth-card .form-label{font-size:11px;font-weight:500;color:var(--a-white);letter-spacing:0.05em;text-transform:uppercase;}
 .auth-card .input-wrap{position:relative;display:flex;align-items:center;}
-.auth-card .input-wrap>i{position:absolute;left:20px;width:16px;height:16px;color:var(--a-muted);pointer-events:none;}
-.auth-card .form-input{width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--a-border2);border-radius:13px;padding:13px 15px 13px 46px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;color:var(--a-white);outline:none;transition:border-color .2s,background .2s;}
+.auth-card .input-wrap>i{position:absolute;left:20px;width:16px;height:16px;color:var(--a-muted);pointer-events:none;z-index:1;}
+.auth-card .form-input{width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--a-border2);border-radius:13px;padding:13px 15px 13px 58px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;color:var(--a-white);outline:none;transition:border-color .2s,background .2s;}
 .auth-card .form-input:focus{border-color:var(--a-gold-mid);background:rgba(255,255,255,0.05);}
 .auth-card .form-input::placeholder{color:var(--a-muted2);}
 .olho-btn{position:absolute;right:10px;background:none;border:none;color:var(--a-muted);cursor:pointer;display:flex;padding:6px;border-radius:8px;transition:color .2s;}
@@ -73,7 +73,7 @@ a{color:inherit;text-decoration:none;}
 .olho-btn i{width:16px;height:16px;}
 .auth-card .form-hint{font-size:11px;color:var(--a-muted);line-height:1.5;margin-top:-3px;}
 .auth-card .form-row{display:flex;justify-content:flex-end;margin-top:-4px;}
-.form-row-entre{justify-content:space-between;align-items:center;}
+.auth-card .form-row-entre{justify-content:space-between;align-items:center;}
 .form-check-inline{display:flex;align-items:center;gap:8px;white-space:nowrap;}
 .form-check-inline input{margin-top:0;}
 .link-inline{font-size:12px;color:var(--a-gold);cursor:pointer;background:none;border:none;font-family:'Outfit',sans-serif;transition:color .2s;}
@@ -100,7 +100,8 @@ a{color:inherit;text-decoration:none;}
 .overlay-badge i{width:26px;height:26px;stroke-width:1.6;}
 .overlay-eyebrow{font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:rgba(26,20,8,0.72);font-weight:600;margin-bottom:12px;}
 .overlay-titulo{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:#171205;line-height:1.12;margin-bottom:14px;}
-.overlay-txt{font-size:14px;color:rgba(23,18,5,0.78);line-height:1.65;margin-bottom:28px;max-width:300px;}
+.overlay-txt{font-size:17px;font-weight:500;color:rgba(23,18,5,0.92);line-height:1.55;margin-bottom:28px;max-width:330px;}
+.overlay-txt .ov-hl{font-weight:800;color:#120d02;}
 .overlay-btn{background:transparent;border:1.5px solid rgba(8,8,10,0.55);color:#171205;border-radius:999px;padding:12px 30px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
 .overlay-btn:hover{background:#111113;color:var(--a-gold-light);border-color:#111113;transform:translateY(-1px);}
 .overlay-btn i{width:16px;height:16px;}
@@ -752,7 +753,7 @@ document.querySelectorAll('.plano, .pag, .escopo, .aceite-box, .calc').forEach((
             <div class="form-hint">Use 8+ caracteres, de preferência com números e símbolos.</div>
           </div>
           <div class="form-erro" id="signup-erro"></div>
-          <button type="submit" class="btn-auth" id="btn-signup">Criar conta</button>
+          <button type="submit" class="btn-auth" id="btn-signup">Criar conta gratuita</button>
         </form>
 
         <div class="mobile-toggle">Já tem conta? <button type="button" onclick="mostrarSignin()">Entrar</button></div>
@@ -763,8 +764,8 @@ document.querySelectorAll('.plano, .pag, .escopo, .aceite-box, .calc').forEach((
           <div class="overlay-badge"><i data-lucide="sparkles"></i></div>
           <div class="overlay-eyebrow">Faça parte</div>
           <h2 class="overlay-titulo">Novo por aqui?</h2>
-          <p class="overlay-txt">Crie sua conta gratuita e experimente a plataforma personalizada da Guide.</p>
-          <button type="button" class="overlay-btn" onclick="mostrarSignup()">Criar conta <i data-lucide="arrow-right"></i></button>
+          <p class="overlay-txt">Crie sua conta <span class="ov-hl">gratuita</span> e Experiencie a plataforma personalizada da Guide.</p>
+          <button type="button" class="overlay-btn" onclick="mostrarSignup()">Criar conta gratuita <i data-lucide="arrow-right"></i></button>
         </div>
         <div class="overlay-panel overlay-signup">
           <div class="overlay-badge"><i data-lucide="key-round"></i></div>
@@ -865,17 +866,17 @@ async function handleSignup(event){
       email, password: senha,
       options: { data: { nome }, emailRedirectTo: location.origin + '/login' }
     });
-    if (error) { erro(div, traduzErro(error.message)); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+    if (error) { erro(div, traduzErro(error.message)); btn.disabled = false; btn.textContent = 'Criar conta gratuita'; return; }
     if (data.session) {
       window.location.href = '/meu-projeto';
     } else {
       erro(div, 'Conta criada! Enviamos um link de confirmação para o seu email.', true);
       toast('Confirme seu email para ativar a conta.');
-      btn.disabled = false; btn.textContent = 'Criar conta';
+      btn.disabled = false; btn.textContent = 'Criar conta gratuita';
       setTimeout(mostrarSignin, 2200);
     }
   } catch (e) {
-    erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Criar conta';
+    erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Criar conta gratuita';
   }
 }
 
