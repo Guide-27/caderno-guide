@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entrar — Guide Arquitetura</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --black:#08080a;
@@ -76,7 +76,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transition: opacity .4s .3s;
+  transition: opacity .45s .3s;
 }
 .auth-side-signup { opacity: 0; pointer-events: none; }
 .auth-card.show-signup .auth-side-signup { opacity: 1; pointer-events: auto; }
@@ -84,20 +84,20 @@ body {
 
 .auth-logo img { height: 32px; width: auto; margin-bottom: 30px; }
 .auth-eyebrow { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 12px; }
-.auth-titulo { font-family: 'Quicksand', sans-serif; font-size: 27px; font-weight: 700; color: var(--white); line-height: 1.15; margin-bottom: 28px; }
+.auth-titulo { font-family: 'Sora', sans-serif; font-size: 27px; font-weight: 700; color: var(--white); line-height: 1.15; margin-bottom: 28px; }
 
 .auth-form { display: flex; flex-direction: column; gap: 16px; }
 .form-field { display: flex; flex-direction: column; gap: 7px; }
 .form-label { font-size: 11px; font-weight: 500; color: var(--white); letter-spacing: 0.05em; text-transform: uppercase; }
 
 .input-wrap { position: relative; display: flex; align-items: center; }
-.input-wrap > i { position: absolute; left: 15px; width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+.input-wrap > i { position: absolute; left: 18px; width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
 .form-input {
   width: 100%;
   background: rgba(255,255,255,0.035);
   border: 1px solid var(--border2);
   border-radius: 13px;
-  padding: 13px 15px 13px 42px;
+  padding: 13px 16px 13px 50px;
   font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 300; color: var(--white);
   outline: none; transition: border-color .2s, background .2s;
 }
@@ -118,8 +118,6 @@ body {
 
 .form-check { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: var(--muted); line-height: 1.5; cursor: pointer; }
 .form-check input { margin-top: 2px; accent-color: var(--gold); width: 15px; height: 15px; flex-shrink: 0; cursor: pointer; }
-.form-check a { color: var(--gold); text-decoration: none; }
-.form-check a:hover { color: var(--gold-light); }
 
 .form-erro { display: none; font-size: 12px; color: var(--red); line-height: 1.5; }
 .form-erro.vis { display: block; }
@@ -150,28 +148,24 @@ body {
   background: radial-gradient(120% 80% at 80% 10%, rgba(255,255,255,0.28), transparent 55%),
               radial-gradient(90% 70% at 10% 100%, rgba(0,0,0,0.18), transparent 60%);
 }
-.auth-card.show-signup .auth-overlay { animation: turn-left 860ms cubic-bezier(.7,0,.3,1) forwards; }
-.auth-card.show-signin .auth-overlay { animation: turn-right 860ms cubic-bezier(.7,0,.3,1) forwards; }
+.auth-card.show-signup .auth-overlay { animation: turn-left 1000ms cubic-bezier(.45,0,.15,1) forwards; }
+.auth-card.show-signin .auth-overlay { animation: turn-right 1000ms cubic-bezier(.45,0,.15,1) forwards; }
 @keyframes turn-left {
-  0%   { transform: translateX(0)      rotateY(0); }
-  20%  { transform: translateX(-10%)   rotateY(-3deg); }
-  50%  { transform: translateX(-50%)   rotateY(-5deg); }
-  80%  { transform: translateX(-90%)   rotateY(-3deg); }
-  100% { transform: translateX(-100%)  rotateY(0); }
+  0%   { transform: translateX(0)     rotateY(0deg); }
+  50%  { transform: translateX(-50%)  rotateY(-3deg); }
+  100% { transform: translateX(-100%) rotateY(0deg); }
 }
 @keyframes turn-right {
-  0%   { transform: translateX(-100%)  rotateY(0); }
-  20%  { transform: translateX(-90%)   rotateY(3deg); }
-  50%  { transform: translateX(-50%)   rotateY(5deg); }
-  80%  { transform: translateX(-10%)   rotateY(3deg); }
-  100% { transform: translateX(0)      rotateY(0); }
+  0%   { transform: translateX(-100%) rotateY(0deg); }
+  50%  { transform: translateX(-50%)  rotateY(3deg); }
+  100% { transform: translateX(0)     rotateY(0deg); }
 }
 
 .overlay-panel {
   position: absolute; inset: 0; z-index: 1;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   padding: 52px 46px; text-align: left;
-  transition: opacity .3s .43s;
+  transition: opacity .4s .35s;
 }
 .overlay-signin { pointer-events: auto; }
 .overlay-signup { opacity: 0; pointer-events: none; }
@@ -185,7 +179,7 @@ body {
 }
 .overlay-badge i { width: 26px; height: 26px; stroke-width: 1.6; }
 .overlay-eyebrow { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(26,20,8,0.72); font-weight: 600; margin-bottom: 12px; }
-.overlay-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: #171205; line-height: 1.12; margin-bottom: 14px; }
+.overlay-titulo { font-family: 'Sora', sans-serif; font-size: 30px; font-weight: 700; color: #171205; line-height: 1.12; margin-bottom: 14px; }
 .overlay-txt { font-size: 14px; color: rgba(23,18,5,0.78); line-height: 1.65; margin-bottom: 28px; max-width: 300px; }
 .overlay-btn {
   background: transparent; border: 1.5px solid rgba(8,8,10,0.55); color: #171205;
@@ -229,7 +223,7 @@ body {
 
     <!-- ENTRAR -->
     <div class="auth-side auth-side-signin">
-      <a href="/" class="auth-logo"><img src="/assets/logo-guide.svg" alt="Guide Arquitetura"></a>
+      <a href="/" target="_top" class="auth-logo"><img src="/assets/logo-guide.svg" alt="Guide Arquitetura"></a>
       <div class="auth-eyebrow">Que bom ter você de volta</div>
       <h1 class="auth-titulo">Entrar na sua conta</h1>
 
@@ -297,11 +291,6 @@ body {
           </div>
           <div class="form-hint">Use 8+ caracteres, de preferência com números e símbolos.</div>
         </div>
-
-        <label class="form-check">
-          <input type="checkbox" id="signup-termos">
-          <span>Concordo com os <a href="#" target="_blank" rel="noopener">Termos</a> e a <a href="#" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
-        </label>
 
         <div class="form-erro" id="signup-erro"></div>
         <button type="submit" class="btn-auth" id="btn-signup">Criar conta</button>
@@ -427,7 +416,7 @@ async function handleLogin(event){
     } else {
       try { localStorage.removeItem('guide-login-email'); } catch (e) {}
     }
-    window.location.href = '/meu-projeto';
+    window.top.location.href = '/meu-projeto';
   } catch (e) {
     erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Entrar';
   }
@@ -439,7 +428,6 @@ async function handleSignup(event){
   const nome  = document.getElementById('signup-nome').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const senha = document.getElementById('signup-senha').value;
-  const termos = document.getElementById('signup-termos').checked;
   const btn = document.getElementById('btn-signup');
   const div = document.getElementById('signup-erro');
   limpaErro(div);
@@ -447,7 +435,6 @@ async function handleSignup(event){
   if (nome.length < 2)        { erro(div, 'Digite seu nome completo.'); return; }
   if (!BRL_EMAIL.test(email)) { erro(div, 'Digite um email válido.'); return; }
   if (senha.length < 8)       { erro(div, 'A senha precisa ter pelo menos 8 caracteres.'); return; }
-  if (!termos)                { erro(div, 'Você precisa aceitar os termos para continuar.'); return; }
   if (!sb) { erro(div, 'Erro de conexão com o servidor. Recarregue a página.'); return; }
 
   btn.disabled = true; btn.textContent = 'Criando...';
@@ -460,7 +447,7 @@ async function handleSignup(event){
 
     if (data.session) {
       // conta já ativa — entra direto
-      window.location.href = '/meu-projeto';
+      window.top.location.href = '/meu-projeto';
     } else {
       // precisa confirmar o email
       erro(div, 'Conta criada! Enviamos um link de confirmação para o seu email.', true);
