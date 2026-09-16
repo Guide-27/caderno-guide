@@ -59,7 +59,6 @@ body {
   position: relative;
   border-radius: 28px;
   overflow: hidden;
-  perspective: 1600px;
   min-height: 600px;
   background: rgba(255, 255, 255, 0.055);
   backdrop-filter: blur(32px) saturate(160%);
@@ -76,7 +75,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transition: opacity .45s .3s;
+  transition: opacity .3s .2s;
 }
 .auth-side-signup { opacity: 0; pointer-events: none; }
 .auth-card.show-signup .auth-side-signup { opacity: 1; pointer-events: auto; }
@@ -91,13 +90,13 @@ body {
 .form-label { font-size: 11px; font-weight: 500; color: var(--white); letter-spacing: 0.05em; text-transform: uppercase; }
 
 .input-wrap { position: relative; display: flex; align-items: center; }
-.input-wrap > i { position: absolute; left: 18px; width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+.input-wrap > i { position: absolute; left: 20px; width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
 .form-input {
   width: 100%;
   background: rgba(255,255,255,0.035);
   border: 1px solid var(--border2);
   border-radius: 13px;
-  padding: 13px 16px 13px 50px;
+  padding: 13px 15px 13px 46px;
   font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 300; color: var(--white);
   outline: none; transition: border-color .2s, background .2s;
 }
@@ -136,36 +135,27 @@ body {
 .mobile-toggle { display: none; text-align: center; font-size: 13px; color: var(--muted); margin-top: 22px; }
 .mobile-toggle button { color: var(--gold); background: none; border: none; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-/* ─────────────── OVERLAY QUE DESLIZA (gira em 3D) ─────────────── */
+/* ─────────────── OVERLAY QUE DESLIZA ─────────────── */
 .auth-overlay {
   position: absolute; top: 0; left: 50%; width: 50%; height: 100%; z-index: 5;
-  transform-style: preserve-3d; backface-visibility: hidden; will-change: transform;
+  will-change: transform;
   background: linear-gradient(150deg, var(--gold-light) 0%, var(--gold) 55%, #a5811f 100%);
   overflow: hidden;
+  transform: translateX(0);
+  transition: transform 700ms cubic-bezier(.65,0,.35,1);
 }
 .auth-overlay::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 80% at 80% 10%, rgba(255,255,255,0.28), transparent 55%),
               radial-gradient(90% 70% at 10% 100%, rgba(0,0,0,0.18), transparent 60%);
 }
-.auth-card.show-signup .auth-overlay { animation: turn-left 1000ms cubic-bezier(.45,0,.15,1) forwards; }
-.auth-card.show-signin .auth-overlay { animation: turn-right 1000ms cubic-bezier(.45,0,.15,1) forwards; }
-@keyframes turn-left {
-  0%   { transform: translateX(0)     rotateY(0deg); }
-  50%  { transform: translateX(-50%)  rotateY(-3deg); }
-  100% { transform: translateX(-100%) rotateY(0deg); }
-}
-@keyframes turn-right {
-  0%   { transform: translateX(-100%) rotateY(0deg); }
-  50%  { transform: translateX(-50%)  rotateY(3deg); }
-  100% { transform: translateX(0)     rotateY(0deg); }
-}
+.auth-card.show-signup .auth-overlay { transform: translateX(-100%); }
 
 .overlay-panel {
   position: absolute; inset: 0; z-index: 1;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   padding: 52px 46px; text-align: left;
-  transition: opacity .4s .35s;
+  transition: opacity .3s .25s;
 }
 .overlay-signin { pointer-events: auto; }
 .overlay-signup { opacity: 0; pointer-events: none; }
@@ -349,7 +339,7 @@ if (new URLSearchParams(location.search).has('criar')) mostrarSignup();
 // ─────────────── SENHA (mostrar/ocultar) ───────────────
 function toggleSenha(btn){
   const inp = btn.parentElement.querySelector('input');
-  const eye = btn.querySelector('i');
+  const eye = btn.querySelector('[data-lucide]');
   const ver = inp.type === 'password';
   inp.type = ver ? 'text' : 'password';
   eye.setAttribute('data-lucide', ver ? 'eye-off' : 'eye');

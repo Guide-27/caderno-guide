@@ -7,7 +7,7 @@
 <meta name="description" content="A Guide é a evolução da experiência pós-chave: uma plataforma moderna, inteligente e acessível para guiar a transformação do seu apartamento.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Sora:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -43,17 +43,82 @@ a{color:inherit;text-decoration:none;}
 .tb-cta{padding:0 26px;font-size:13.5px;background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#171205;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 12px 30px rgba(201,155,38,0.28);border:1px solid transparent;transition:all .25s;}
 .tb-cta:hover{filter:brightness(1.08);transform:translateY(-1px);}
 
-/* MODAL DE LOGIN — abre sobre a própria página, com o site desfocado atrás */
-.auth-modal-backdrop{position:fixed;inset:0;z-index:600;background:rgba(5,5,6,0.55);backdrop-filter:blur(16px) saturate(120%);-webkit-backdrop-filter:blur(16px) saturate(120%);display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .25s;}
+/* MODAL DE LOGIN — o próprio card do login, nativo na página, com o site desfocado atrás */
+.auth-modal-backdrop{position:fixed;inset:0;z-index:600;background:rgba(5,5,6,0.6);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);display:none;align-items:center;justify-content:center;padding:32px;overflow-y:auto;opacity:0;transition:opacity .25s;
+  --a-black:#08080a;--a-gold:#C9A227;--a-gold-light:#e2b93b;--a-gold-mid:rgba(201,162,39,0.22);--a-white:#f5f4f0;--a-muted:#7a7870;--a-muted2:#4a4845;--a-border2:rgba(255,255,255,0.06);--a-red:rgba(220,80,80,0.95);--a-green:#50C878;
+}
 .auth-modal-backdrop.aberto{display:flex;}
 .auth-modal-backdrop.mostrar{opacity:1;}
-.auth-modal{position:relative;width:100%;max-width:900px;height:min(640px,88vh);border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.55);transform:translateY(16px) scale(.98);transition:transform .3s;}
-.auth-modal-backdrop.mostrar .auth-modal{transform:translateY(0) scale(1);}
-.auth-modal-frame{width:100%;height:100%;border:0;display:block;}
-.auth-modal-fechar{position:absolute;top:14px;right:14px;z-index:2;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
+.auth-modal-fechar{position:fixed;top:24px;right:24px;z-index:601;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.16);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
 .auth-modal-fechar:hover{background:rgba(255,255,255,0.18);}
 .auth-modal-fechar i{width:18px;height:18px;}
-@media(max-width:640px){.auth-modal{height:92vh;border-radius:20px;}}
+.auth-wrap{position:relative;width:100%;max-width:880px;}
+.auth-card{position:relative;border-radius:28px;overflow:hidden;min-height:600px;background:rgba(255,255,255,0.055);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 1px 0 rgba(255,255,255,0.07) inset,0 24px 60px rgba(0,0,0,0.5),0 0 30px rgba(201,162,39,0.05);display:grid;grid-template-columns:1fr 1fr;}
+.auth-side{padding:52px 46px;display:flex;flex-direction:column;justify-content:center;transition:opacity .3s .2s;}
+.auth-side-signup{opacity:0;pointer-events:none;}
+.auth-card.show-signup .auth-side-signup{opacity:1;pointer-events:auto;}
+.auth-card.show-signup .auth-side-signin{opacity:0;pointer-events:none;}
+.auth-logo img{height:32px;width:auto;margin-bottom:30px;}
+.auth-eyebrow{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--a-gold);font-weight:500;margin-bottom:12px;}
+.auth-titulo{font-family:'Sora',sans-serif;font-size:27px;font-weight:700;color:var(--a-white);line-height:1.15;margin-bottom:28px;}
+.auth-form{display:flex;flex-direction:column;gap:16px;}
+.auth-card .form-field{display:flex;flex-direction:column;gap:7px;}
+.auth-card .form-label{font-size:11px;font-weight:500;color:var(--a-white);letter-spacing:0.05em;text-transform:uppercase;}
+.auth-card .input-wrap{position:relative;display:flex;align-items:center;}
+.auth-card .input-wrap>i{position:absolute;left:20px;width:16px;height:16px;color:var(--a-muted);pointer-events:none;}
+.auth-card .form-input{width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--a-border2);border-radius:13px;padding:13px 15px 13px 46px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;color:var(--a-white);outline:none;transition:border-color .2s,background .2s;}
+.auth-card .form-input:focus{border-color:var(--a-gold-mid);background:rgba(255,255,255,0.05);}
+.auth-card .form-input::placeholder{color:var(--a-muted2);}
+.olho-btn{position:absolute;right:10px;background:none;border:none;color:var(--a-muted);cursor:pointer;display:flex;padding:6px;border-radius:8px;transition:color .2s;}
+.olho-btn:hover{color:var(--a-gold);}
+.olho-btn i{width:16px;height:16px;}
+.auth-card .form-hint{font-size:11px;color:var(--a-muted);line-height:1.5;margin-top:-3px;}
+.auth-card .form-row{display:flex;justify-content:flex-end;margin-top:-4px;}
+.form-row-entre{justify-content:space-between;align-items:center;}
+.form-check-inline{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.form-check-inline input{margin-top:0;}
+.link-inline{font-size:12px;color:var(--a-gold);cursor:pointer;background:none;border:none;font-family:'Outfit',sans-serif;transition:color .2s;}
+.link-inline:hover{color:var(--a-gold-light);}
+.auth-card .form-check{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--a-muted);line-height:1.5;cursor:pointer;}
+.auth-card .form-check input{margin-top:2px;accent-color:var(--a-gold);width:15px;height:15px;flex-shrink:0;cursor:pointer;}
+.auth-card .form-erro{display:none;font-size:12px;color:var(--a-red);line-height:1.5;}
+.auth-card .form-erro.vis{display:block;}
+.auth-card .form-erro.ok{color:var(--a-green);}
+.btn-auth{background:linear-gradient(135deg,var(--a-gold),var(--a-gold-light));border:none;border-radius:13px;padding:14px 16px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--a-black);cursor:pointer;transition:all .3s;letter-spacing:0.04em;margin-top:4px;}
+.btn-auth:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 26px rgba(201,162,39,0.22);}
+.btn-auth:disabled{opacity:0.6;cursor:not-allowed;}
+.mobile-toggle{display:none;text-align:center;font-size:13px;color:var(--a-muted);margin-top:22px;}
+.mobile-toggle button{color:var(--a-gold);background:none;border:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.auth-overlay{position:absolute;top:0;left:50%;width:50%;height:100%;z-index:5;will-change:transform;background:linear-gradient(150deg,var(--a-gold-light) 0%,var(--a-gold) 55%,#a5811f 100%);overflow:hidden;transform:translateX(0);transition:transform 700ms cubic-bezier(.65,0,.35,1);}
+.auth-overlay::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 80% at 80% 10%,rgba(255,255,255,0.28),transparent 55%),radial-gradient(90% 70% at 10% 100%,rgba(0,0,0,0.18),transparent 60%);}
+.auth-card.show-signup .auth-overlay{transform:translateX(-100%);}
+.overlay-panel{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:52px 46px;text-align:left;transition:opacity .3s .25s;}
+.overlay-signin{pointer-events:auto;}
+.overlay-signup{opacity:0;pointer-events:none;}
+.auth-card.show-signup .overlay-signin{opacity:0;pointer-events:none;}
+.auth-card.show-signup .overlay-signup{opacity:1;pointer-events:auto;}
+.overlay-badge{width:54px;height:54px;border-radius:16px;margin-bottom:22px;background:rgba(8,8,10,0.14);border:1px solid rgba(8,8,10,0.22);display:flex;align-items:center;justify-content:center;color:#1a1408;}
+.overlay-badge i{width:26px;height:26px;stroke-width:1.6;}
+.overlay-eyebrow{font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:rgba(26,20,8,0.72);font-weight:600;margin-bottom:12px;}
+.overlay-titulo{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:#171205;line-height:1.12;margin-bottom:14px;}
+.overlay-txt{font-size:14px;color:rgba(23,18,5,0.78);line-height:1.65;margin-bottom:28px;max-width:300px;}
+.overlay-btn{background:transparent;border:1.5px solid rgba(8,8,10,0.55);color:#171205;border-radius:999px;padding:12px 30px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;}
+.overlay-btn:hover{background:#111113;color:var(--a-gold-light);border-color:#111113;transform:translateY(-1px);}
+.overlay-btn i{width:16px;height:16px;}
+@media(max-width:760px){
+  .auth-card{grid-template-columns:1fr;min-height:0;}
+  .auth-overlay{display:none;}
+  .auth-side{padding:40px 28px;opacity:1 !important;pointer-events:auto !important;}
+  .auth-side-signup{display:none;}
+  .auth-card.show-signup .auth-side-signup{display:flex;}
+  .auth-card.show-signup .auth-side-signin{display:none;}
+  .mobile-toggle{display:block;}
+  .overlay-titulo,.auth-titulo{font-size:24px;}
+}
+@media(max-width:640px){.auth-modal-backdrop{padding:16px;}.auth-modal-fechar{top:14px;right:14px;}}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(20,20,24,0.96);backdrop-filter:blur(12px);border:1px solid rgba(201,162,39,0.14);border-radius:12px;padding:14px 22px;font-size:13px;color:var(--fg);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;max-width:90vw;text-align:center;}
+.toast.vis{opacity:1;}
 .tb-tooltip{position:absolute;top:calc(100% + 12px);right:0;width:264px;background:rgba(13,12,10,0.97);backdrop-filter:blur(20px);border:1px solid var(--gold-mid);border-radius:16px;padding:16px 18px;font-size:12.5px;line-height:1.7;color:var(--muted);opacity:0;transform:translateY(-6px);pointer-events:none;transition:all .25s;box-shadow:0 20px 50px rgba(0,0,0,0.5);}
 .tb-entrar-wrap:hover .tb-tooltip,.tb-entrar-wrap:focus-within .tb-tooltip{opacity:1;transform:translateY(0);}
 .menu-btn{display:none;background:var(--glass);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:50%;width:54px;height:54px;color:var(--fg);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
@@ -360,18 +425,123 @@ document.querySelectorAll('.pergunta, .of-card').forEach((card)=>{
 });
 </script>
 
-<!-- MODAL DE LOGIN — carrega login.html num iframe, sobre a própria página desfocada -->
+<!-- MODAL DE LOGIN — o card de entrar/criar conta, nativo na página, com o site desfocado atrás -->
 <div class="auth-modal-backdrop" id="auth-modal-backdrop">
-  <div class="auth-modal">
-    <button class="auth-modal-fechar" onclick="fecharAuthModal()" aria-label="Fechar"><i data-lucide="x"></i></button>
-    <iframe class="auth-modal-frame" id="auth-modal-frame" src="about:blank" title="Entrar ou criar conta"></iframe>
+  <button class="auth-modal-fechar" onclick="fecharAuthModal()" aria-label="Fechar"><i data-lucide="x"></i></button>
+  <div class="auth-wrap">
+    <div class="auth-card" id="auth-card">
+
+      <div class="auth-side auth-side-signin">
+        <a href="/" class="auth-logo"><img src="/assets/logo-guide.svg" alt="Guide Arquitetura"></a>
+        <div class="auth-eyebrow">Que bom ter você de volta</div>
+        <h1 class="auth-titulo">Entrar na sua conta</h1>
+
+        <form class="auth-form" onsubmit="handleLogin(event)">
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <div class="input-wrap">
+              <i data-lucide="mail"></i>
+              <input type="email" class="form-input" id="login-email" name="email" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Senha</label>
+            <div class="input-wrap">
+              <i data-lucide="lock"></i>
+              <input type="password" class="form-input" id="login-senha" name="password" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="olho-btn" onclick="toggleSenha(this)" aria-label="Mostrar senha"><i data-lucide="eye"></i></button>
+            </div>
+          </div>
+          <div class="form-row form-row-entre">
+            <label class="form-check form-check-inline">
+              <input type="checkbox" id="login-lembrar" checked>
+              <span>Lembrar de mim</span>
+            </label>
+            <button type="button" class="link-inline" onclick="esqueciSenha()">Esqueceu a senha?</button>
+          </div>
+          <div class="form-erro" id="login-erro"></div>
+          <button type="submit" class="btn-auth" id="btn-login">Entrar</button>
+        </form>
+
+        <div class="mobile-toggle">Novo por aqui? <button type="button" onclick="mostrarSignup()">Criar conta</button></div>
+      </div>
+
+      <div class="auth-side auth-side-signup">
+        <div class="auth-eyebrow">Comece em minutos</div>
+        <h1 class="auth-titulo">Criar sua conta</h1>
+
+        <form class="auth-form" onsubmit="handleSignup(event)">
+          <div class="form-field">
+            <label class="form-label">Nome completo</label>
+            <div class="input-wrap">
+              <i data-lucide="user"></i>
+              <input type="text" class="form-input" id="signup-nome" name="name" placeholder="Seu nome" autocomplete="name" required>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <div class="input-wrap">
+              <i data-lucide="mail"></i>
+              <input type="email" class="form-input" id="signup-email" name="email" placeholder="seu@email.com" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Senha</label>
+            <div class="input-wrap">
+              <i data-lucide="lock"></i>
+              <input type="password" class="form-input" id="signup-senha" name="new-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
+              <button type="button" class="olho-btn" onclick="toggleSenha(this)" aria-label="Mostrar senha"><i data-lucide="eye"></i></button>
+            </div>
+            <div class="form-hint">Use 8+ caracteres, de preferência com números e símbolos.</div>
+          </div>
+          <div class="form-erro" id="signup-erro"></div>
+          <button type="submit" class="btn-auth" id="btn-signup">Criar conta</button>
+        </form>
+
+        <div class="mobile-toggle">Já tem conta? <button type="button" onclick="mostrarSignin()">Entrar</button></div>
+      </div>
+
+      <div class="auth-overlay">
+        <div class="overlay-panel overlay-signin">
+          <div class="overlay-badge"><i data-lucide="sparkles"></i></div>
+          <div class="overlay-eyebrow">Faça parte</div>
+          <h2 class="overlay-titulo">Novo por aqui?</h2>
+          <p class="overlay-txt">Crie sua conta gratuita e experimente a plataforma personalizada da Guide.</p>
+          <button type="button" class="overlay-btn" onclick="mostrarSignup()">Criar conta <i data-lucide="arrow-right"></i></button>
+        </div>
+        <div class="overlay-panel overlay-signup">
+          <div class="overlay-badge"><i data-lucide="key-round"></i></div>
+          <div class="overlay-eyebrow">Bem-vindo de volta</div>
+          <h2 class="overlay-titulo">Já tem uma conta?</h2>
+          <p class="overlay-txt">Seu projeto está esperando por você. Entre e continue de onde parou.</p>
+          <button type="button" class="overlay-btn" onclick="mostrarSignin()"><i data-lucide="arrow-left"></i> Entrar</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script>
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+function toast(msg){
+  const e = document.getElementById('toast');
+  e.textContent = msg; e.classList.add('vis');
+  setTimeout(()=> e.classList.remove('vis'), 4200);
+}
+
 function abrirAuthModal(e){
   if (e) e.preventDefault();
   const backdrop = document.getElementById('auth-modal-backdrop');
-  document.getElementById('auth-modal-frame').src = '/login';
+  mostrarSignin();
   backdrop.classList.remove('mostrar');
   backdrop.classList.add('aberto');
   document.body.style.overflow = 'hidden';
@@ -383,12 +553,121 @@ function fecharAuthModal(){
   const backdrop = document.getElementById('auth-modal-backdrop');
   backdrop.classList.remove('mostrar');
   document.body.style.overflow = '';
-  setTimeout(()=>{ backdrop.classList.remove('aberto'); document.getElementById('auth-modal-frame').src = 'about:blank'; }, 300);
+  setTimeout(()=>{ backdrop.classList.remove('aberto'); }, 300);
 }
 document.getElementById('auth-modal-backdrop').addEventListener('click', (e)=>{
   if (e.target.id === 'auth-modal-backdrop') fecharAuthModal();
 });
 document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') fecharAuthModal(); });
+
+const authCard = document.getElementById('auth-card');
+function mostrarSignup(){ authCard.classList.add('show-signup'); }
+function mostrarSignin(){ authCard.classList.remove('show-signup'); }
+
+function toggleSenha(btn){
+  const inp = btn.parentElement.querySelector('input');
+  const eye = btn.querySelector('[data-lucide]');
+  const ver = inp.type === 'password';
+  inp.type = ver ? 'text' : 'password';
+  eye.setAttribute('data-lucide', ver ? 'eye-off' : 'eye');
+  if (window.lucide) lucide.createIcons();
+}
+
+const BRL_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function erro(div, msg, ok){
+  div.textContent = msg;
+  div.classList.toggle('ok', !!ok);
+  div.classList.add('vis');
+}
+function limpaErro(div){ div.classList.remove('vis','ok'); }
+
+async function handleLogin(event){
+  event.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const btn = document.getElementById('btn-login');
+  const div = document.getElementById('login-erro');
+  limpaErro(div);
+  if (!email || !senha) { erro(div, 'Preencha email e senha.'); return; }
+  if (!sb) { erro(div, 'Erro de conexão com o servidor. Recarregue a página.'); return; }
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) { erro(div, traduzErro(error.message)); btn.disabled = false; btn.textContent = 'Entrar'; return; }
+    if (document.getElementById('login-lembrar').checked) {
+      try { localStorage.setItem('guide-login-email', email); } catch (e) {}
+    } else {
+      try { localStorage.removeItem('guide-login-email'); } catch (e) {}
+    }
+    window.location.href = '/meu-projeto';
+  } catch (e) {
+    erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Entrar';
+  }
+}
+
+async function handleSignup(event){
+  event.preventDefault();
+  const nome  = document.getElementById('signup-nome').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const senha = document.getElementById('signup-senha').value;
+  const btn = document.getElementById('btn-signup');
+  const div = document.getElementById('signup-erro');
+  limpaErro(div);
+  if (nome.length < 2)        { erro(div, 'Digite seu nome completo.'); return; }
+  if (!BRL_EMAIL.test(email)) { erro(div, 'Digite um email válido.'); return; }
+  if (senha.length < 8)       { erro(div, 'A senha precisa ter pelo menos 8 caracteres.'); return; }
+  if (!sb) { erro(div, 'Erro de conexão com o servidor. Recarregue a página.'); return; }
+  btn.disabled = true; btn.textContent = 'Criando...';
+  try {
+    const { data, error } = await sb.auth.signUp({
+      email, password: senha,
+      options: { data: { nome }, emailRedirectTo: location.origin + '/login' }
+    });
+    if (error) { erro(div, traduzErro(error.message)); btn.disabled = false; btn.textContent = 'Criar conta'; return; }
+    if (data.session) {
+      window.location.href = '/meu-projeto';
+    } else {
+      erro(div, 'Conta criada! Enviamos um link de confirmação para o seu email.', true);
+      toast('Confirme seu email para ativar a conta.');
+      btn.disabled = false; btn.textContent = 'Criar conta';
+      setTimeout(mostrarSignin, 2200);
+    }
+  } catch (e) {
+    erro(div, 'Erro ao conectar. Tente novamente.'); btn.disabled = false; btn.textContent = 'Criar conta';
+  }
+}
+
+async function esqueciSenha(){
+  const email = document.getElementById('login-email').value.trim();
+  const div = document.getElementById('login-erro');
+  limpaErro(div);
+  if (!BRL_EMAIL.test(email)) { erro(div, 'Digite seu email no campo acima para recuperar a senha.'); return; }
+  if (!sb) return;
+  try {
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/login' });
+    erro(div, 'Enviamos um link de recuperação para o seu email.', true);
+  } catch (e) {
+    erro(div, 'Não foi possível enviar agora. Tente novamente.');
+  }
+}
+
+function traduzErro(msg){
+  const m = (msg || '').toLowerCase();
+  if (m.includes('invalid login')) return 'Email ou senha incorretos.';
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Este email já tem uma conta. Tente entrar.';
+  if (m.includes('email not confirmed')) return 'Confirme seu email antes de entrar.';
+  if (m.includes('password')) return 'Senha inválida. Use pelo menos 8 caracteres.';
+  return msg || 'Ocorreu um erro. Tente novamente.';
+}
+
+(function(){
+  try {
+    const emailSalvo = localStorage.getItem('guide-login-email');
+    if (emailSalvo) document.getElementById('login-email').value = emailSalvo;
+    else document.getElementById('login-lembrar').checked = false;
+  } catch (e) {}
+})();
+
 if (window.lucide) lucide.createIcons();
 </script>
 
