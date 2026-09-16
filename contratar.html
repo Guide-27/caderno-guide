@@ -63,9 +63,9 @@ a{color:inherit;text-decoration:none;}
 .auth-form{display:flex;flex-direction:column;gap:16px;}
 .auth-card .form-field{display:flex;flex-direction:column;gap:7px;}
 .auth-card .form-label{font-size:11px;font-weight:500;color:var(--a-white);letter-spacing:0.05em;text-transform:uppercase;}
-.auth-card .input-wrap{position:relative;display:flex;align-items:center;}
-.auth-card .input-wrap>i{position:absolute;left:20px;width:16px;height:16px;color:var(--a-muted);pointer-events:none;z-index:1;}
-.auth-card .form-input{width:100%;background:rgba(255,255,255,0.035);border:1px solid var(--a-border2);border-radius:13px;padding:13px 15px 13px 58px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;color:var(--a-white);outline:none;transition:border-color .2s,background .2s;}
+.auth-card .input-wrap{position:relative;display:flex;align-items:center;gap:13px;}
+.auth-card .input-wrap>i,.auth-card .input-wrap>svg{width:18px;height:18px;flex-shrink:0;color:var(--a-muted);pointer-events:none;}
+.auth-card .form-input{flex:1;min-width:0;background:rgba(255,255,255,0.035);border:1px solid var(--a-border2);border-radius:13px;padding:13px 15px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:300;color:var(--a-white);outline:none;transition:border-color .2s,background .2s;}
 .auth-card .form-input:focus{border-color:var(--a-gold-mid);background:rgba(255,255,255,0.05);}
 .auth-card .form-input::placeholder{color:var(--a-muted2);}
 .olho-btn{position:absolute;right:10px;background:none;border:none;color:var(--a-muted);cursor:pointer;display:flex;padding:6px;border-radius:8px;transition:color .2s;}
