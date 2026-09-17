@@ -1220,6 +1220,26 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 
 .toast { position: fixed; bottom: 24px; left: 24px; background: rgba(20,20,24,0.95); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 20px; font-size: var(--fs-sm); color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .3s; display:flex; align-items:center; gap:8px; }
 .toast.vis { opacity: 1; pointer-events: auto; }
+
+/* ── Segregação por plano (conta sem plano contratado) ── */
+.plano-cta-bloco { margin: 22px 0 6px; padding: 22px 24px; border-radius: var(--radius); background: linear-gradient(150deg, rgba(201,162,39,0.12), rgba(201,162,39,0.03)); border: 1px solid var(--gold-mid); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+.plano-cta-icone { color: var(--gold-light); }
+.plano-cta-texto { color: var(--off); font-size: var(--fs-base); line-height: 1.6; max-width: 470px; margin: 0; }
+.plano-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; border-radius: var(--r-pill); padding: 12px 26px; font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .02em; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.plano-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(201,162,39,0.28); }
+.plano-cta-btn i { width: 16px; height: 16px; }
+.plano-bloqueio .convite-icone { color: var(--gold-light); }
+/* região embaçada e reservada (chaves, etc.) */
+.plano-lock-wrap { position: relative; margin-top: 4px; }
+.plano-lock-blur { filter: blur(5px) saturate(.7); opacity: .5; pointer-events: none; user-select: none; }
+.plano-lock-aviso { display: flex; align-items: flex-start; gap: 8px; color: var(--gold-light); font-size: var(--fs-sm); line-height: 1.55; margin: 4px 0 14px; }
+.plano-lock-aviso i { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+/* cadeado nos cards de parceiros */
+.parceiro-card.plano-travado { position: relative; }
+.parceiro-lock-badge { position: absolute; top: 10px; left: 10px; z-index: 4; display: inline-flex; align-items: center; gap: 6px; background: rgba(20,18,12,0.82); border: 1px solid var(--gold-mid); color: var(--gold-light); border-radius: var(--r-pill); padding: 5px 11px 5px 8px; font-size: var(--fs-2xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; backdrop-filter: blur(4px); }
+.parceiro-lock-badge i { width: 14px; height: 14px; }
+.parceiro-card.plano-travado .parceiro-acoes { opacity: .55; }
+.carta-guide-selo.plano-destaque { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-mid), 0 14px 40px rgba(201,162,39,0.18); }
 </style>
 </head>
 <body>
@@ -1897,6 +1917,7 @@ const FORNECEDOR_CATEGORIAS = [
 
 let usuarioAtual = null;
 let projeto = null;
+let semPlano = false; // conta sem plano contratado (pagamento não efetuado) → painel em modo experiência
 let briefing = null;
 let statusAmbientes = {};
 let ambientesFaseAtiva = [];
@@ -1944,6 +1965,40 @@ function toast(msg) {
   icons();
   t.classList.add('vis');
   setTimeout(() => t.classList.remove('vis'), 4000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// SEGREGAÇÃO DE ACESSO POR PLANO
+// Sem plano contratado, o painel abre completo visualmente, mas os recursos
+// pagos ficam reservados. Estes helpers padronizam o aviso, o bloco-chamada
+// para os planos e o bloqueio total de um card.
+// ─────────────────────────────────────────────────────────────
+const CRIADOR_EMAILS = ['lucas_montre@hotmail.com'];
+const MSG_RESERVADO = 'Este recurso é reservado a partir do plano Essencial.';
+const MSG_RESERVADO_LONGO = 'Este recurso é reservado a partir do plano Essencial — selecione seu plano para uma experiência completa.';
+
+function irParaPlanos() { window.location.href = '/contratar'; }
+function avisoReservado(msg) { toast(msg || MSG_RESERVADO); }
+
+// bloco de chamada para os planos: texto + botão em destaque
+function blocoPlanos(texto, rotulo) {
+  return `
+    <div class="plano-cta-bloco">
+      <div class="plano-cta-icone">${ic('sparkles','ic-lg')}</div>
+      <p class="plano-cta-texto">${texto || MSG_RESERVADO_LONGO}</p>
+      <button type="button" class="plano-cta-btn" onclick="irParaPlanos()">${ic('crown','ic-sm')} ${rotulo || 'Selecionar meu plano'}</button>
+    </div>`;
+}
+
+// bloqueio total de um card (usado no Guiders)
+function blocoBloqueioTotal(titulo, texto) {
+  return `
+    <div class="convite-hero plano-bloqueio">
+      <div class="convite-icone">${ic('lock','ic-xl')}</div>
+      <div class="convite-titulo">${titulo}</div>
+      <div class="convite-texto">${texto}</div>
+      <div style="margin-top:22px;"><button type="button" class="plano-cta-btn" onclick="irParaPlanos()">${ic('crown','ic-sm')} Selecionar meu plano</button></div>
+    </div>`;
 }
 
 function formatarData(iso) {
@@ -2010,6 +2065,13 @@ async function inicializar() {
   const proj = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).single(), null);
   if (!proj) { toast('Não encontramos seu projeto. Fale com a Guide.'); return; }
   projeto = proj;
+
+  // Segregação de acesso: sem plano contratado (coluna `plano` vazia) o painel abre em modo
+  // experiência. O criador e a conta demo têm acesso total independente do plano.
+  const emailLogin = (usuarioAtual.email || '').trim().toLowerCase();
+  const ehCriador = CRIADOR_EMAILS.includes(emailLogin);
+  const ehDemo = emailLogin === 'demo@demo.com';
+  semPlano = !ehCriador && !ehDemo && !((projeto.plano || '').toString().trim());
 
   document.getElementById('top-saudacao').innerHTML = marcarPalavras(`Olá, ${primeiroNome(projeto.nome_cliente)}!`);
   revelarPalavras(document.getElementById('top-saudacao'));
@@ -2785,10 +2847,20 @@ function renderFaseItem(f, numAtual, videos) {
         ${acolhimento ? `<div class="fase-acolhimento">${acolhimento}</div>` : ''}
         <div class="${prazoCls}">${prazoHtml}</div>
         ${video}
-        ${liberada ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : ''}
+        ${botaoFaseItem(f, liberada)}
       </div>
     </div>
   `;
+}
+
+// botão/rodapé de cada fase — no modo sem plano só o Briefing é acessível (experiência
+// gratuita); as demais fases aparecem, mas reservadas.
+function botaoFaseItem(f, liberada) {
+  if (semPlano) {
+    if (f.id === 'briefing') return `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir briefing ${ic('arrow-right')}</button></a></div>`;
+    return `<div class="fase-prazo" style="color:var(--gold-light);">${ic('lock','ic-sm')} Fase reservada a partir do plano Essencial.</div>`;
+  }
+  return liberada ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : '';
 }
 
 // ── O que você sonhou ──
@@ -3094,6 +3166,10 @@ function montarPalpites(dados) {
 }
 
 function expandidoSonhou() {
+  // Sem plano: mostra a interface interna do card, porém sempre vazia (como se o briefing
+  // não estivesse preenchido). Os dados do briefing gratuito não alimentam este card.
+  if (semPlano) return expandidoSonhouSemPlano();
+
   const dados = bfDados();
 
   // ── ESTADO PRIMEIRO ACESSO ──
@@ -3143,6 +3219,25 @@ function expandidoSonhou() {
     ${blocoPromessas}
     ${montarPalpites(dados)}
     ${blocoCompartilhar()}
+  `;
+}
+
+// versão sem plano: a mesma interface do card, porém com todos os blocos em estado vazio
+// (placeholders de vidro) — o cliente vê como o card funciona, sem os dados do briefing.
+function expandidoSonhouSemPlano() {
+  const dados = {}, completo = false;
+  return `
+    <div class="modal-eyebrow">${ic('heart')} O que você sonhou</div>
+    <div class="modal-titulo">O sonho, guardado em detalhes</div>
+    ${blocoReferencias(dados, completo)}
+    ${blocoEstilo(dados, completo)}
+    ${blocoPaleta(dados, completo)}
+    ${blocoTexturas(dados, completo)}
+    ${blocoPlanta()}
+    <div class="traj-bloco-titulo">${ic('layout-panel-left','ic-sm')} O painel dos seus sonhos</div>
+    <div class="moodboard-legenda">Um moodboard montado com as suas referências, cores, texturas e o clima do seu estilo.</div>
+    ${montarMoodboard(dados, completo)}
+    ${renderPromessaCards(PROMESSAS_GENERICAS)}
   `;
 }
 
@@ -3250,6 +3345,7 @@ function blocoCompartilhar() {
 
 // ── Sua Trajetória (ex-"Até aqui") ──
 function expandidoAteAqui() {
+  if (semPlano) return expandidoAteAquiSemPlano();
   const { num } = infoFaseAtiva();
   const itens = montarTimeline();
 
@@ -3324,6 +3420,45 @@ function expandidoAteAqui() {
     <div class="traj-bloco-titulo">${ic('map','ic-sm')} Linha do tempo</div>
     <div>${linhas}</div>
 
+    <div class="timeline-rodape">${marcarPalavras('Seu projeto avança em um ritmo só seu — e está tudo certo assim.')}</div>
+  `;
+}
+
+// versão sem plano: mostra a estrutura da trajetória, mas sem informações reais
+function expandidoAteAquiSemPlano() {
+  const revisoes = FASES.filter(f => ['layout','imagens','executivo'].includes(f.id))
+    .map(f => `<div class="traj-revisao-item"><span>${f.nome}</span><span class="traj-revisao-badge">0 de 2</span></div>`).join('');
+  return `
+    <div class="modal-eyebrow">${ic('trending-up')} Até aqui</div>
+    <div class="modal-titulo">Sua Trajetória</div>
+    ${aneisProgresso(1, 96)}
+    <div class="traj-contadores">
+      <div class="traj-contador-item">
+        <div class="tc-num">0</div>
+        <div class="tc-label">${ic('calendar-days','ic-sm')} Sua jornada com a Guide começa aqui.</div>
+      </div>
+      <div class="traj-contador-item">
+        <div class="tc-num">0</div>
+        <div class="tc-label">${ic('check-circle-2','ic-sm')} Suas decisões de projeto aparecem aqui conforme você avança.</div>
+      </div>
+    </div>
+    <div class="traj-bloco-titulo">${ic('repeat','ic-sm')} Revisões por etapa</div>
+    <div class="traj-revisoes">${revisoes}</div>
+    <div class="traj-bloco-titulo">${ic('bookmark','ic-sm')} Seus registros</div>
+    <div class="traj-atalhos">
+      <button class="traj-atalho" type="button" disabled>
+        ${ic('notebook-pen','ic-md')}
+        <div><div class="ta-titulo">Nenhum registro no diário ainda</div><div class="ta-sub">Seus registros aparecem aqui.</div></div>
+        ${ic('arrow-right','ic-sm')}
+      </button>
+      <button class="traj-atalho" type="button" disabled>
+        ${ic('images','ic-md')}
+        <div><div class="ta-titulo">Nenhuma foto no mural ainda</div><div class="ta-sub">Suas fotos aparecem aqui.</div></div>
+        ${ic('arrow-right','ic-sm')}
+      </button>
+    </div>
+    <div class="traj-bloco-titulo">${ic('map','ic-sm')} Linha do tempo</div>
+    <p class="traj-previsao">${marcarPalavras('Sua linha do tempo se constrói a cada etapa concluída do seu projeto.')}</p>
     <div class="timeline-rodape">${marcarPalavras('Seu projeto avança em um ritmo só seu — e está tudo certo assim.')}</div>
   `;
 }
@@ -3406,6 +3541,7 @@ function renderMarcoCustom(c) {
 }
 
 function expandidoChaves() {
+  if (semPlano) return expandidoChavesSemPlano();
   return `
     <div class="modal-eyebrow">${ic('key')} Rumo às chaves</div>
     <div class="modal-titulo">O caminho até a virada da chave</div>
@@ -3415,6 +3551,31 @@ function expandidoChaves() {
     ${marcosPersonalizados.map(renderMarcoCustom).join('')}
     ${renderMarcoCustom(null)}
     <button class="marco-add-btn" id="btn-add-marco">${ic('plus','ic-md')} Adicionar um marco seu</button>
+  `;
+}
+
+// versão sem plano: a Vistoria fica visível; os demais marcos aparecem embaçados e reservados.
+// Nada é clicável — qualquer clique em botão mostra o aviso.
+function expandidoChavesSemPlano() {
+  const todos = marcosVisiveis();
+  const vistoria = todos.filter(m => m.campo === 'vistoria_em');
+  const resto = todos.filter(m => m.campo !== 'vistoria_em');
+  return `
+    <div id="chaves-sem-plano">
+      <div class="modal-eyebrow">${ic('key')} Rumo às chaves</div>
+      <div class="modal-titulo">O caminho até a virada da chave</div>
+      <p class="farol">${marcarPalavras('Calma, você vai chegar lá — esse sonho já é seu.')}</p>
+      <p class="chaves-intro">${marcarPalavras('Aqui você acompanha, um a um, os marcos do processo de entrega do seu imóvel — e se planeja com tranquilidade para cada um deles.')}</p>
+      ${vistoria.map(renderMarcoFixo).join('')}
+      <div class="plano-lock-wrap">
+        <p class="plano-lock-aviso">${ic('lock','ic-sm')} Para ter acesso ao planejamento completo da sua jornada, selecione um plano para uma experiência completa.</p>
+        <div class="plano-lock-blur">
+          ${resto.map(renderMarcoFixo).join('')}
+          ${renderMarcoCustom(null)}
+        </div>
+      </div>
+      ${blocoPlanos(undefined, 'Selecionar meu plano')}
+    </div>
   `;
 }
 
@@ -3433,6 +3594,15 @@ async function salvarMarcoFixo(campo, valorIso) {
 }
 
 function ligarChaves() {
+  // sem plano: nada é interativo — a Vistoria é visível, mas qualquer clique avisa que é reservado
+  if (semPlano) {
+    const cont = document.getElementById('chaves-sem-plano');
+    if (cont) cont.addEventListener('click', (e) => {
+      if (e.target.closest('.plano-cta-btn')) return; // deixa ir para os planos
+      if (e.target.closest('a, button, .marco-toggle, input')) { e.preventDefault(); avisoReservado(); }
+    });
+    return;
+  }
   // marcos fixos — cada mudança de data re-renderiza (atualiza o toggle e a contagem)
   document.querySelectorAll('#modal-inner .marco-data-input').forEach(inp => {
     inp.addEventListener('change', () => {
@@ -3542,6 +3712,7 @@ async function excluirMarcoPersonalizado(card) {
 
 // ── Guiders (comunidade) — convite caprichado ──
 function expandidoGuiders() {
+  if (semPlano) return blocoBloqueioTotal('Guiders', MSG_RESERVADO_LONGO);
   return `
     <div class="convite-hero">
       <div class="convite-icone">${ic('users', 'ic-xl')}</div>
@@ -3607,7 +3778,7 @@ function renderParceirosCorpo() {
     const msg = termo ? `Nenhum fornecedor encontrado para "${parceirosBusca}".` : 'Nenhuma categoria selecionada no filtro.';
     return `<div class="card-convite" style="padding:12px 0 24px;">${msg}</div>`;
   }
-  return blocos;
+  return blocos + (semPlano ? blocoPlanos(MSG_RESERVADO_LONGO, 'Selecionar meu plano') : '');
 }
 
 // Cada categoria é uma cápsula minimizável: título, descrição e cards verticais dos indicados.
@@ -3633,7 +3804,8 @@ function renderParceirosCategoria(cat, lista) {
 
 function renderParceirosExemplos(cat) {
   return [1, 2, 3].map(n => `
-    <div class="parceiro-card parceiro-card-exemplo">
+    <div class="parceiro-card parceiro-card-exemplo${semPlano ? ' plano-travado' : ''}">
+      ${semPlano ? `<span class="parceiro-lock-badge">${ic('lock')} Reservado</span>` : ''}
       <div class="parceiro-foto parceiro-foto-vazia">${ic(cat.icon)}</div>
       <div class="parceiro-corpo">
         <span class="parceiro-badge exemplo">Exemplo</span>
@@ -3656,7 +3828,8 @@ function renderParceiroCard(f, cat) {
   const linkWhats = numWhats ? `https://wa.me/55${numWhats}` : '';
   const confirmado = !!parceirosMostrandoCta[f.id];
   return `
-    <div class="parceiro-card" data-id="${f.id}" data-categoria="${cat.id}">
+    <div class="parceiro-card${semPlano ? ' plano-travado' : ''}" data-id="${f.id}" data-categoria="${cat.id}">
+      ${semPlano ? `<span class="parceiro-lock-badge">${ic('lock')} Reservado</span>` : ''}
       ${foto}
       <div class="parceiro-corpo">
         <span class="parceiro-badge">Parceiro Guide</span>
@@ -3712,6 +3885,11 @@ function ligarParceiros() {
   const root = document.getElementById('parceiros-root');
   if (!root) return;
   root.addEventListener('click', (e) => {
+    // sem plano: contato/orçamento ficam visíveis, mas reservados
+    if (semPlano) {
+      const trava = e.target.closest('.btn-whatsapp, .btn-add-orcamento-parceiro, .btn-caderno-parceiro, [data-acao="parceiro-orcamento"], [data-acao="parceiro-ir-cotacoes"]');
+      if (trava) { e.preventDefault(); avisoReservado(); return; }
+    }
     const alvo = e.target.closest('[data-acao]');
     if (!alvo) return;
     const acao = alvo.dataset.acao;
@@ -3746,7 +3924,10 @@ function ligarParceiros() {
 
 // ── Glossário + Quiz ──
 function expandidoGlossario() {
-  if (glossarioAba === 'quiz' && !quiz) abrirQuiz();
+  if (glossarioAba === 'quiz' && !semPlano && !quiz) abrirQuiz();
+  const conteudo = glossarioAba === 'termos'
+    ? renderTermos()
+    : (semPlano ? renderQuizBloqueado() : renderQuiz());
   return `
     <div class="modal-eyebrow">${ic('book-open')} Glossário</div>
     <div class="modal-titulo">Fale a língua do seu projeto</div>
@@ -3754,18 +3935,37 @@ function expandidoGlossario() {
       <button class="tab-btn ${glossarioAba==='termos'?'ativa':''}" data-aba="termos">📖 Termos</button>
       <button class="tab-btn ${glossarioAba==='quiz'?'ativa':''}" data-aba="quiz">❓ Quiz</button>
     </div>
-    <div id="glossario-conteudo">${glossarioAba === 'termos' ? renderTermos() : renderQuiz()}</div>
+    <div id="glossario-conteudo">${conteudo}</div>
   `;
 }
 
 function renderTermos() {
-  return `<div class="glossario-grid">${glossario.map((g,i) => `
+  // sem plano: apenas 3 termos de amostra + chamada para os planos
+  const lista = semPlano
+    ? glossario.filter(g => ['verga','meia-esquadria','kelvin'].includes(g.id))
+    : glossario;
+  const grid = `<div class="glossario-grid">${lista.map((g,i) => `
     <div class="flip-card" data-id="${g.id||i}">
       <div class="flip-inner">
         <div class="flip-face flip-front">${g.termo}</div>
         <div class="flip-face flip-back">${g.explicacao}</div>
       </div>
     </div>`).join('')}</div>`;
+  const cta = semPlano
+    ? blocoPlanos('Este recurso é reservado a partir do plano Essencial — selecione seu plano para uma experiência completa e tenha acesso a mais de 100 termos importantes para o seu dia a dia de projeto, mudança e obra.')
+    : '';
+  return grid + cta;
+}
+
+// quiz reservado (sem plano)
+function renderQuizBloqueado() {
+  return `
+    <div class="convite-hero plano-bloqueio" style="padding-top:8px;">
+      <div class="convite-icone">${ic('lock','ic-xl')}</div>
+      <div class="convite-titulo">Quiz do Glossário</div>
+      <div class="convite-texto">Esta dinâmica interativa é reservada a partir do plano Essencial — selecione seu plano para uma experiência completa.</div>
+      <div style="margin-top:22px;"><button type="button" class="plano-cta-btn" onclick="irParaPlanos()">${ic('crown','ic-sm')} Selecionar meu plano</button></div>
+    </div>`;
 }
 
 // ── Quiz: 5 fases de 10 perguntas, 2 tentativas por pergunta, progresso salvo por Guider ──
@@ -4014,6 +4214,7 @@ function expandidoDiario() {
         <div class="diario-share-corpo">Cada obra é uma história de coragem. Quando você compartilha o que superou, ajuda outras Guiders que estão exatamente onde você já esteve — e talvez não saibam que essa fase passa.</div>
         <button class="btn-share" type="button" data-acao="share" data-share="diario-superacao">${ic('share-2','ic-sm')} Compartilhar um momento com a comunidade</button>
       </div>
+      ${semPlano ? blocoPlanos('Experiencie a plataforma Guide completa — ela vai te dar o auxílio em toda a sua jornada.') : ''}
       <div class="diario-privacidade">${ic('lock','ic-sm')}<p>Seus sentimentos compartilhados aqui são reservados. Seu arquiteto e a Guide não têm acesso direto a esse conteúdo — ele foi feito para você.</p></div>
     </div>
   `;
@@ -4025,7 +4226,7 @@ function renderCartaGuideBloco() {
     return `<button type="button" class="carta-guide-reabrir" data-acao="carta-guide-reabrir">${ic('mail-open','ic-sm')} Sua carta da Guide ${ic('arrow-up-right','ic-sm')}</button>`;
   }
   return `
-    <div class="carta-guide-selo">
+    <div class="carta-guide-selo${semPlano ? ' plano-destaque' : ''}">
       <div class="cgs-icone">${ic('mail','ic-xl')}</div>
       <p class="cgs-chamada">Abra sua primeira carta — essa é da Guide, para você.</p>
       <button type="button" class="card-cta" data-acao="carta-guide-abrir">Abrir carta</button>
@@ -4443,6 +4644,11 @@ async function onDiarioClick(e) {
   if (!alvo) return;
   const acao = alvo.dataset.acao;
 
+  // sem plano: carta do futuro (Cápsula do Tempo) é reservada
+  if (semPlano && (acao === 'cap-intro' || acao === 'cap-editor' || acao === 'cap-guardar' || acao === 'cap-data')) { avisoReservado(); return; }
+  // sem plano: só uma reação (registro de humor) é permitida
+  if (semPlano && acao === 'emocao' && humores.length >= 1) { avisoReservado(); return; }
+
   if (acao === 'share') { mostrarEmDesenvolvimento(alvo.dataset.share); return; }
   if (acao === 'carta-guide-abrir') { abrirCartaGuideOverlay(true, alvo); return; }
   if (acao === 'carta-guide-reabrir') { abrirCartaGuideOverlay(false, alvo); return; }
@@ -4517,6 +4723,7 @@ function toggleMomento(card) {
 
 async function registrarMomento(comNota) {
   if (!diarioEmocao) return;
+  if (semPlano && humores.length >= 1) { avisoReservado(); return; }
   const fase = faseDiarioId();
   let nota = null, tag = null;
   if (comNota) {
@@ -4596,6 +4803,7 @@ function expandidoMural() {
       <div id="mural-sugestoes-slot">${renderMuralSugestoes()}</div>
       <div id="mural-conteudo">${renderMuralConteudo()}</div>
     </div>
+    ${semPlano ? blocoPlanos('Experiencie o mural completo — selecione seu plano para uma experiência completa.') : ''}
     <div class="diario-privacidade">${ic('lock','ic-sm')}<p>Suas fotos compartilhadas aqui são reservadas. Seu arquiteto e a Guide não têm acesso direto a esse conteúdo — ele foi feito para você.</p></div>
   `;
 }
@@ -4924,6 +5132,19 @@ function togglePickComparar(btn) {
 
 function ligarMural() {
   const input = document.getElementById('mural-input-arquivo');
+  // sem plano: mural é só visualização — qualquer clique em botão avisa que é reservado
+  if (semPlano) {
+    if (input) input.disabled = true;
+    const bloquear = (e) => {
+      if (e.target.closest('.plano-cta-btn')) return; // deixa ir para os planos
+      if (e.target.closest('button, a, label, select, input')) { e.preventDefault(); avisoReservado(); }
+    };
+    const form = document.querySelector('#modal-inner .mural-form');
+    if (form) form.addEventListener('click', bloquear);
+    const raizSem = document.getElementById('mural-root');
+    if (raizSem) raizSem.addEventListener('click', bloquear);
+    return;
+  }
   input.addEventListener('change', async () => {
     const file = input.files[0];
     if (!file) return;
