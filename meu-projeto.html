@@ -2062,8 +2062,18 @@ async function inicializar() {
   if (!data.session) { window.location.href = '/login'; return; }
   usuarioAtual = data.session.user;
 
-  const proj = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).single(), null);
-  if (!proj) { toast('Não encontramos seu projeto. Fale com a Guide.'); return; }
+  const achados = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).order('criado_em', { ascending: true }).limit(1), []);
+  let proj = (achados && achados.length) ? achados[0] : null;
+  if (!proj) {
+    // Conta recém-criada (cadastro próprio, sem plano ainda): provisiona um projeto mínimo
+    // para o painel abrir em modo experiência. Se o insert não for permitido, usa um
+    // projeto em memória só para renderizar (leitura), sem quebrar a tela.
+    const nomeCadastro = (usuarioAtual.user_metadata && (usuarioAtual.user_metadata.nome || usuarioAtual.user_metadata.name))
+      || (usuarioAtual.email || '').split('@')[0];
+    const novo = { nome_cliente: nomeCadastro, email: usuarioAtual.email, etapa_atual: 1 };
+    proj = await tentar(sb.from('projetos').insert(novo).select().single(), null)
+        || { id: null, plano: null, criado_em: new Date().toISOString(), ...novo };
+  }
   projeto = proj;
 
   // Segregação de acesso: sem plano contratado (coluna `plano` vazia) o painel abre em modo

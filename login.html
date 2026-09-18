@@ -320,6 +320,9 @@ body {
 const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
 
+// captura o hash antes do Supabase consumi-lo (retorno do link de confirmação de e-mail)
+const HASH_ENTRADA = window.location.hash || '';
+
 let sb = null;
 if (window.supabase && window.supabase.createClient) {
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -485,6 +488,25 @@ function traduzErro(msg){
     const emailSalvo = localStorage.getItem('guide-login-email');
     if (emailSalvo) document.getElementById('login-email').value = emailSalvo;
     else document.getElementById('login-lembrar').checked = false;
+  } catch (e) {}
+})();
+
+// ─────────────── RETORNO DO LINK DE CONFIRMAÇÃO DE E-MAIL ───────────────
+// Quando o cliente clica em "confirmar" no e-mail, o Supabase redireciona para cá
+// (esta página, /login) com um hash. Damos um retorno amigável em vez de só mostrar o form.
+(function(){
+  try {
+    const h = HASH_ENTRADA;
+    if (!h) return;
+    if (h.includes('type=signup') || h.includes('type=magiclink')) {
+      toast('E-mail confirmado! Faça login para entrar.');
+    } else if (h.includes('type=recovery')) {
+      toast('Link de recuperação aberto. Em breve você poderá redefinir a senha por aqui.');
+    } else if (h.includes('error')) {
+      toast('Este link expirou ou já foi usado. Faça login ou solicite um novo.');
+    }
+    // limpa o hash da barra de endereço
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
   } catch (e) {}
 })();
 </script>
