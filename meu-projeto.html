@@ -272,10 +272,10 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .card-hero:hover { box-shadow: 0 0 50px rgba(201,162,39,0.10) inset, 0 16px 48px rgba(0,0,0,0.30); }
 /* brilho pulsante suave, como uma luz vindo de trás do card — destaca a entrada do painel */
 @keyframes heroGlow {
-  0%, 100% { box-shadow: 0 0 40px rgba(201,162,39,0.05) inset, 0 0 22px 0 rgba(201,162,39,0.10); }
-  50%      { box-shadow: 0 0 60px rgba(201,162,39,0.12) inset, 0 0 52px 10px rgba(201,162,39,0.30); }
+  0%, 100% { box-shadow: 0 0 45px rgba(201,162,39,0.10) inset, 0 0 30px 2px rgba(201,162,39,0.22); }
+  50%      { box-shadow: 0 0 75px rgba(201,162,39,0.22) inset, 0 0 80px 20px rgba(201,162,39,0.55); }
 }
-.card-hero { animation: heroGlow 3.4s ease-in-out infinite; }
+.card-hero { animation: heroGlow 3s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .card-hero { animation: none; } }
 /* campo de partículas douradas que fogem do mouse — fundo do card */
 .card-hero .card-corpo { justify-content: flex-end; position: relative; }
@@ -1250,6 +1250,24 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .parceiro-placeholder { color: var(--muted2); letter-spacing: .18em; }
 .flip-card-locked { display: flex; align-items: center; justify-content: center; border-radius: var(--r-md); border: 1px solid var(--border2); background: linear-gradient(140deg, rgba(201,162,39,0.12), rgba(255,255,255,0.02)); color: var(--muted2); cursor: default; }
 .flip-card-locked i { width: 20px; height: 20px; opacity: .5; }
+/* alerta de plano "limpo" (sem retângulo) — usado dentro da pilha de fases do Meu Projeto */
+.plano-cta-bloco.plano-cta-limpo { background: none; border: none; box-shadow: none; padding: 26px 12px; position: relative; z-index: 0; }
+/* botão "Abrir briefing" em destaque com luz pulsante atrás */
+.briefing-cta-wrap { position: relative; display: inline-block; }
+.briefing-cta { font-size: var(--fs-base); font-weight: 700; padding: 14px 30px; border-radius: var(--r-pill); position: relative; z-index: 1; animation: ctaPulse 1.9s ease-in-out infinite; }
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 6px 18px rgba(201,162,39,0.25), 0 0 0 0 rgba(201,162,39,0.35); }
+  50%      { box-shadow: 0 6px 22px rgba(201,162,39,0.40), 0 0 30px 8px rgba(201,162,39,0.55); }
+}
+/* CTA de plano no cabeçalho (conta sem plano) */
+.top-plano-cta { display: flex; align-items: center; gap: 12px; margin-left: 16px; }
+.top-plano-txt { font-family: 'Sora', sans-serif; font-size: var(--fs-sm); font-weight: 600; color: var(--gold-light); white-space: nowrap; }
+.top-plano-btn { position: relative; display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; border-radius: var(--r-pill); padding: 9px 18px; font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; cursor: pointer; animation: ctaPulse 1.9s ease-in-out infinite; transition: transform .2s; }
+.top-plano-btn:hover { transform: translateY(-1px); }
+.top-plano-btn i { width: 15px; height: 15px; }
+@media (prefers-reduced-motion: reduce) { .briefing-cta, .top-plano-btn { animation: none; } }
+@media (max-width: 900px) { .top-plano-txt { display: none; } }
+@media (max-width: 720px) { .top-plano-cta { display: none; } }
 .parceiro-card.plano-travado .parceiro-acoes { opacity: .55; }
 .carta-guide-selo.plano-destaque { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-mid), 0 14px 40px rgba(201,162,39,0.18); }
 </style>
@@ -1994,9 +2012,9 @@ function irParaPlanos() { window.location.href = '/contratar'; }
 function avisoReservado(msg) { toast(msg || MSG_RESERVADO, true); }
 
 // bloco de chamada para os planos: texto + botão em destaque
-function blocoPlanos(texto, rotulo) {
+function blocoPlanos(texto, rotulo, limpo) {
   return `
-    <div class="plano-cta-bloco">
+    <div class="plano-cta-bloco${limpo ? ' plano-cta-limpo' : ''}">
       <div class="plano-cta-icone">${ic('sparkles','ic-lg')}</div>
       <p class="plano-cta-texto">${texto || MSG_RESERVADO_LONGO}</p>
       <button type="button" class="plano-cta-btn" onclick="irParaPlanos()">${ic('crown','ic-sm')} ${rotulo || 'Selecionar meu plano'}</button>
@@ -2099,6 +2117,20 @@ async function inicializar() {
   document.getElementById('top-saudacao').innerHTML = marcarPalavras(`Olá, ${primeiroNome(projeto.nome_cliente)}!`);
   revelarPalavras(document.getElementById('top-saudacao'));
   document.getElementById('perfil-nome').textContent = projeto.nome_cliente || 'Perfil';
+
+  // conta sem plano: chamada para contratar no cabeçalho, ao lado da saudação
+  if (semPlano) {
+    const nav = document.querySelector('.tb-nav');
+    const sau = document.getElementById('top-saudacao');
+    if (nav && sau && !document.getElementById('top-plano-cta')) {
+      const cta = document.createElement('div');
+      cta.className = 'top-plano-cta';
+      cta.id = 'top-plano-cta';
+      cta.innerHTML = `<span class="top-plano-txt">Adquira um plano Guide!</span>
+        <button class="top-plano-btn" onclick="irParaPlanos()">${ic('crown','ic-sm')} Contratar meu plano</button>`;
+      sau.insertAdjacentElement('afterend', cta);
+    }
+  }
 
   const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
 
@@ -2746,7 +2778,7 @@ function ativarPilhaFases() {
       const preso = clamp((caixa.scrollTop + TOPO - naturais[i]) / vao, 0, 1);
       f.style.transform = 'scale(' + (1 - preso * 0.06) + ')';
       f.style.filter = 'brightness(' + (1 - preso * 0.4) + ')';
-      f.style.zIndex = i;
+      f.style.zIndex = i + 1; // fica acima do alerta de plano (z-index:0), que passa por trás
     });
   }
   passo();
@@ -2836,7 +2868,7 @@ function expandidoHero() {
     const briefing = FASES.filter(f => f.id === 'briefing').map(f => renderFaseItem(f, num, videos)).join('');
     const resto = FASES.filter(f => f.id !== 'briefing').map(f => renderFaseItem(f, num, videos)).join('');
     pilha = briefing
-      + blocoPlanos('As próximas fases do seu projeto — Layout, Imagens, Executivo e Obra — fazem parte da experiência completa da Guide. Escolha seu plano e desbloqueie tudo o que preparamos para você.', 'Contratar meu plano')
+      + blocoPlanos('As próximas fases do seu projeto — Layout, Imagens, Executivo e Obra — fazem parte da experiência completa da Guide. Escolha seu plano e desbloqueie tudo o que preparamos para você.', 'Contratar meu plano', true)
       + resto;
   } else {
     pilha = FASES.map(f => renderFaseItem(f, num, videos)).join('');
@@ -2890,7 +2922,7 @@ function renderFaseItem(f, numAtual, videos) {
 // gratuita); as demais fases aparecem, mas reservadas.
 function botaoFaseItem(f, liberada) {
   if (semPlano) {
-    if (f.id === 'briefing') return `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir briefing ${ic('arrow-right')}</button></a></div>`;
+    if (f.id === 'briefing') return `<div class="fase-btn"><a href="${f.url}" class="briefing-cta-wrap"><button class="card-cta briefing-cta">Abrir briefing ${ic('arrow-right')}</button></a></div>`;
     return `<div class="fase-prazo" style="color:var(--gold-light);">${ic('lock','ic-sm')} Fase reservada a partir do plano Essencial.</div>`;
   }
   return liberada ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : '';
