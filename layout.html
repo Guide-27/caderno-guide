@@ -533,8 +533,12 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
 .estrela.ativa svg.lucide{fill:var(--gold);}
 
 /* cápsula de ambiente em "pronto para enviar": parcial (só comentou) x escolhido */
-.acao-status-item.parcial{border-color:var(--gold-mid);color:var(--gold);}
+.acao-status-item.ok{border-color:var(--green-border);background:var(--green-dim);color:var(--green);}
+.acao-status-item.ok .asi-nome{color:var(--white);}
+.acao-status-item.ok span:first-child{color:var(--green);}
+.acao-status-item.parcial{border-color:var(--gold-mid);background:var(--gold-dim);color:var(--gold);}
 .acao-status-item.parcial .asi-nome{color:var(--off);}
+.acao-status-item.parcial span:first-child{color:var(--gold);}
 .acao-status-item span svg.lucide{width:14px;height:14px;vertical-align:-2px;}
 
 /* rodapé: logo 4x e centralizado */
@@ -1148,7 +1152,7 @@ function cardOpcao(a, o, j){
   const refs3 = [0,1,2].map(k=>o.referencias[k] || null);
 
   return `
-  <div class="opcao-card" data-amb="${a.id}" data-op="${o.id}" data-idx="${j}" onclick="toggleCard(this)">
+  <div class="opcao-card" data-amb="${a.id}" data-op="${o.id}" data-idx="${j}" onclick="toggleCard(this, event)">
     <div class="opcao-tag"><span class="opcao-tag-nome">${esc(titulo)}${(o.sugerida || j===0) ? ' <span class="badge-sugestao"><i data-lucide="sparkles"></i> Sugestão Guide</span>' : ''}</span> <span class="badge-sel"><i data-lucide="check"></i> Layout escolhido</span></div>
     <div class="mini-planta">
       ${planta ? `<img src="${esc(planta.url)}" alt="Planta — ${esc(titulo)}" loading="lazy">`
@@ -1212,7 +1216,7 @@ function cardOpcao(a, o, j){
           <div class="com-saved"><i data-lucide="check"></i> Salvo</div>
         </div>
       </div>
-      <button class="btn-fechar" onclick="fecharCard(this)">Fechar opção ↑</button>
+      <button class="btn-fechar" onclick="fecharCard(this, event)">Fechar opção ↑</button>
     </div>
   </div>`;
 }
@@ -1318,14 +1322,20 @@ function travarParaArquiteto(){
 // ══════════════════════════════════════════════════
 //  INTERAÇÃO
 // ══════════════════════════════════════════════════
-function toggleCard(card){
+function toggleCard(card, e){
+  // cliques vindos de dentro da área expandida (textos, botões, áudio, fechar)
+  // não devem reabrir/alternar o card — deixam a interação interna funcionar
+  if(e && e.target && e.target.closest && e.target.closest('.opcao-expandida')) return;
   if(card.classList.contains('expanded')) return;
   const grid = card.closest('.opcoes-grid');
   grid.querySelectorAll('.opcao-card').forEach(c=>c.classList.remove('expanded'));
   card.classList.add('expanded');
   setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}), 80);
 }
-function fecharCard(btn){ btn.closest('.opcao-card').classList.remove('expanded'); }
+function fecharCard(btn, e){
+  if(e) e.stopPropagation();
+  btn.closest('.opcao-card').classList.remove('expanded');
+}
 
 // Reação nas imagens de referência
 document.addEventListener('click', async e=>{
