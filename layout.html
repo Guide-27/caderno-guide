@@ -434,7 +434,17 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
 
 /* ── PLANTA CRUA (ponto de partida) ── */
 .planta-crua{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;background:var(--glass2);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-lg);padding:24px;margin-bottom:44px;}
-.planta-crua-img{border-radius:var(--r-md);overflow:hidden;background:var(--card2);border:1px solid var(--border2);min-height:300px;display:flex;align-items:center;justify-content:center;}
+.planta-crua-img{position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--card2);border:1px solid var(--border2);min-height:300px;display:flex;align-items:center;justify-content:center;}
+.sugestao-header{margin-bottom:14px;}
+.sugestao-intro{font-size:var(--fs-base);color:var(--off);line-height:1.75;max-width:820px;margin-bottom:22px;}
+.btn-ampliar-planta{position:absolute;bottom:12px;right:12px;display:inline-flex;align-items:center;gap:8px;background:rgba(8,8,10,0.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--gold-mid);color:var(--gold);border-radius:var(--r-pill);padding:9px 16px;font-family:'Outfit',sans-serif;font-size:var(--fs-xs);cursor:pointer;transition:all .2s;z-index:2;}
+.btn-ampliar-planta:hover{background:rgba(201,162,39,0.16);border-color:var(--gold);color:var(--gold-light);}
+.btn-ampliar-planta svg.lucide{width:14px;height:14px;}
+.lightbox{position:fixed;inset:0;z-index:600;background:rgba(8,8,10,0.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:32px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.lightbox.show{opacity:1;pointer-events:all;}
+.lightbox img{max-width:94vw;max-height:88vh;border-radius:var(--r-md);box-shadow:0 24px 80px rgba(0,0,0,0.6);}
+.lightbox-fechar{position:absolute;top:24px;right:24px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--border2);color:var(--off);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
+.lightbox-fechar:hover{background:var(--gold-dim);color:var(--gold);border-color:var(--gold-mid);}
 .planta-crua-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .planta-crua-txt{display:flex;flex-direction:column;justify-content:center;}
 .planta-crua-desc{font-size:var(--fs-base);color:var(--off);line-height:1.7;margin:12px 0 20px;}
@@ -496,6 +506,41 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
 .planta-grande-icon svg.lucide{width:48px;height:48px;}
 .sbtn{align-items:center;}
 
+/* ao ampliar a opção: some a miniatura, os diferenciais curtos e o botão ampliar (planta aparece só 1x) */
+.opcao-card.expanded .mini-planta,
+.opcao-card.expanded .mini-difs,
+.opcao-card.expanded .mini-expandir{display:none;}
+
+/* opção escolhida: miniatura verde + tag "Layout escolhido" */
+.opcao-card.selecionada:not(.expanded){border-color:var(--green-border);background:linear-gradient(135deg,var(--green-dim),rgba(255,255,255,0.03));}
+.badge-sel{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);}
+.badge-sel svg.lucide{width:12px;height:12px;}
+.opcao-tag-nome{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* tag Sugestão Guide na opção sugerida (a que está na planta integrada) */
+.badge-sugestao{display:inline-flex;align-items:center;gap:5px;background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-mid);font-size:var(--fs-2xs);letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:var(--r-pill);}
+.badge-sugestao svg.lucide{width:12px;height:12px;}
+
+/* avaliação por estrelas (1 a 7) */
+.aval-estrelas{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.aval-estrelas-label{font-size:var(--fs-xs);color:var(--muted);letter-spacing:0.04em;}
+.estrelas{display:inline-flex;gap:4px;}
+.estrela{background:transparent;border:none;padding:2px;cursor:pointer;color:var(--muted2);transition:color .15s,transform .15s;line-height:0;}
+.estrela:hover{transform:scale(1.15);}
+.estrela svg.lucide{width:22px;height:22px;}
+.estrela.preview{color:var(--gold-light);}
+.estrela.ativa{color:var(--gold);}
+.estrela.ativa svg.lucide{fill:var(--gold);}
+
+/* cápsula de ambiente em "pronto para enviar": parcial (só comentou) x escolhido */
+.acao-status-item.parcial{border-color:var(--gold-mid);color:var(--gold);}
+.acao-status-item.parcial .asi-nome{color:var(--off);}
+.acao-status-item span svg.lucide{width:14px;height:14px;vertical-align:-2px;}
+
+/* rodapé: logo 4x e centralizado */
+footer{flex-direction:column;justify-content:center;gap:16px;text-align:center;padding:48px 0 0;}
+.rodape-logo-img{height:112px;width:auto;display:block;margin:0 auto;}
+
 @media(max-width:768px){
   .top-bar{left:12px;right:12px;gap:6px;}
   .tb-logo{padding:0 14px;}
@@ -532,11 +577,11 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
     <div class="fase-track" id="fase-track">
       <div class="fase-pill ativa"><span class="fase-dot"></span>Layout</div>
       <div class="fase-sep"></div>
-      <div class="fase-pill"><span class="fase-dot"></span>Conceito</div>
-      <div class="fase-sep"></div>
       <div class="fase-pill"><span class="fase-dot"></span>Imagens</div>
       <div class="fase-sep"></div>
       <div class="fase-pill"><span class="fase-dot"></span>Executivo</div>
+      <div class="fase-sep"></div>
+      <div class="fase-pill"><span class="fase-dot"></span>Obra</div>
     </div>
   </div>
   <div class="tb-bubble tb-perfil">
@@ -551,12 +596,6 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
   <div class="capa-tag">G Project · Guide Arquitetura</div>
   <h1 class="capa-titulo">Estudo de<br><em>Layout</em></h1>
   <p class="capa-sub">Definição de espaços e alternativas</p>
-  <div class="capa-meta">
-    <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val">Mariana Souza</span></div>
-    <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val">Ap. 72m² — Vila Olímpia</span></div>
-    <div class="meta-item"><span class="meta-label">Arquiteto</span><span class="meta-val">Guide Arquitetura</span></div>
-    <div class="meta-item"><span class="meta-label">Data</span><span class="meta-val">Junho 2025</span></div>
-  </div>
 </section>
 
 <!-- BOAS VINDAS -->
@@ -564,7 +603,7 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
   <div class="bv-titulo">Mariana, seu projeto começa <em>aqui.</em></div>
   <p class="bv-texto">Bem-vinda ao <strong>Estudo de Layout</strong> — a primeira e mais importante decisão do seu projeto. É aqui que definimos <strong>onde cada coisa vai ficar</strong>: a posição dos móveis, os caminhos por onde você vai circular e a forma como cada ambiente conversa com o próximo. É a planta que dá vida ao seu apartamento.</p>
   <p class="bv-texto">Para cada ambiente, desenhamos <strong>opções de layout</strong> diferentes. Você pode <strong>ampliar a planta</strong>, ver <strong>imagens de referência</strong> do estilo, <strong>comparar</strong> as alternativas e, em cada uma, deixar seu comentário — por escrito ou <strong>gravando um áudio</strong>. No fim de cada ambiente, você escolhe a sua opção preferida ou pede para combinarmos ideias.</p>
-  <p class="bv-texto">Quando terminar de reagir a todos os ambientes, é só <strong>enviar seu feedback</strong>. Ele vai direto para sua arquiteta, que refina o projeto a partir das suas escolhas. Vá com calma — não existe resposta certa ou errada, existe o que faz sentido para a <em>sua</em> vida.</p>
+  <p class="bv-texto">Quando terminar de reagir a todos os ambientes, é só <strong>enviar seu feedback</strong>. Ele vai direto para seu arquiteto, que refina o projeto a partir das suas escolhas. Vá com calma — não existe resposta certa ou errada, existe o que faz sentido para a <em>sua</em> vida.</p>
 </div>
 
 <!-- SEU PROGRESSO NESTA ETAPA -->
@@ -601,18 +640,33 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
   <div class="sec-header">
     <div class="sec-tag">Estudo de alternativas</div>
     <h2 class="sec-titulo">As opções do seu <em>layout</em></h2>
-    <p class="sec-lead">Para cada ambiente, desenvolvemos alternativas. Explore, compare e registre sua opinião — sua arquiteta usa esse feedback para refinar o projeto.</p>
+    <p class="sec-lead">Para cada ambiente, desenvolvemos alternativas. Explore, compare e registre sua opinião — seu arquiteto usa esse feedback para refinar o projeto.</p>
   </div>
 
-  <!-- PLANTA CRUA — ponto de partida -->
-  <div class="planta-crua">
+  <!-- PLANTA CRUA — ponto de partida (somente planta + texto) -->
+  <div class="planta-crua planta-crua-solo">
     <div class="planta-crua-img" id="planta-crua-img">
       <img src="/assets/planta-fundo.jpeg" alt="Planta baixa do apartamento (vazia)" loading="lazy">
     </div>
     <div class="planta-crua-txt">
       <div class="sec-tag" style="margin-bottom:14px;">Ponto de partida</div>
       <p class="planta-crua-desc">Essa é a planta do seu novo apartamento vazia. Confira abaixo as opções que propusemos para dar vida a ela:</p>
-      <div class="planta-crua-atalhos-label">Ir para um ambiente</div>
+    </div>
+  </div>
+
+  <!-- A NOSSA SUGESTÃO — planta integrada + atalhos para os ambientes -->
+  <div class="sec-header sugestao-header">
+    <div class="sec-tag"><i data-lucide="sparkles"></i> Recomendação Guide</div>
+    <h2 class="sec-titulo">A nossa <em>sugestão</em></h2>
+  </div>
+  <p class="sugestao-intro">Esta sugestão contempla o conjunto de todos os ambientes com a opção sugerida pelo seu arquiteto, considerando a forma como os ambientes se conversam, a funcionalidade e a integração. Visualize individualmente cada ambiente abaixo e suas demais opções desenvolvidas — e escolha o layout ideal para você em cada um deles.</p>
+  <div class="planta-crua">
+    <div class="planta-crua-img" id="sugestao-planta">
+      <img src="/assets/planta-fundo.jpeg" alt="Planta integrada — sugestão Guide" loading="lazy">
+      <button class="btn-ampliar-planta" onclick="ampliarPlanta('/assets/planta-fundo.jpeg','Planta integrada — sugestão Guide')"><i data-lucide="maximize-2"></i> Ampliar planta</button>
+    </div>
+    <div class="planta-crua-txt">
+      <div class="planta-crua-atalhos-label">Ver cada ambiente</div>
       <div class="planta-crua-atalhos" id="planta-crua-botoes"></div>
     </div>
   </div>
@@ -623,29 +677,6 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
     <div class="carregando-caderno"><div class="spinner-c"></div>Carregando seu caderno...</div>
   </div>
 
-</section>
-
-<div class="divisor"></div>
-
-<!-- SUGESTÃO GUIDE -->
-<section style="margin-bottom:72px;">
-  <div class="sec-header">
-    <div class="sec-tag">Recomendação Guide</div>
-    <h2 class="sec-titulo">A nossa <em>sugestão</em></h2>
-    <p class="sec-lead">Com base no seu briefing e na análise técnica, esta é a proposta que melhor equilibra circulação, conforto e a sua rotina.</p>
-  </div>
-  <div class="sug-box">
-    <div class="sug-badge"><i data-lucide="sparkles"></i> Sugestão Guide</div>
-    <div class="sug-titulo">Layout <em>recomendado</em> para o seu projeto</div>
-    <div class="sug-texto">Esta proposta considera todos os ambientes integrados — a forma como cada espaço conversa com o outro, a circulação entre cômodos e o aproveitamento da iluminação natural.</div>
-    <div class="sug-img">
-      <div class="sug-img-inner">
-        <span class="sug-img-icon"><i data-lucide="house"></i></span>
-        <div class="sug-img-title">Planta completa do apartamento</div>
-        <div class="sug-img-sub">A sugestão de layout final será apresentada aqui pelo arquiteto.</div>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- RETORNO -->
@@ -662,34 +693,34 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
   <div class="proxima-etapa">
     <div class="pe-tag">Próximos passos</div>
     <div class="pe-titulo">O que acontece <em>depois do envio?</em></div>
-    <p style="font-size:14px;color:var(--off);line-height:1.8;margin-bottom:4px;">Ao enviar seu feedback, você não está apenas aprovando — está dando à sua arquiteta tudo que ela precisa para refinar o projeto com precisão e avançar com confiança.</p>
+    <p style="font-size:14px;color:var(--off);line-height:1.8;margin-bottom:4px;">Ao enviar seu feedback, você não está apenas aprovando — está dando ao seu arquiteto tudo que ele precisa para refinar o projeto com precisão e avançar com confiança.</p>
     <div class="pe-passos">
       <div class="pe-passo">
         <div class="pe-passo-num">1</div>
         <div class="pe-passo-conteudo">
           <div class="pe-passo-titulo">Análise do seu feedback</div>
-          <div class="pe-passo-texto">Sua arquiteta vai revisar cada comentário, preferência e dúvida que você registrou. Nada será ignorado — cada detalhe orienta as próximas decisões do projeto.</div>
+          <div class="pe-passo-texto">Seu arquiteto vai revisar cada comentário, preferência e dúvida que você registrou. Nada será ignorado — cada detalhe orienta as próximas decisões do projeto.</div>
         </div>
       </div>
       <div class="pe-passo">
         <div class="pe-passo-num">2</div>
         <div class="pe-passo-conteudo">
           <div class="pe-passo-titulo">Dúvidas ou pedidos de combinação</div>
-          <div class="pe-passo-texto">Caso você tenha registrado dúvidas ou pedidos para combinar elementos de opções diferentes, sua arquiteta vai avaliar a viabilidade e te retornar com uma resposta clara dentro desta plataforma.</div>
+          <div class="pe-passo-texto">Caso você tenha registrado dúvidas ou pedidos para combinar elementos de opções diferentes, seu arquiteto vai avaliar a viabilidade e te retornar com uma resposta clara dentro desta plataforma.</div>
         </div>
       </div>
       <div class="pe-passo">
         <div class="pe-passo-num">3</div>
         <div class="pe-passo-conteudo">
           <div class="pe-passo-titulo">Início da próxima etapa</div>
-          <div class="pe-passo-texto">Com o layout aprovado, o projeto avança para a <strong style="color:var(--white);font-weight:500;">Definição de Conceito</strong> — onde cores, materiais, texturas e o estilo do seu projeto serão definidos. Você receberá um aviso aqui na plataforma assim que estiver disponível.</div>
+          <div class="pe-passo-texto">Com o layout aprovado, o projeto avança para a próxima etapa — as <strong style="color:var(--white);font-weight:500;">Imagens</strong>, onde cada ambiente ganha vida com materiais, cores e o estilo do seu projeto. Você receberá um aviso aqui na plataforma assim que estiver disponível.</div>
         </div>
       </div>
       <div class="pe-passo">
         <div class="pe-passo-num">4</div>
         <div class="pe-passo-conteudo">
           <div class="pe-passo-titulo">Imagens finais do projeto</div>
-          <div class="pe-passo-texto">Depois do conceito aprovado, você verá como cada ambiente vai ficar — com imagens realistas do resultado final, ambiente por ambiente, apresentadas aqui nesta plataforma.</div>
+          <div class="pe-passo-texto">Em seguida, você verá como cada ambiente vai ficar — com imagens realistas do resultado final, ambiente por ambiente, apresentadas aqui nesta plataforma.</div>
         </div>
       </div>
     </div>
@@ -701,16 +732,16 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
 <section style="margin-bottom:80px;">
   <div class="acao-box">
     <h2 class="acao-titulo">Pronto para <em>enviar?</em></h2>
-    <p class="acao-texto">Quando revisar todos os ambientes, o botão será liberado. Ao confirmar, todo o seu feedback vai para sua arquiteta.</p>
+    <p class="acao-texto">Quando você escolher um layout para todos os ambientes, o botão será liberado. Ao confirmar, todo o seu feedback vai para seu arquiteto.</p>
       <div class="acao-status-grid" id="acao-status-grid"></div>
     <button class="btn-aprovar" id="btn-aprovar" onclick="abrirModal()" disabled>Enviar feedback e aprovar</button>
-    <div class="acao-pendente" id="acao-pendente">Revise os 3 ambientes para liberar a aprovação.</div>
+    <div class="acao-pendente" id="acao-pendente">Escolha um layout para cada ambiente para liberar o envio.</div>
   </div>
 </section>
 
 <!-- RODAPÉ -->
 <footer>
-  <img src="/assets/logo-guide.svg" class="rodape-logo-img" alt="Guide Arquitetura" style="height:28px;width:auto;display:block;">
+  <img src="/assets/logo-guide.svg" class="rodape-logo-img" alt="Guide Arquitetura">
   <span class="rodape-tag">Arquitetura que transforma no seu ritmo</span>
 </footer>
 
@@ -721,7 +752,7 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
   <div class="modal-box">
     <div class="modal-tag">Aprovação final — Etapa 01</div>
     <div class="modal-titulo">Enviando seu <em>feedback</em> completo.</div>
-    <div class="modal-texto">Revise o resumo abaixo. Ao confirmar, tudo será enviado para sua arquiteta e o projeto avança.</div>
+    <div class="modal-texto">Revise o resumo abaixo. Ao confirmar, tudo será enviado para seu arquiteto e o projeto avança.</div>
     <div class="modal-resumo" id="modal-resumo">
       <div class="modal-resumo-titulo">Resumo por ambiente</div>
     </div>
@@ -737,6 +768,12 @@ footer{border-top:1px solid var(--border);padding:40px 0 0;display:flex;align-it
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- LIGHTBOX DA PLANTA -->
+<div class="lightbox" id="lightbox" onclick="fecharPlanta(event)">
+  <button class="lightbox-fechar" onclick="fecharPlanta(event)" title="Fechar"><i data-lucide="x"></i></button>
+  <img id="lightbox-img" src="" alt="">
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -847,7 +884,7 @@ async function inicializar(){
     // Etapa 2 = Layout. Se ainda não foi liberada, o cliente não vê o conteúdo.
     // O criador sempre tem acesso, independente da etapa.
     if(!ehCriador && (proj.etapa_atual || 1) < 2){
-      cont.innerHTML = '<div class="aviso-vazio">Esta etapa ainda não foi liberada.<br>Sua arquiteta avisará assim que o Estudo de Layout estiver pronto.</div>';
+      cont.innerHTML = '<div class="aviso-vazio">Esta etapa ainda não foi liberada.<br>Seu arquiteto avisará assim que o Estudo de Layout estiver pronto.</div>';
       document.querySelector('.progress-bar-wrap')?.remove();
       return;
     }
@@ -945,6 +982,52 @@ function render(){
   icons();
 }
 
+// Ampliar planta (lightbox)
+function ampliarPlanta(src, alt){
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  if(!lb || !img) return;
+  img.src = src; img.alt = alt || '';
+  lb.classList.add('show');
+  icons();
+}
+function fecharPlanta(e){
+  if(e && e.target && e.target.closest('#lightbox-img')) return;
+  document.getElementById('lightbox')?.classList.remove('show');
+}
+
+// Avaliação por estrelas (1 a 7) — persiste local por opção (teste)
+function avaliarEstrela(ambId, opId, v, btn){
+  if(cadernoEnviado || ehArquiteto) return;
+  const grupo = btn.closest('.estrelas');
+  pintarEstrelas(grupo, v);
+  try{ localStorage.setItem('estrela-'+opId, String(v)); }catch(e){}
+  toast('Avaliação registrada: ' + v + ' de 7');
+}
+function pintarEstrelas(grupo, v){
+  if(!grupo) return;
+  grupo.querySelectorAll('.estrela').forEach(b=>b.classList.toggle('ativa', Number(b.dataset.v) <= v));
+}
+// preview ao passar o mouse
+document.addEventListener('mouseover', e=>{
+  const est = e.target.closest && e.target.closest('.estrela');
+  if(!est) return;
+  const grupo = est.closest('.estrelas'); const v = Number(est.dataset.v);
+  grupo.querySelectorAll('.estrela').forEach(b=>b.classList.toggle('preview', Number(b.dataset.v) <= v));
+});
+document.addEventListener('mouseout', e=>{
+  const grupo = e.target.closest && e.target.closest('.estrelas');
+  if(grupo) grupo.querySelectorAll('.estrela').forEach(b=>b.classList.remove('preview'));
+});
+
+// Um ambiente está "escolhido" quando tem uma opção preferida marcada
+function ambienteEscolhido(a){ return !!a.escolhaOpId; }
+// "interagido" = escolheu uma opção OU deixou algum comentário/dúvida/status
+function ambienteInteragido(a){
+  if(a.escolhaOpId || a.status) return true;
+  return comentarios.some(c=> c.ambiente_id === a.id && (c.texto || c.reacao));
+}
+
 // Card do ambiente — recolher/abrir
 function toggleAmbiente(id){
   const card = document.getElementById('amb-'+id);
@@ -973,19 +1056,20 @@ function renderPlantaAtalhos(){
 //  - layout inteiro aprovado marca 100%
 function calcularProgressoEtapa(){
   const total = ambientes.length || 1;
-  const reagidos = ambientes.filter(a=>a.status).length;
-  const todosAprovados = ambientes.length > 0 && ambientes.every(a=>a.status === 'aprovado');
+  const escolhidos = ambientes.filter(a=>a.escolhaOpId).length;
+  const temRevisao = ambientes.some(a=>a.status === 'revisao');
+  const todosAprovados = ambientes.length > 0 && escolhidos === ambientes.length && !temRevisao;
   let pct;
   if(cadernoEnviado){
     pct = todosAprovados ? 100 : 50;
   } else {
-    pct = Math.round((reagidos/total) * 50);
+    pct = Math.round((escolhidos/total) * 50);
   }
-  return { pct, reagidos, total, todosAprovados };
+  return { pct, escolhidos, total, todosAprovados };
 }
 
 function renderProcesso(){
-  const { pct, reagidos, total, todosAprovados } = calcularProgressoEtapa();
+  const { pct, escolhidos, total, todosAprovados } = calcularProgressoEtapa();
   const bar = document.getElementById('processo-bar');
   const lbl = document.getElementById('processo-pct');
   if(bar) bar.style.width = pct + '%';
@@ -993,10 +1077,10 @@ function renderProcesso(){
   const cont = document.getElementById('processo-steps');
   if(!cont) return;
   const passos = [
-    { nome:'Visualizar os ambientes', icon:'eye',           meta:'Explore',            ok: total > 0,                     ativa:true },
-    { nome:'Reagir a cada ambiente',  icon:'message-circle', meta:`${reagidos}/${ambientes.length}`, ok: ambientes.length>0 && reagidos===ambientes.length, ativa: reagidos>0 },
-    { nome:'Enviar o feedback',       icon:'send',           meta:'50%',                ok: cadernoEnviado,                ativa: ambientes.length>0 && reagidos===ambientes.length },
-    { nome:'Layout aprovado',         icon:'party-popper',   meta:'100%',               ok: pct===100,                     ativa: cadernoEnviado }
+    { nome:'Visualizar os ambientes', icon:'eye',         meta:'Explore',            ok: total > 0,                     ativa:true },
+    { nome:'Escolher um layout',      icon:'check-check', meta:`${escolhidos}/${ambientes.length}`, ok: ambientes.length>0 && escolhidos===ambientes.length, ativa: escolhidos>0 },
+    { nome:'Enviar o feedback',       icon:'send',        meta:'50%',                ok: cadernoEnviado,                ativa: ambientes.length>0 && escolhidos===ambientes.length },
+    { nome:'Layout aprovado',         icon:'party-popper',meta:'100%',               ok: pct===100,                     ativa: cadernoEnviado }
   ];
   cont.innerHTML = passos.map(p=>`
     <div class="processo-step ${p.ok ? 'ok' : p.ativa ? 'ativa' : ''}">
@@ -1029,7 +1113,7 @@ function blocoAmbiente(a, i){
 
       <div class="status-amb" id="status-${a.id}">
         <div class="status-amb-titulo">Como você se sentiu em relação às opções deste ambiente?</div>
-        <div class="status-amb-sub">Escolha uma das opções abaixo. Se quiser combinar elementos ou tiver dúvidas, descreva — sua arquiteta vai considerar tudo isso.</div>
+        <div class="status-amb-sub">Escolha uma das opções abaixo. Se quiser combinar elementos ou tiver dúvidas, descreva — seu arquiteto vai considerar tudo isso.</div>
         <div class="status-btns">
           <button class="sbtn" data-st="aprovado" onclick="definirStatus('${a.id}','aprovado',this)"><i data-lucide="check"></i> Tenho uma opção preferida</button>
           <button class="sbtn" data-st="revisao" onclick="definirStatus('${a.id}','revisao',this)"><i data-lucide="help-circle"></i> Tenho dúvidas ou quero combinar opções</button>
@@ -1065,7 +1149,7 @@ function cardOpcao(a, o, j){
 
   return `
   <div class="opcao-card" data-amb="${a.id}" data-op="${o.id}" data-idx="${j}" onclick="toggleCard(this)">
-    <div class="opcao-tag">${esc(titulo)} <span class="badge-sel"><i data-lucide="check"></i> Preferida</span></div>
+    <div class="opcao-tag"><span class="opcao-tag-nome">${esc(titulo)}${(o.sugerida || j===0) ? ' <span class="badge-sugestao"><i data-lucide="sparkles"></i> Sugestão Guide</span>' : ''}</span> <span class="badge-sel"><i data-lucide="check"></i> Layout escolhido</span></div>
     <div class="mini-planta">
       ${planta ? `<img src="${esc(planta.url)}" alt="Planta — ${esc(titulo)}" loading="lazy">`
                : `<div class="mini-planta-inner"><span class="mini-planta-icon"><i data-lucide="ruler"></i></span><span class="mini-planta-label">Planta — ${esc(titulo)}</span></div>`}
@@ -1101,6 +1185,12 @@ function cardOpcao(a, o, j){
 
       <div class="opcao-interacao">
         <div class="interacao-titulo">Sua avaliação desta opção</div>
+        <div class="aval-estrelas">
+          <span class="aval-estrelas-label">Dê sua nota:</span>
+          <div class="estrelas" id="estrelas-${o.id}">
+            ${[1,2,3,4,5,6,7].map(v=>`<button class="estrela" data-v="${v}" onclick="avaliarEstrela('${a.id}','${o.id}',${v},this)"><i data-lucide="star"></i></button>`).join('')}
+          </div>
+        </div>
         <button class="btn-selecionar" onclick="selecionarOpcao('${a.id}','${o.id}',event)">
           <span class="btn-sel-icon">○</span>
           <span class="btn-sel-txt">Prefiro esta opção</span>
@@ -1153,7 +1243,7 @@ function renderRodadas(){
       </div>
       <div class="rev-counter-txt">
         ${esgotado
-          ? '<strong>Suas 2 rodadas de revisão foram usadas.</strong> Para novos ajustes, fale com sua arquiteta.'
+          ? '<strong>Suas 2 rodadas de revisão foram usadas.</strong> Para novos ajustes, fale com seu arquiteto.'
           : `<strong>${restantes} rodada${restantes>1?'s':''} de revisão disponíve${restantes>1?'is':'l'}.</strong> Uma rodada é usada quando você envia o caderno pedindo ajustes em algum ambiente.`}
       </div>
     </div>`;
@@ -1193,7 +1283,10 @@ function restaurarMarcacoes(){
         const t = document.getElementById('txt-op-'+o.id);
         if(t) t.value = cOp.texto;
       }
-      if(cOp && cOp.reacao === 'preferida') marcarPreferida(a.id, o.id, false);
+      if(cOp && cOp.reacao === 'preferida'){ a.escolhaOpId = o.id; marcarPreferida(a.id, o.id, false); }
+
+      // restaura estrelas salvas localmente (teste)
+      try{ const ev = localStorage.getItem('estrela-'+o.id); if(ev) pintarEstrelas(document.getElementById('estrelas-'+o.id), Number(ev)); }catch(e){}
 
       o.referencias.forEach(r=>{
         const cImg = comentarios.find(c=>c.elemento_tipo === 'imagem' && c.elemento_id === r.id);
@@ -1273,6 +1366,8 @@ async function selecionarOpcao(ambId, opcaoId, e){
   if(cadernoEnviado || ehArquiteto) return;
   marcarPreferida(ambId, opcaoId, true);
   const amb = ambientes.find(a=>a.id === ambId);
+  amb.escolhaOpId = opcaoId;         // registra o layout escolhido deste ambiente
+  atualizarProgresso();              // atualiza cápsulas, progresso e botão enviar
   // Só uma opção pode ser a preferida: limpa a marca das demais
   for(const o of amb.opcoes){
     const existente = comentarios.find(c=>c.elemento_tipo === 'opcao_layout' && c.elemento_id === o.id);
@@ -1363,7 +1458,7 @@ async function definirStatus(ambId, status, btn){
 
   // Se as rodadas acabaram, não deixa pedir revisão nova
   if(status === 'revisao' && rodadasUsadas >= MAX_RODADAS){
-    toast('Suas 2 rodadas de revisão já foram usadas. Fale com sua arquiteta.', 'erro');
+    toast('Suas 2 rodadas de revisão já foram usadas. Fale com seu arquiteto.', 'erro');
     return;
   }
 
@@ -1404,28 +1499,26 @@ function pintarOk(ambId, status){
 }
 
 function atualizarProgresso(){
-  const total = ambientes.length || 1;
-  const feitos = ambientes.filter(a=>a.status).length;
-  const bar = document.getElementById('progress-bar');
-  if(bar) bar.style.width = (feitos/total*100) + '%';
-  const lbl = document.getElementById('progress-label');
-  if(lbl) lbl.textContent = `${feitos}/${ambientes.length} ambientes revisados`;
-
   ambientes.forEach(a=>{
+    const escolheu = ambienteEscolhido(a);
+    const interagiu = ambienteInteragido(a);
     const el = document.getElementById('asi-'+a.id);
     if(el){
-      el.classList.toggle('ok', a.status === 'aprovado');
-      el.classList.toggle('rev', a.status === 'revisao');
+      el.classList.toggle('ok', escolheu);
+      el.classList.toggle('parcial', interagiu && !escolheu);
       const icone = el.querySelector('span');
-      if(icone) icone.textContent = a.status === 'aprovado' ? '✓' : a.status === 'revisao' ? '✎' : '·';
+      if(icone) icone.innerHTML = escolheu ? '<i data-lucide="check"></i>'
+                                : interagiu ? '<i data-lucide="pencil"></i>'
+                                : '·';
     }
     const ret = document.getElementById('btn-ret-'+a.id);
-    if(ret) ret.classList.toggle('ok', !!a.status);
+    if(ret) ret.classList.toggle('ok', interagiu);
     const tag = document.getElementById('amb-tag-'+a.id);
     if(tag){
-      tag.className = 'ambiente-status-tag' + (a.status ? ' ' + a.status : '');
-      tag.innerHTML = a.status === 'aprovado' ? '<i data-lucide="check"></i> Preferida escolhida'
-                    : a.status === 'revisao'  ? '<i data-lucide="pencil"></i> Revisão pedida'
+      const cls = escolheu ? 'aprovado' : a.status === 'revisao' ? 'revisao' : '';
+      tag.className = 'ambiente-status-tag' + (cls ? ' ' + cls : '');
+      tag.innerHTML = escolheu ? '<i data-lucide="check"></i> Layout escolhido'
+                    : a.status === 'revisao' ? '<i data-lucide="pencil"></i> Revisão pedida'
                     : '';
     }
   });
@@ -1440,12 +1533,13 @@ function atualizarProgresso(){
     btn.disabled = true;
     return;
   }
-  if(feitos === ambientes.length && ambientes.length > 0){
+  const escolhidos = ambientes.filter(a=>ambienteEscolhido(a)).length;
+  if(escolhidos === ambientes.length && ambientes.length > 0){
     btn.disabled = false; pend.style.display = 'none';
   } else {
     btn.disabled = true; pend.style.display = 'block';
-    const faltam = ambientes.length - feitos;
-    pend.textContent = `Revise ${faltam} ambiente${faltam>1?'s':''} para liberar o envio.`;
+    const faltam = ambientes.length - escolhidos;
+    pend.textContent = `Escolha um layout para ${faltam} ambiente${faltam>1?'s':''} para liberar o envio.`;
   }
 }
 
@@ -1474,7 +1568,7 @@ function abrirModal(){
       aviso.style.display = 'block';
       aviso.innerHTML = restantes > 0
         ? `<strong>Este envio usará 1 rodada de revisão.</strong> Após enviar, restará${restantes-1 === 1 ? '' : 'ão'} ${restantes-1} rodada${restantes-1 === 1 ? '' : 's'}.`
-        : '<strong>Suas rodadas de revisão acabaram.</strong> Remova os pedidos de revisão ou fale com sua arquiteta.';
+        : '<strong>Suas rodadas de revisão acabaram.</strong> Remova os pedidos de revisão ou fale com seu arquiteto.';
     } else {
       aviso.style.display = 'block';
       aviso.innerHTML = '<strong>Todos os ambientes aprovados.</strong> Nenhuma rodada de revisão será usada.';
@@ -1488,7 +1582,7 @@ async function confirmar(){
   const temRevisao = ambientes.some(a=>a.status === 'revisao');
 
   if(temRevisao && rodadasUsadas >= MAX_RODADAS){
-    toast('Suas 2 rodadas já foram usadas. Aprove os ambientes ou fale com sua arquiteta.', 'erro');
+    toast('Suas 2 rodadas já foram usadas. Aprove os ambientes ou fale com seu arquiteto.', 'erro');
     return;
   }
 
@@ -1531,7 +1625,7 @@ async function confirmar(){
 
   toast(temRevisao
     ? `Revisão enviada — rodada ${rodadasUsadas}/${MAX_RODADAS} usada.`
-    : 'Feedback enviado! Sua arquiteta entrará em contato em breve. ✓');
+    : 'Feedback enviado! Seu arquiteto entrará em contato em breve. ✓');
 }
 
 // ══════════════════════════════════════════════════
