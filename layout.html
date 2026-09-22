@@ -566,8 +566,35 @@ const BUCKET = 'projetos-imagens';
 const ETAPA = 'layout';
 const MAX_RODADAS = 2;
 
+const CRIADOR_EMAILS = ['lucas_montre@hotmail.com'];
+
+// Ambientes de demonstração: renderizados quando o criador acessa sem dados reais no banco
+const AMBIENTES_DEMO = [
+  {id:'demo-amb-1', nome:'Sala de Estar',    ordem:1, status:null, opcoes:[
+    {id:'demo-op-1',  titulo:'Opção 01', caracteristicas:['Sofá modular em L','Mesa de centro'],       diferenciais:['Maior circulação'],        plantas:[], referencias:[]},
+    {id:'demo-op-2',  titulo:'Opção 02', caracteristicas:['Sofá reto','Poltrona lateral'],             diferenciais:['Espaço para rack/TV'],      plantas:[], referencias:[]}
+  ]},
+  {id:'demo-amb-2', nome:'Sala de Jantar',   ordem:2, status:null, opcoes:[
+    {id:'demo-op-3',  titulo:'Opção 01', caracteristicas:['Mesa para 6 pessoas','Buffet lateral'],     diferenciais:['Integração à cozinha'],     plantas:[], referencias:[]},
+    {id:'demo-op-4',  titulo:'Opção 02', caracteristicas:['Mesa retrátil para 8','Banquetas'],         diferenciais:['Compacto e versátil'],      plantas:[], referencias:[]}
+  ]},
+  {id:'demo-amb-3', nome:'Quarto Principal', ordem:3, status:null, opcoes:[
+    {id:'demo-op-5',  titulo:'Opção 01', caracteristicas:['Cama queen centralizada','Criados-mudos'],  diferenciais:['Walk-in closet integrado'], plantas:[], referencias:[]},
+    {id:'demo-op-6',  titulo:'Opção 02', caracteristicas:['Cama posicionada lateralmente','Bancada'], diferenciais:['Espaço de trabalho'],       plantas:[], referencias:[]}
+  ]},
+  {id:'demo-amb-4', nome:'Cozinha',          ordem:4, status:null, opcoes:[
+    {id:'demo-op-7',  titulo:'Opção 01', caracteristicas:['Cozinha em U','Ilha central'],              diferenciais:['Mais bancada de trabalho'], plantas:[], referencias:[]},
+    {id:'demo-op-8',  titulo:'Opção 02', caracteristicas:['Cozinha em L','Mesa bistrô integrada'],     diferenciais:['Layout compacto'],          plantas:[], referencias:[]}
+  ]},
+  {id:'demo-amb-5', nome:'Escritório / Home Office', ordem:5, status:null, opcoes:[
+    {id:'demo-op-9',  titulo:'Opção 01', caracteristicas:['Mesa em L','Estante embutida'],             diferenciais:['Mais superfície de trabalho'], plantas:[], referencias:[]},
+    {id:'demo-op-10', titulo:'Opção 02', caracteristicas:['Mesa flutuante','Prateleiras abertas'],     diferenciais:['Ambiente mais aberto'],     plantas:[], referencias:[]}
+  ]},
+];
+
 let projetoId = null;
 let ehArquiteto = false;      // arquiteto pode espiar em modo leitura
+let ehCriador = false;        // lucas_montre@hotmail.com — acesso sem restrição de etapa
 let ambientes = [];           // [{id,nome,ordem,opcoes:[],status}]
 let comentarios = [];         // comentários já salvos
 let rodadasUsadas = 0;
@@ -602,6 +629,7 @@ async function inicializar(){
   const { data: sessao } = await sb.auth.getSession();
   if(!sessao.session){ window.location.href = '/login'; return; }
   const email = sessao.session.user.email;
+  ehCriador = CRIADOR_EMAILS.includes(email.trim().toLowerCase());
 
   // Arquiteto pode abrir o caderno de qualquer projeto (via ?projeto=), só para conferir
   const { data: arq } = await sb.from('arquitetos').select('email').eq('email', email).maybeSingle();
@@ -626,7 +654,8 @@ async function inicializar(){
     projetoId = proj.id;
 
     // Etapa 2 = Layout. Se ainda não foi liberada, o cliente não vê o conteúdo.
-    if((proj.etapa_atual || 1) < 2){
+    // O criador sempre tem acesso, independente da etapa.
+    if(!ehCriador && (proj.etapa_atual || 1) < 2){
       cont.innerHTML = '<div class="aviso-vazio">Esta etapa ainda não foi liberada.<br>Sua arquiteta avisará assim que o Estudo de Layout estiver pronto.</div>';
       document.querySelector('.progress-bar-wrap')?.remove();
       return;
@@ -648,6 +677,13 @@ async function carregarTudo(){
   ambientes = ambs || [];
 
   if(!ambientes.length){
+    if(ehCriador){
+      // criador vê ambientes de demonstração para validar a interface completa
+      ambientes = AMBIENTES_DEMO.map(a => ({ ...a, opcoes: a.opcoes.map(o => ({ ...o })) }));
+      toast('Modo preview — dados de demonstração (sem projeto real vinculado)');
+      render();
+      return;
+    }
     cont.innerHTML = '<div class="aviso-vazio">O Estudo de Layout ainda está sendo preparado.<br>Você será avisado assim que estiver pronto.</div>';
     return;
   }
@@ -1023,6 +1059,8 @@ function feedbackBotao(btn, ok, volta){
 
 // Grava/atualiza um comentário (um por elemento — atualiza se já existir)
 async function salvarComentario({ ambiente_id, elemento_tipo, elemento_id, texto, reacao, audio_url }){
+  // dados de demonstração não são persistidos no banco
+  if(String(ambiente_id||'').startsWith('demo-') || String(elemento_id||'').startsWith('demo-')) return true;
   const achaExistente = c =>
     c.elemento_tipo === elemento_tipo &&
     (elemento_id ? c.elemento_id === elemento_id : c.ambiente_id === ambiente_id && !c.elemento_id);
@@ -1072,10 +1110,12 @@ async function definirStatus(ambId, status, btn){
   pintarOk(ambId, status);
   atualizarProgresso();
 
-  const { error } = await sb.from('ambiente_status')
-    .upsert({ ambiente_id: ambId, etapa: ETAPA, status, atualizado_em: new Date().toISOString() },
-            { onConflict: 'ambiente_id,etapa' });
-  if(error){ toast('Erro ao salvar status.', 'erro'); console.error(error); }
+  if(!String(ambId).startsWith('demo-')){
+    const { error } = await sb.from('ambiente_status')
+      .upsert({ ambiente_id: ambId, etapa: ETAPA, status, atualizado_em: new Date().toISOString() },
+              { onConflict: 'ambiente_id,etapa' });
+    if(error){ toast('Erro ao salvar status.', 'erro'); console.error(error); }
+  }
 }
 
 function pintarOk(ambId, status){
