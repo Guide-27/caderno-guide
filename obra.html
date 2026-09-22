@@ -4,33 +4,56 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acompanhamento de Obra · Guide Arquitetura</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Sora:wght@400;500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;--card3:#1f1f26;
-  --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);--gold-mid:rgba(201,162,39,0.22);
-  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
-  --border:rgba(201,162,39,0.14);--border2:rgba(255,255,255,0.06);
-  --green:#50C878;--green-dim:rgba(80,200,120,0.09);--green-border:rgba(80,200,120,0.28);
-  --red:rgba(220,80,80,0.9);--red-dim:rgba(220,80,80,0.08);--red-border:rgba(220,80,80,0.28);
-  --blue:rgba(80,140,220,0.9);--blue-dim:rgba(80,140,220,0.09);--blue-border:rgba(80,140,220,0.28);
-  --amber:#E8A020;--amber-dim:rgba(232,160,32,0.09);--amber-border:rgba(232,160,32,0.3);
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20; --card3:#1f1f26;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#969488; --muted2:#4a4845;
+  --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
+  --green:#50C878; --green-dim:rgba(80,200,120,0.09); --green-mid:rgba(80,200,120,0.30); --green-border:rgba(80,200,120,0.30);
+  --red:rgba(220,90,90,0.9); --red-dim:rgba(220,90,90,0.10); --red-border:rgba(220,90,90,0.32);
+  --blue:rgba(80,140,220,0.9); --blue-dim:rgba(80,140,220,0.09); --blue-border:rgba(80,140,220,0.28);
+  --amber:#E8A020; --amber-dim:rgba(232,160,32,0.09); --amber-border:rgba(232,160,32,0.3);
+  --glass:rgba(255,255,255,0.055); --glass2:rgba(255,255,255,0.035);
+  --fs-2xs:10px; --fs-xs:11.5px; --fs-sm:12.5px; --fs-base:14px; --fs-md:16px; --fs-lg:19px; --fs-xl:22px; --fs-2xl:26px;
+  --r-sm:12px; --r-md:16px; --r-lg:24px; --r-xl:28px; --r-pill:999px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
-#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;}
+body{background:var(--black);color:var(--off);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+.serif{font-family:'Cormorant Garamond',serif;}
+svg.lucide{display:inline-block;vertical-align:-3px;stroke-width:1.8;width:18px;height:18px;}
+.bg-caderno{position:fixed;inset:0;z-index:0;background:url('/assets/backgroud_caderno.jpeg') center/cover no-repeat;background-color:#0c0b09;}
+.bg-breath{position:fixed;inset:0;z-index:0;background:rgba(8,8,10,0.62);}
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%);will-change:transform;}
+.cursor-dot{width:6px;height:6px;background:var(--gold);}
+.cursor-ring{width:30px;height:30px;border:1px solid var(--gold-mid);transition:width .2s,height .2s,border-color .2s;}
+.cursor-ring.on-interactive{width:46px;height:46px;border-color:var(--gold);}
+@media (hover:none){.cursor-dot,.cursor-ring{display:none;}}
 .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px 200px;}
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:1.5px;background:linear-gradient(to bottom,transparent,var(--gold) 20%,var(--gold) 80%,transparent);z-index:100;opacity:0.35;}
 
-/* TOP BAR */
-.top-bar{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(8,8,10,0.94);backdrop-filter:blur(24px);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:300;}
-.top-logo{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--gold);font-weight:600;letter-spacing:0.06em;}
-.top-meta{display:flex;align-items:center;gap:16px;}
-.top-cliente{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
-.top-badge{background:var(--gold-dim);border:1px solid var(--border);border-radius:20px;padding:4px 13px;font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;}
-.btn-voltar{background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:6px 14px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;text-decoration:none;display:flex;align-items:center;gap:6px;}
-.btn-voltar:hover{color:var(--gold);border-color:var(--border);}
+/* HEADER FLUTUANTE — 3 bolhas glass (mesmo padrão do painel) */
+.top-bar{position:fixed;top:16px;left:24px;right:24px;display:flex;align-items:center;gap:10px;z-index:300;}
+.tb-bubble{background:rgba(255,255,255,0.055);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border-radius:var(--r-pill);box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),0 12px 36px rgba(0,0,0,0.40);display:flex;align-items:center;min-height:54px;}
+.tb-logo{padding:0 22px;}
+.tb-logo .logo-img{height:32px;width:auto;display:block;}
+.tb-nav{flex:1;justify-content:space-between;gap:14px;padding:0 16px 0 22px;overflow:hidden;}
+.tb-etapa{font-family:'Sora',sans-serif;font-size:var(--fs-sm);font-weight:600;color:var(--white);white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.tb-etapa svg.lucide{color:var(--gold);width:16px;height:16px;}
+.fase-track{display:flex;align-items:center;gap:6px;}
+.fase-pill{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:var(--r-pill);font-size:var(--fs-2xs);letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;transition:all .25s;}
+.fase-pill .fase-dot{width:7px;height:7px;border-radius:50%;background:var(--muted2);flex-shrink:0;transition:all .25s;}
+.fase-pill.done{color:var(--green);}
+.fase-pill.done .fase-dot{background:var(--green);}
+.fase-pill.ativa{color:var(--gold);background:var(--gold-dim);box-shadow:inset 0 0 0 1px var(--gold-mid);}
+.fase-pill.ativa .fase-dot{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+.fase-sep{width:14px;height:1px;background:var(--border2);flex-shrink:0;}
+.tb-perfil{padding:0;}
+.tb-voltar{display:inline-flex;align-items:center;gap:8px;background:transparent;border:none;padding:0 22px;height:54px;color:var(--off);font-family:'Outfit',sans-serif;font-size:var(--fs-sm);cursor:pointer;text-decoration:none;white-space:nowrap;transition:color .2s;border-radius:var(--r-pill);}
+.tb-voltar:hover{color:var(--gold);}
+.tb-voltar svg.lucide{width:16px;height:16px;}
 
 /* MAIN */
 .doc{max-width:1040px;margin:0 auto;padding:86px 56px 120px;position:relative;z-index:2;}
@@ -39,7 +62,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 .capa{padding:56px 0 48px;border-bottom:1px solid var(--border2);margin-bottom:48px;}
 .capa-tag{font-size:10px;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:14px;font-weight:500;}
 .capa-tag::after{content:'';display:block;width:40px;height:1px;background:linear-gradient(to right,var(--gold),transparent);}
-.capa-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(44px,7vw,80px);font-weight:300;line-height:0.92;letter-spacing:-0.02em;color:var(--white);margin-bottom:10px;}
+.capa-titulo{font-family:'Sora',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:600;line-height:1.0;letter-spacing:-0.03em;color:var(--white);margin-bottom:12px;text-align:left;}
 .capa-titulo em{color:var(--gold);font-style:italic;}
 .capa-sub{font-size:15px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:40px;}
 .capa-meta{display:flex;gap:40px;flex-wrap:wrap;}
@@ -52,7 +75,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 .aviso-guide::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(201,162,39,0.08) 0%,transparent 70%);pointer-events:none;}
 .aviso-tag{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
 .aviso-tag::before{content:'';display:block;width:14px;height:1px;background:var(--gold);}
-.aviso-titulo{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,2.8vw,28px);font-weight:300;color:var(--white);margin-bottom:14px;line-height:1.25;}
+.aviso-titulo{font-family:'Sora',sans-serif;font-size:clamp(19px,2.6vw,26px);font-weight:600;color:var(--white);margin-bottom:14px;line-height:1.25;letter-spacing:-0.01em;}
 .aviso-titulo em{color:var(--gold);font-style:italic;}
 .aviso-corpo{font-size:13px;color:var(--off);line-height:1.8;max-width:640px;margin-bottom:20px;}
 .aviso-destaques{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -153,7 +176,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 .resumo-card.verde{border-color:var(--green-border);background:var(--green-dim);}
 .resumo-card.amber{border-color:var(--amber-border);background:var(--amber-dim);}
 .rc-label{font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;font-weight:500;}
-.rc-valor{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--white);line-height:1;}
+.rc-valor{font-family:'Sora',sans-serif;font-size:30px;font-weight:700;color:var(--white);line-height:1;letter-spacing:-0.01em;}
 .rc-valor em{font-style:normal;}
 .rc-desc{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
 
@@ -189,7 +212,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 .venc-item.vencida{border-color:var(--red-border);}
 .venc-item.paga{opacity:0.5;border-color:var(--green-border);}
 .venc-data{background:var(--card2);border-radius:8px;padding:6px 10px;text-align:center;min-width:50px;flex-shrink:0;}
-.venc-dia{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--white);line-height:1;}
+.venc-dia{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:var(--white);line-height:1;}
 .venc-mes{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
 .venc-corpo{flex:1;}
 .venc-nome{font-size:13px;color:var(--white);}
@@ -214,7 +237,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
 .amb-acc-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.2s;user-select:none;}
 .amb-acc-header:hover{background:rgba(201,162,39,0.03);}
 .amb-acc-left{display:flex;align-items:center;gap:12px;}
-.amb-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);opacity:0.35;line-height:1;min-width:28px;}
+.amb-num{font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--gold);opacity:0.45;line-height:1;min-width:28px;}
 .amb-nome{font-size:14px;color:var(--white);font-weight:400;}
 .amb-prog-wrap{display:flex;align-items:center;gap:10px;}
 .amb-prog-bar{width:72px;height:3px;background:var(--card2);border-radius:2px;overflow:hidden;}
@@ -276,20 +299,88 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
   .top-meta{display:none;}
   .check-datas{flex-direction:column;}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   REFORMULAÇÃO VISUAL — mesmo padrão do painel (glass + Sora + Lucide)
+   ═══════════════════════════════════════════════════════════════ */
+.doc{padding-top:104px;}
+
+/* superfícies-âncora em glass */
+.aviso-guide{background:linear-gradient(135deg,rgba(201,162,39,0.11),rgba(255,255,255,0.03) 62%);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-lg);}
+.aviso-item{background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:var(--r-md);}
+.aviso-item-icon svg.lucide{width:18px;height:18px;color:var(--gold);}
+
+/* abas como controle segmentado glass */
+.abas-nav{background:var(--glass2);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-pill);}
+.aba-btn{border-radius:var(--r-pill);}
+.aba-btn svg.lucide{width:15px;height:15px;}
+.aba-btn.ativa{background:var(--gold-dim);border:1px solid var(--gold-mid);color:var(--gold);}
+
+/* stat tiles financeiro */
+.resumo-card{background:var(--glass2);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-lg);}
+.resumo-card.destaque{background:linear-gradient(135deg,rgba(201,162,39,0.12),rgba(255,255,255,0.03));border-color:var(--gold-mid);}
+.resumo-card.verde{background:var(--green-dim);border-color:var(--green-border);}
+.resumo-card.amber{background:var(--amber-dim);border-color:var(--amber-border);}
+
+/* cards e acordeões em glass */
+.orcamento-card,.fin-fornecedor,.amb-acc,.fin-vazio,.venc-item{background:var(--glass2);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-lg);}
+.orcamento-card.escolhido{background:linear-gradient(135deg,var(--green-dim),rgba(255,255,255,0.03));border-color:var(--green-border);}
+.categoria-icon svg.lucide{width:16px;height:16px;color:var(--gold);}
+.fin-forn-icon svg.lucide{width:18px;height:18px;color:var(--gold);}
+.amb-chevron svg.lucide,.fin-forn-chevron svg.lucide{width:15px;height:15px;}
+.bloco-badge svg.lucide,.section-tag svg.lucide{width:12px;height:12px;}
+.fin-vazio-icon svg.lucide{width:38px;height:38px;opacity:.5;}
+
+/* barras de progresso do checklist mais visíveis */
+.amb-prog-bar{width:80px;height:5px;background:rgba(255,255,255,0.08);}
+.amb-prog-fill{background:linear-gradient(90deg,var(--gold),var(--gold-light));}
+
+/* toast */
+.toast{background:rgba(18,18,22,0.97);backdrop-filter:blur(20px);border-radius:var(--r-md);}
+
+/* rodapé: logo 4x centralizado */
+footer{border-top:1px solid var(--border2);padding:48px 0 0;margin-top:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;}
+.rodape-logo-img{height:112px;width:auto;display:block;margin:0 auto;}
+.rodape-tag{font-size:10px;color:var(--muted2);letter-spacing:0.14em;text-transform:uppercase;}
+
+@media(max-width:768px){
+  .top-bar{left:12px;right:12px;gap:6px;}
+  .tb-logo{padding:0 14px;}
+  .tb-logo .logo-img{height:26px;}
+  .tb-nav{padding:0 8px 0 14px;}
+  .fase-track,.tb-etapa{display:none;}
+  .tb-voltar{padding:0 14px;}
+}
 </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
+<div class="bg-caderno"></div>
+<div class="bg-breath"></div>
 <div class="noise"></div>
 <div class="sidebar"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
 
 <div class="top-bar">
-  <span style="display:inline-flex;align-items:center;gap:14px;"><span class="top-logo">Guide</span><a href="/meu-projeto" class="btn-voltar" title="Voltar ao projeto">← Meu Projeto</a></span>
-  <div class="top-meta">
-    <span class="top-cliente">G Project · Mariana Souza</span>
-    <span class="top-badge">Acompanhamento de Obra</span>
+  <div class="tb-bubble tb-logo">
+    <img src="/assets/logo-guide.svg" class="logo-img" alt="Guide Arquitetura">
   </div>
-  <a href="caderno-guia-executivo.html" class="btn-voltar">← Guia Executivo</a>
+  <div class="tb-bubble tb-nav">
+    <div class="tb-etapa"><i data-lucide="hard-hat"></i>Acompanhamento de Obra</div>
+    <div class="fase-track" id="fase-track">
+      <div class="fase-pill done"><span class="fase-dot"></span>Layout</div>
+      <div class="fase-sep"></div>
+      <div class="fase-pill done"><span class="fase-dot"></span>Imagens</div>
+      <div class="fase-sep"></div>
+      <div class="fase-pill done"><span class="fase-dot"></span>Executivo</div>
+      <div class="fase-sep"></div>
+      <div class="fase-pill ativa"><span class="fase-dot"></span>Obra</div>
+    </div>
+  </div>
+  <div class="tb-bubble tb-perfil">
+    <a href="executivo.html" class="tb-voltar" title="Guia Executivo"><i data-lucide="clipboard-list"></i>Executivo</a>
+    <a href="/meu-projeto" class="tb-voltar" title="Voltar ao Meu Projeto"><i data-lucide="arrow-left"></i>Meu Projeto</a>
+  </div>
 </div>
 
 <main class="doc">
@@ -311,17 +402,17 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
   <div class="aviso-titulo">Sua reforma organizada,<br><em>do início ao fim.</em></div>
   <div class="aviso-corpo">Esta ferramenta foi criada para que você tenha total controle sobre fornecedores, orçamentos, pagamentos e etapas da sua reforma — tudo em um só lugar, integrado ao seu projeto Guide. Registre propostas, compare condições, acompanhe seus pagamentos e controle o andamento da obra com clareza e tranquilidade.</div>
   <div class="aviso-destaques">
-    <div class="aviso-item"><span class="aviso-item-icon">📋</span><div class="aviso-item-titulo">Compare propostas</div><div class="aviso-item-txt">Cadastre e compare orçamentos lado a lado. Escolha o fornecedor certo para cada serviço.</div></div>
-    <div class="aviso-item"><span class="aviso-item-icon">💰</span><div class="aviso-item-titulo">Controle o financeiro</div><div class="aviso-item-txt">Acompanhe parcelas, datas de vencimento e o total investido na obra em tempo real.</div></div>
-    <div class="aviso-item"><span class="aviso-item-icon">✅</span><div class="aviso-item-titulo">Gerencie a execução</div><div class="aviso-item-txt">Checklist com datas e horários para cada etapa — saiba exatamente o que está pendente.</div></div>
+    <div class="aviso-item"><span class="aviso-item-icon"><i data-lucide="clipboard-list"></i></span><div class="aviso-item-titulo">Compare propostas</div><div class="aviso-item-txt">Cadastre e compare orçamentos lado a lado. Escolha o fornecedor certo para cada serviço.</div></div>
+    <div class="aviso-item"><span class="aviso-item-icon"><i data-lucide="wallet"></i></span><div class="aviso-item-titulo">Controle o financeiro</div><div class="aviso-item-txt">Acompanhe parcelas, datas de vencimento e o total investido na obra em tempo real.</div></div>
+    <div class="aviso-item"><span class="aviso-item-icon"><i data-lucide="circle-check-big"></i></span><div class="aviso-item-titulo">Gerencie a execução</div><div class="aviso-item-txt">Checklist com datas e horários para cada etapa — saiba exatamente o que está pendente.</div></div>
   </div>
   <div class="aviso-isencao"><strong>Importante:</strong> esta ferramenta é um recurso organizacional da Guide. A Guide Arquitetura não tem responsabilidade pela contratação, execução, qualidade ou prazos dos prestadores de serviço. Todas as contratações são realizadas diretamente pelo cliente por sua conta e risco. Em caso de dúvidas sobre especificações do projeto, entre em contato com seu arquiteto.</div>
 </div>
 
 <div class="abas-nav">
-  <button class="aba-btn ativa" id="btn-aba-propostas" onclick="mudarAba('propostas')">🏗 Propostas e Fornecedores</button>
-  <button class="aba-btn" id="btn-aba-financeiro" onclick="mudarAba('financeiro')">💰 Controle Financeiro</button>
-  <button class="aba-btn" id="btn-aba-obra" onclick="mudarAba('obra')">✅ Acompanhamento da Obra</button>
+  <button class="aba-btn ativa" id="btn-aba-propostas" onclick="mudarAba('propostas')"><i data-lucide="hard-hat"></i> Propostas e Fornecedores</button>
+  <button class="aba-btn" id="btn-aba-financeiro" onclick="mudarAba('financeiro')"><i data-lucide="wallet"></i> Controle Financeiro</button>
+  <button class="aba-btn" id="btn-aba-obra" onclick="mudarAba('obra')"><i data-lucide="circle-check-big"></i> Acompanhamento da Obra</button>
 </div>
 
 <!-- ═══ ABA 1: PROPOSTAS ═══ -->
@@ -359,7 +450,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
   </div>
   <div id="fin-fornecedores-lista">
     <div class="fin-vazio">
-      <span class="fin-vazio-icon">💰</span>
+      <span class="fin-vazio-icon"><i data-lucide="wallet"></i></span>
       <div class="fin-vazio-txt">Nenhum fornecedor escolhido ainda.<br>Acesse a aba <strong style="color:var(--white)">Propostas e Fornecedores</strong>, cadastre orçamentos e marque o escolhido — ele aparecerá aqui automaticamente.</div>
     </div>
   </div>
@@ -378,13 +469,13 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
         <div class="bloco-titulo">Checklist do Projeto</div>
         <div class="bloco-sub">Etapas definidas pelo arquiteto com base no seu Guia Executivo. Marque cada item e preencha as datas combinadas com o fornecedor.</div>
       </div>
-      <span class="bloco-badge arquiteto">✦ Guide Arquitetura</span>
+      <span class="bloco-badge arquiteto"><i data-lucide="sparkles"></i> Guide Arquitetura</span>
     </div>
 
     <div class="amb-acc aberto" id="amb-sala">
       <div class="amb-acc-header" onclick="toggleAmb('amb-sala')">
         <div class="amb-acc-left"><div class="amb-num">01</div><div class="amb-nome">Sala de Estar + Jantar</div></div>
-        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-sala" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-sala">0%</span><span class="amb-chevron">▼</span></div>
+        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-sala" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-sala">0%</span><span class="amb-chevron"><i data-lucide="chevron-down"></i></span></div>
       </div>
       <div class="amb-body">
         <div class="check-lista" id="cl-sala"></div>
@@ -395,7 +486,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
     <div class="amb-acc" id="amb-cozinha">
       <div class="amb-acc-header" onclick="toggleAmb('amb-cozinha')">
         <div class="amb-acc-left"><div class="amb-num">02</div><div class="amb-nome">Cozinha + Área de Serviço</div></div>
-        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-cozinha" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-cozinha">0%</span><span class="amb-chevron">▼</span></div>
+        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-cozinha" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-cozinha">0%</span><span class="amb-chevron"><i data-lucide="chevron-down"></i></span></div>
       </div>
       <div class="amb-body">
         <div class="check-lista" id="cl-cozinha"></div>
@@ -406,7 +497,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
     <div class="amb-acc" id="amb-quarto">
       <div class="amb-acc-header" onclick="toggleAmb('amb-quarto')">
         <div class="amb-acc-left"><div class="amb-num">03</div><div class="amb-nome">Quarto Principal</div></div>
-        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-quarto" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-quarto">0%</span><span class="amb-chevron">▼</span></div>
+        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-quarto" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-quarto">0%</span><span class="amb-chevron"><i data-lucide="chevron-down"></i></span></div>
       </div>
       <div class="amb-body">
         <div class="check-lista" id="cl-quarto"></div>
@@ -417,7 +508,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
     <div class="amb-acc" id="amb-banheiro">
       <div class="amb-acc-header" onclick="toggleAmb('amb-banheiro')">
         <div class="amb-acc-left"><div class="amb-num">04</div><div class="amb-nome">Banheiro</div></div>
-        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-banheiro" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-banheiro">0%</span><span class="amb-chevron">▼</span></div>
+        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-banheiro" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-banheiro">0%</span><span class="amb-chevron"><i data-lucide="chevron-down"></i></span></div>
       </div>
       <div class="amb-body">
         <div class="check-lista" id="cl-banheiro"></div>
@@ -437,7 +528,7 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
     <div class="amb-acc aberto" id="amb-custom">
       <div class="amb-acc-header" onclick="toggleAmb('amb-custom')">
         <div class="amb-acc-left"><div class="amb-num" style="font-size:16px;opacity:0.4;">+</div><div class="amb-nome">Minhas etapas personalizadas</div></div>
-        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-custom" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-custom">0%</span><span class="amb-chevron">▼</span></div>
+        <div class="amb-prog-wrap"><div class="amb-prog-bar"><div class="amb-prog-fill" id="pf-custom" style="width:0%"></div></div><span class="amb-prog-pct" id="pp-custom">0%</span><span class="amb-chevron"><i data-lucide="chevron-down"></i></span></div>
       </div>
       <div class="amb-body">
         <div class="check-lista" id="cl-custom"><div style="font-size:13px;color:var(--muted);padding:10px 0;font-style:italic;" id="custom-ph">Nenhuma etapa adicionada ainda.</div></div>
@@ -447,10 +538,17 @@ body{background:var(--black);color:var(--white);font-family:'Outfit',sans-serif;
   </div>
 
 </div><!-- /aba obra -->
+
+<footer>
+  <img src="/assets/logo-guide.svg" class="rodape-logo-img" alt="Guide Arquitetura">
+  <span class="rodape-tag">Arquitetura que transforma no seu ritmo</span>
+</footer>
 </main>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
 // ── SUPABASE — esta página passou a persistir fornecedores/orçamentos de verdade,
 // por projeto do cliente logado (antes era só um mock em memória, sem banco) ──
@@ -473,15 +571,7 @@ async function tentar(promessa, fallback) {
   }
 }
 
-// ── BG CANVAS ──
-(function(){
-  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
-  let W,H,t=0;
-  const orbs=[{x:.2,y:.2,r:.4,c:[201,162,39],a:.04},{x:.8,y:.8,r:.35,c:[201,162,39],a:.03},{x:.5,y:.5,r:.28,c:[80,120,200],a:.022}];
-  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;}
-  function draw(){ctx.clearRect(0,0,W,H);t+=.003;orbs.forEach((o,i)=>{const dx=Math.sin(t*.7+i*1.3)*.05,dy=Math.cos(t*.5+i*.9)*.04,x=(o.x+dx)*W,y=(o.y+dy)*H,r=o.r*Math.min(W,H),g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${o.c},${o.a})`);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
-  window.addEventListener('resize',resize);resize();draw();
-})();
+function icons(){ if(window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons(); }
 
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.className='toast show';setTimeout(()=>e.className='toast',2800);}
 // Converte valor bruto (pode ser string formatada ou número) para float
@@ -523,19 +613,19 @@ function mudarAba(id){
 // Categorias fixas (ids iguais aos de FORNECEDOR_CATEGORIAS em meu-projeto.html e
 // admin-fornecedores.html — não renomear sem atualizar os três lugares).
 const CATEGORIAS_FIXAS = [
-  {id:'empreiteiro', icon:'🏗', nome:'Empreiteiro Geral'},
-  {id:'marceneiro',  icon:'🪵', nome:'Marceneiro / Loja de Planejados'},
-  {id:'pintor',      icon:'🎨', nome:'Pintor'},
-  {id:'eletricista', icon:'⚡', nome:'Eletricista'},
-  {id:'instalador',  icon:'🪨', nome:'Instalador de Pisos e Revestimentos'},
-  {id:'marmoraria',  icon:'⬜', nome:'Marmoraria'},
-  {id:'serralheria', icon:'🔩', nome:'Serralheria'},
-  {id:'vidraceiro',  icon:'🪟', nome:'Vidraceiro / Box'},
-  {id:'moveis',      icon:'🛋️', nome:'Entrega e Instalação de Móveis'},
-  {id:'gesseiro',        icon:'🏠', nome:'Gesseiro'},
-  {id:'ar_condicionado', icon:'❄️', nome:'Ar-condicionado'},
-  {id:'automacao',       icon:'📱', nome:'Automação Residencial'},
-  {id:'envelopamento',   icon:'🎞️', nome:'Envelopamento'},
+  {id:'empreiteiro', icon:'hard-hat', nome:'Empreiteiro Geral'},
+  {id:'marceneiro',  icon:'hammer', nome:'Marceneiro / Loja de Planejados'},
+  {id:'pintor',      icon:'paint-roller', nome:'Pintor'},
+  {id:'eletricista', icon:'zap', nome:'Eletricista'},
+  {id:'instalador',  icon:'grip', nome:'Instalador de Pisos e Revestimentos'},
+  {id:'marmoraria',  icon:'gem', nome:'Marmoraria'},
+  {id:'serralheria', icon:'wrench', nome:'Serralheria'},
+  {id:'vidraceiro',  icon:'square', nome:'Vidraceiro / Box'},
+  {id:'moveis',      icon:'sofa', nome:'Entrega e Instalação de Móveis'},
+  {id:'gesseiro',        icon:'house', nome:'Gesseiro'},
+  {id:'ar_condicionado', icon:'wind', nome:'Ar-condicionado'},
+  {id:'automacao',       icon:'smartphone', nome:'Automação Residencial'},
+  {id:'envelopamento',   icon:'sticker', nome:'Envelopamento'},
 ];
 // Populado em inicializarObra() com as categorias fixas + extras do projeto,
 // cada uma já com seus orçamentos carregados do Supabase (tabela obra_orcamentos).
@@ -573,6 +663,7 @@ function renderTodasCategorias(){
   const container=document.getElementById('categorias-container');
   container.innerHTML='';
   DB.categorias.forEach(cat=>container.appendChild(buildCategoriaEl(cat)));
+  icons();
 }
 
 function buildCategoriaEl(cat){
@@ -584,7 +675,7 @@ function buildCategoriaEl(cat){
   div.innerHTML=`
     <div class="categoria-header">
       <div class="categoria-header-left">
-        <div class="categoria-icon">${cat.icon}</div>
+        <div class="categoria-icon"><i data-lucide="${cat.icon||'package'}"></i></div>
         <div>
           <div class="categoria-nome">${cat.nome}</div>
           <div class="categoria-count" id="cnt-${cat.id}">${total===0?'Nenhum orçamento cadastrado':`${total} orçamento${total>1?'s':''} · ${escolhidos} escolhido${escolhidos!==1?'s':''}`}</div>
@@ -831,11 +922,12 @@ function renderFinanceiro(){
   const vencSection=document.getElementById('vencimentos-section');
 
   if(!escolhidos.length){
-    lista.innerHTML='<div class="fin-vazio"><span class="fin-vazio-icon">💰</span><div class="fin-vazio-txt">Nenhum fornecedor escolhido ainda.<br>Acesse a aba <strong style="color:var(--white)">Propostas e Fornecedores</strong> e marque um fornecedor como escolhido.</div></div>';
+    lista.innerHTML='<div class="fin-vazio"><span class="fin-vazio-icon"><i data-lucide="wallet"></i></span><div class="fin-vazio-txt">Nenhum fornecedor escolhido ainda.<br>Acesse a aba <strong style="color:var(--white)">Propostas e Fornecedores</strong> e marque um fornecedor como escolhido.</div></div>';
     vencSection.style.display='none';
     document.getElementById('fin-total').innerHTML='<em style="color:var(--gold)">R$</em> 0,00';
     document.getElementById('fin-pago').innerHTML='<em style="color:var(--green)">R$</em> 0,00';
     document.getElementById('fin-pendente').innerHTML='<em style="color:var(--amber)">R$</em> 0,00';
+    icons();
     return;
   }
 
@@ -864,12 +956,12 @@ function renderFinanceiro(){
     return `<div class="fin-fornecedor" id="fin-forn-${orc.id}">
       <div class="fin-forn-header" onclick="this.closest('.fin-fornecedor').classList.toggle('aberto')">
         <div class="fin-forn-left">
-          <span class="fin-forn-icon">${cat.icon}</span>
+          <span class="fin-forn-icon"><i data-lucide="${cat.icon||'package'}"></i></span>
           <div><div class="fin-forn-nome">${orc.nome||'(sem nome)'}</div><div class="fin-forn-cat">${cat.nome}</div></div>
         </div>
         <div class="fin-forn-right">
           <span class="fin-forn-total">R$ ${fmt(orc.valor)}</span>
-          <span class="fin-forn-chevron">▼</span>
+          <span class="fin-forn-chevron"><i data-lucide="chevron-down"></i></span>
         </div>
       </div>
       <div class="fin-forn-body">${parcsHTML}</div>
@@ -900,6 +992,7 @@ function renderFinanceiro(){
   } else {
     vencSection.style.display='none';
   }
+  icons();
 }
 
 async function togglePago(catId,orcId,parcId){
@@ -1047,7 +1140,7 @@ async function inicializarObra(){
   const extras = await tentar(sb.from('obra_categorias_extra').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []);
   DB.categorias = [
     ...CATEGORIAS_FIXAS.map(c => ({ ...c, orcamentos: [] })),
-    ...extras.map(c => ({ id: c.id, icon: c.icon || '📦', nome: c.nome, orcamentos: [] })),
+    ...extras.map(c => ({ id: c.id, icon: c.icon || 'package', nome: c.nome, orcamentos: [] })),
   ];
 
   const orcs = await tentar(sb.from('obra_orcamentos').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: true }), []);
@@ -1081,7 +1174,30 @@ async function inicializarObra(){
     }
   }
 }
-inicializarObra();
+icons();
+inicializarObra().then(()=>icons());
+
+// ══════════════════════════════════════════════════
+//  CURSOR CUSTOM (mesmo do painel)
+// ══════════════════════════════════════════════════
+(function(){
+  if(window.matchMedia && window.matchMedia('(hover: none)').matches){
+    const d=document.getElementById('cursor-dot'), r=document.getElementById('cursor-ring');
+    if(d) d.style.display='none'; if(r) r.style.display='none';
+    return;
+  }
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  if(!dot || !ring) return;
+  let mx=0, my=0, rx=0, ry=0;
+  document.addEventListener('mousemove', e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+    const alvo = e.target.closest('.aba-btn, .amb-acc-header, .fin-forn-header, button, a, input, .check-box');
+    ring.classList.toggle('on-interactive', !!alvo);
+  });
+  (function loop(){ rx+=(mx-rx)*0.15; ry+=(my-ry)*0.15; ring.style.transform=`translate(${rx}px, ${ry}px) translate(-50%,-50%)`; requestAnimationFrame(loop); })();
+})();
 </script>
 </body>
 </html>
