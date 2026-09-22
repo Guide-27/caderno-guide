@@ -9,7 +9,7 @@
 :root {
   --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20; --card3:#1f1f26;
   --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
-  --white:#f5f4f0; --off:#e0ddd6; --muted:#969488; --muted2:#4a4845;
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#969488; --muted2:#8f8d83;
   --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
   --green:#50C878; --green-dim:rgba(80,200,120,0.09); --green-mid:rgba(80,200,120,0.30); --green-border:rgba(80,200,120,0.30);
   --red:rgba(220,90,90,0.9); --red-dim:rgba(220,90,90,0.10); --red-border:rgba(220,90,90,0.32);
@@ -322,9 +322,13 @@ svg.lucide{display:inline-block;vertical-align:-3px;stroke-width:1.8;width:18px;
 .resumo-card.verde{background:var(--green-dim);border-color:var(--green-border);}
 .resumo-card.amber{background:var(--amber-dim);border-color:var(--amber-border);}
 
-/* cards e acordeões em glass */
-.orcamento-card,.fin-fornecedor,.amb-acc,.fin-vazio,.venc-item{background:var(--glass2);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid var(--border2);border-radius:var(--r-lg);}
-.orcamento-card.escolhido{background:linear-gradient(135deg,var(--green-dim),rgba(255,255,255,0.03));border-color:var(--green-border);}
+/* cards e acordeões em glass — mais opacos para destacar do fundo (foto) */
+.orcamento-card,.fin-fornecedor,.amb-acc,.fin-vazio,.venc-item{background:rgba(255,255,255,0.09);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border:1px solid rgba(255,255,255,0.18);border-radius:var(--r-lg);box-shadow:0 10px 30px rgba(0,0,0,0.35);}
+.orcamento-card.escolhido{background:linear-gradient(135deg,var(--green-dim),rgba(255,255,255,0.07));border-color:var(--green-border);}
+/* card "adicionar orçamento" vazio — visível */
+.card-add{background:rgba(255,255,255,0.05);border:1.5px dashed rgba(255,255,255,0.30);}
+.card-add:hover{background:var(--gold-dim);border-color:var(--gold-mid);}
+.card-add-icon,.card-add-txt{color:var(--off);opacity:.75;}
 .categoria-icon svg.lucide{width:16px;height:16px;color:var(--gold);}
 .fin-forn-icon svg.lucide{width:18px;height:18px;color:var(--gold);}
 .amb-chevron svg.lucide,.fin-forn-chevron svg.lucide{width:15px;height:15px;}
@@ -389,12 +393,6 @@ footer{border-top:1px solid var(--border2);padding:48px 0 0;margin-top:24px;disp
   <div class="capa-tag">G Project · Guide Arquitetura · Pós-Entrega</div>
   <h1 class="capa-titulo">Acompanhamento<br><em>de Obra</em></h1>
   <p class="capa-sub">Fornecedores · Financeiro · Execução</p>
-  <div class="capa-meta">
-    <div class="meta-item"><span class="meta-label">Cliente</span><span class="meta-val" id="meta-cliente">Carregando...</span></div>
-    <div class="meta-item"><span class="meta-label">Imóvel</span><span class="meta-val" id="meta-imovel">—</span></div>
-    <div class="meta-item"><span class="meta-label">Arquiteto</span><span class="meta-val">Guide Arquitetura</span></div>
-    <div class="meta-item"><span class="meta-label">Início da obra</span><span class="meta-val">[A definir]</span></div>
-  </div>
 </section>
 
 <div class="aviso-guide">
@@ -1134,8 +1132,8 @@ async function inicializarObra(){
   const proj = await tentar(sb.from('projetos').select('*').eq('email', usuarioAtual.email).single(), null);
   if (!proj) { toast('Não encontramos seu projeto. Fale com a Guide.'); return; }
   projeto = proj;
-  if (projeto.nome_cliente) document.getElementById('meta-cliente').textContent = projeto.nome_cliente;
-  if (projeto.endereco) document.getElementById('meta-imovel').textContent = projeto.endereco;
+  const _mc = document.getElementById('meta-cliente'); if (_mc && projeto.nome_cliente) _mc.textContent = projeto.nome_cliente;
+  const _mi = document.getElementById('meta-imovel'); if (_mi && projeto.endereco) _mi.textContent = projeto.endereco;
 
   const extras = await tentar(sb.from('obra_categorias_extra').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []);
   DB.categorias = [
