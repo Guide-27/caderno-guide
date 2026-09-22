@@ -1948,6 +1948,7 @@ const FORNECEDOR_CATEGORIAS = [
 let usuarioAtual = null;
 let projeto = null;
 let semPlano = false; // conta sem plano contratado (pagamento não efetuado) → painel em modo experiência
+let ehCriador = false; // lucas_montre@hotmail.com — acesso irrestrito a tudo
 let briefing = null;
 let statusAmbientes = {};
 let ambientesFaseAtiva = [];
@@ -2110,7 +2111,7 @@ async function inicializar() {
   // Segregação de acesso: sem plano contratado (coluna `plano` vazia) o painel abre em modo
   // experiência. O criador e a conta demo têm acesso total independente do plano.
   const emailLogin = (usuarioAtual.email || '').trim().toLowerCase();
-  const ehCriador = CRIADOR_EMAILS.includes(emailLogin);
+  ehCriador = CRIADOR_EMAILS.includes(emailLogin);
   const ehDemo = emailLogin === 'demo@demo.com';
   semPlano = !ehCriador && !ehDemo && !((projeto.plano || '').toString().trim());
 
@@ -2925,7 +2926,7 @@ function botaoFaseItem(f, liberada) {
     if (f.id === 'briefing') return `<div class="fase-btn"><a href="${f.url}" class="briefing-cta-wrap"><button class="card-cta briefing-cta">Abrir briefing ${ic('arrow-right')}</button></a></div>`;
     return `<div class="fase-prazo" style="color:var(--gold-light);">${ic('lock','ic-sm')} Fase reservada a partir do plano Essencial.</div>`;
   }
-  return liberada ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : '';
+  return (liberada || ehCriador) ? `<div class="fase-btn"><a href="${f.url}"><button class="card-cta">Abrir caderno ${ic('arrow-right')}</button></a></div>` : '';
 }
 
 // ── O que você sonhou ──
