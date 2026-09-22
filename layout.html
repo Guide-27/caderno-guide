@@ -825,6 +825,7 @@ const AMBIENTES_DEMO = [
 
 let projetoId = null;
 let ehArquiteto = false;      // arquiteto pode espiar em modo leitura
+let modoArquitetoLeitura = false; // só trava quando o arquiteto espia OUTRO projeto (?projeto=)
 let ehCriador = false;        // lucas_montre@hotmail.com — acesso sem restrição de etapa
 let ambientes = [];           // [{id,nome,ordem,opcoes:[],status}]
 let comentarios = [];         // comentários já salvos
@@ -870,6 +871,7 @@ async function inicializar(){
   const projetoParam = new URLSearchParams(window.location.search).get('projeto');
 
   if(ehArquiteto && projetoParam){
+    modoArquitetoLeitura = true;   // arquiteto espiando o projeto de outro cliente
     projetoId = projetoParam;
     const { data: p } = await sb.from('projetos').select('nome_cliente').eq('id', projetoId).maybeSingle();
     if(!p){ cont.innerHTML = '<div class="aviso-vazio">Projeto não encontrado.</div>'; return; }
@@ -982,7 +984,7 @@ function render(){
   renderAcaoGrid();
   atualizarProgresso();
   restaurarMarcacoes();
-  if(ehArquiteto) travarParaArquiteto();
+  if(modoArquitetoLeitura) travarParaArquiteto();
   icons();
 }
 
@@ -1002,7 +1004,7 @@ function fecharPlanta(e){
 
 // Avaliação por estrelas (1 a 7) — persiste local por opção (teste)
 function avaliarEstrela(ambId, opId, v, btn){
-  if(cadernoEnviado || ehArquiteto) return;
+  if(cadernoEnviado || modoArquitetoLeitura) return;
   const grupo = btn.closest('.estrelas');
   pintarEstrelas(grupo, v);
   try{ localStorage.setItem('estrela-'+opId, String(v)); }catch(e){}
@@ -1340,7 +1342,7 @@ function fecharCard(btn, e){
 // Reação nas imagens de referência
 document.addEventListener('click', async e=>{
   const rbtn = e.target.closest('.rbtn');
-  if(!rbtn || cadernoEnviado || ehArquiteto) return;
+  if(!rbtn || cadernoEnviado || modoArquitetoLeitura) return;
   e.stopPropagation();
   const grupo = rbtn.closest('.ref-reacao');
   grupo.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('ativo'));
@@ -1373,7 +1375,7 @@ function marcarPreferida(ambId, opcaoId, avisar){
 
 async function selecionarOpcao(ambId, opcaoId, e){
   e.stopPropagation();
-  if(cadernoEnviado || ehArquiteto) return;
+  if(cadernoEnviado || modoArquitetoLeitura) return;
   marcarPreferida(ambId, opcaoId, true);
   const amb = ambientes.find(a=>a.id === ambId);
   amb.escolhaOpId = opcaoId;         // registra o layout escolhido deste ambiente
@@ -1391,7 +1393,7 @@ async function selecionarOpcao(ambId, opcaoId, e){
 
 // Comentário em uma opção
 async function salvarComentarioOpcao(ambId, opcaoId, btn){
-  if(cadernoEnviado || ehArquiteto) return;
+  if(cadernoEnviado || modoArquitetoLeitura) return;
   const texto = document.getElementById('txt-op-'+opcaoId)?.value.trim() || '';
   const audio = await enviarAudioSeHouver(btn, opcaoId);
   if(!texto && !audio){ toast('Escreva um comentário ou grave um áudio.'); return; }
@@ -1406,7 +1408,7 @@ async function salvarComentarioOpcao(ambId, opcaoId, btn){
 
 // Dúvida no ambiente
 async function salvarDuvida(ambId, btn){
-  if(cadernoEnviado || ehArquiteto) return;
+  if(cadernoEnviado || modoArquitetoLeitura) return;
   const texto = document.getElementById('txt-amb-'+ambId)?.value.trim() || '';
   const audio = await enviarAudioSeHouver(btn, 'amb-'+ambId);
   if(!texto && !audio){ toast('Descreva sua dúvida ou grave um áudio.'); return; }
@@ -1464,7 +1466,7 @@ async function salvarComentario({ ambiente_id, elemento_tipo, elemento_id, texto
 //  STATUS DO AMBIENTE  (rascunho — não consome rodada)
 // ══════════════════════════════════════════════════
 async function definirStatus(ambId, status, btn){
-  if(cadernoEnviado || ehArquiteto) return;
+  if(cadernoEnviado || modoArquitetoLeitura) return;
 
   // Se as rodadas acabaram, não deixa pedir revisão nova
   if(status === 'revisao' && rodadasUsadas >= MAX_RODADAS){
