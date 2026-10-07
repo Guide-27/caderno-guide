@@ -139,36 +139,19 @@ a{color:inherit;text-decoration:none;}
 /* ───── HERO — 3 cenas coreografadas pela rolagem ───── */
 .hero{position:relative;}
 
-/* ── INTRO: logo → chave dourada → frase ── */
-/* animação separada para preservar o translate(-50%,-50%) do posicionamento absoluto */
-@keyframes heroSurgirKey{from{opacity:0;transform:translate(-50%,-50%) translateY(18px);}to{opacity:1;transform:translate(-50%,-50%) translateY(0);}}
-.hero-key-wrap{position:relative;width:min(520px,72vw);height:min(400px,54vw);margin:0 auto;}
-.hero-logo{width:90%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:heroSurgirKey .9s ease both;transition:opacity .7s ease,transform .7s ease;will-change:opacity,transform;z-index:2;}
-.hero-logo.key-apagar{opacity:0 !important;transform:translate(-50%,-50%) scale(1.06) rotate(10deg) !important;}
-/* vídeo: máscara radial suave faz o fundo branco do render desaparecer nas bordas */
-.hero-key-video{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%) scale(.86);
-  width:100%;height:100%;object-fit:cover;opacity:0;
-  transition:opacity .85s ease,transform .9s ease;
-  pointer-events:none;z-index:1;
-  -webkit-mask-image:radial-gradient(ellipse 58% 65% at 50% 44%,black 42%,rgba(0,0,0,.55) 62%,transparent 82%);
-  mask-image:radial-gradient(ellipse 58% 65% at 50% 44%,black 42%,rgba(0,0,0,.55) 62%,transparent 82%);
+/* vídeo no slot da cena hero — bordas esfumaçadas via mask */
+.hero-video-slot{flex:1 1 380px;aspect-ratio:16/9;border-radius:var(--radius);position:relative;overflow:hidden;}
+.hero-video-slot video{width:100%;height:100%;object-fit:cover;display:block;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  -webkit-mask-composite:destination-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  mask-composite:intersect;
 }
-.hero-key-video.key-surgir{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.hero-key-frase{font-family:'Sora',sans-serif;font-size:clamp(22px,4.2vw,46px);font-weight:700;color:var(--fg);text-align:center;line-height:1.22;margin-top:20px;min-height:1.4em;letter-spacing:-.01em;}
-.hero-key-frase .kw{display:inline-block;opacity:0;transform:translateY(14px);transition:opacity .45s ease,transform .45s ease;}
-.hero-key-frase .kw.vis{opacity:1;transform:translateY(0);}
-.hero-key-frase .kw.ouro{color:var(--gold);}
-.hero-eyebrow{transition:opacity .6s ease .2s;}
-.hero-eyebrow.kw-hidden{opacity:0;}
-.hero-scroll{transition:opacity .6s ease;}
-.hero-scroll.kw-hidden{opacity:0;}
-@media(prefers-reduced-motion:reduce){
-  .hero-logo.key-apagar{opacity:0 !important;}
-  .hero-key-video.key-surgir{opacity:1;}
-  .hero-key-frase .kw{transform:none;}
-}
+@media(max-width:820px){.hero-video-slot{width:100%;flex:none;}}
 /* fundo em vídeo controlado pela rolagem — mesmo sistema do painel do cliente (meu-projeto.html) */
 .bg-gradient{position:fixed;inset:0;z-index:0;background:url('/assets/bg-fluid.jpg') center/cover no-repeat;background-color:#0c0b09;}
 .bg-video{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;pointer-events:none;transform:translateZ(0) scale(1.04);backface-visibility:hidden;filter:blur(0.6px) saturate(1.04);}
@@ -180,8 +163,8 @@ a{color:inherit;text-decoration:none;}
 /* cena 1 — logo grande, surge suave ao abrir a página (sem depender do scroll) */
 .hero-intro{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 28px 80px;}
 @keyframes heroSurgir{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
-.hero-logo{width:min(600px,78vw);margin:0 auto 10px;}
-.hero-eyebrow{font-size:clamp(13px,1.8vw,16px);letter-spacing:0.32em;color:var(--gold);font-weight:500;}
+.hero-logo{width:min(600px,78vw);margin:0 auto 10px;animation:heroSurgir .9s ease both;}
+.hero-eyebrow{font-size:clamp(13px,1.8vw,16px);letter-spacing:0.32em;color:var(--gold);font-weight:500;animation:heroSurgir .9s ease .18s both;}
 .hero-scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:0.34em;color:var(--muted2);animation:flutuar 2.4s ease-in-out infinite;}
 @keyframes flutuar{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,7px);}}
 
@@ -366,15 +349,9 @@ a{color:inherit;text-decoration:none;}
 <section class="hero">
 
   <div class="hero-intro">
-    <div class="hero-key-wrap">
-      <img class="hero-logo" src="/assets/logo-guide.svg" alt="Guide Arquitetura">
-      <video class="hero-key-video" src="/assets/hero-chave.mp4" muted playsinline preload="auto" aria-hidden="true"></video>
-    </div>
-    <div class="hero-key-frase" aria-label="Transformar seu imóvel em lar.">
-      <span class="kw">Transformar&nbsp;</span><span class="kw">seu&nbsp;</span><span class="kw ouro">imóvel&nbsp;</span><span class="kw">em&nbsp;</span><span class="kw ouro">lar.</span>
-    </div>
-    <div class="hero-eyebrow kw-hidden">O PROJETO DO SEU NOVO APARTAMENTO 100% ONLINE</div>
-    <div class="hero-scroll kw-hidden">SCROLL</div>
+    <img class="hero-logo" src="/assets/logo-guide.svg" alt="Guide">
+    <div class="hero-eyebrow">O PROJETO DO SEU NOVO APARTAMENTO 100% ONLINE</div>
+    <div class="hero-scroll">SCROLL</div>
   </div>
 
   <div class="hero-stage">
@@ -383,7 +360,9 @@ a{color:inherit;text-decoration:none;}
       <div class="hero-scene hero-scene-texto">
         <div class="hero-texto-grid">
           <h1 class="hero-h1 js-pintar">O imóvel que você conquistou agora merece virar seu lar.</h1>
-          <div class="hero-img-slot" aria-hidden="true"><i data-lucide="image"></i></div>
+          <div class="hero-video-slot" aria-hidden="true">
+            <video src="/assets/hero-video.mp4" muted loop playsinline autoplay></video>
+          </div>
         </div>
       </div>
 
@@ -828,61 +807,6 @@ document.querySelectorAll('.s-card, .plus-card, .plano, .dep, .etapa').forEach((
   aplicar();
 })();
 
-// ── SEQUÊNCIA HERO: logo → chave dourada → frase ──
-(function () {
-  var logo      = document.querySelector('.hero-logo');
-  var video     = document.querySelector('.hero-key-video');
-  var frase     = document.querySelector('.hero-key-frase');
-  var eyebrow   = document.querySelector('.hero-intro .hero-eyebrow');
-  var scrollHint= document.querySelector('.hero-scroll');
-  if (!logo || !video) return;
-
-  var palavras = frase ? [].slice.call(frase.querySelectorAll('.kw')) : [];
-
-  function revelarFrase() {
-    palavras.forEach(function (p, i) {
-      setTimeout(function () { p.classList.add('vis'); }, i * 160);
-    });
-    var duracaoFrase = palavras.length * 160 + 300;
-    setTimeout(function () {
-      if (eyebrow)    eyebrow.classList.remove('kw-hidden');
-      if (scrollHint) scrollHint.classList.remove('kw-hidden');
-    }, duracaoFrase);
-  }
-
-  function iniciarSequencia() {
-    // 1) logo gira e esmaece
-    logo.classList.add('key-apagar');
-    // 2) vídeo surge
-    setTimeout(function () {
-      video.classList.add('key-surgir');
-      video.play().catch(function () {});
-    }, 200);
-    // 3) frase aparece com o vídeo (~0.6s depois)
-    setTimeout(revelarFrase, 700);
-    // 4) ao fim do vídeo ou após 6s, revela eyebrow se ainda não revelado
-    var fallback = setTimeout(function () {
-      if (eyebrow)    eyebrow.classList.remove('kw-hidden');
-      if (scrollHint) scrollHint.classList.remove('kw-hidden');
-    }, 6000);
-    video.addEventListener('ended', function () {
-      clearTimeout(fallback);
-      if (eyebrow)    eyebrow.classList.remove('kw-hidden');
-      if (scrollHint) scrollHint.classList.remove('kw-hidden');
-    }, { once: true });
-  }
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // sem animação: mostra tudo de imediato
-    palavras.forEach(function (p) { p.classList.add('vis'); });
-    if (eyebrow)    eyebrow.classList.remove('kw-hidden');
-    if (scrollHint) scrollHint.classList.remove('kw-hidden');
-    return;
-  }
-
-  // aguarda o logo surgir (0.9s) + uma pausa de leitura
-  setTimeout(iniciarSequencia, 1600);
-})();
 </script>
 
 <!-- MODAL DE LOGIN — o card de entrar/criar conta, nativo na página, com o site desfocado atrás -->
