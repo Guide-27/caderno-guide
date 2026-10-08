@@ -19,9 +19,13 @@
   --glass:rgba(255,255,255,0.055);--glass2:rgba(255,255,255,0.035);--r-pill:999px;
 }
 body{background:var(--bg);color:var(--fg);font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;line-height:1.7;overflow-x:clip;}
-/* fundo atmosférico fixo em todos os passos */
-.page-bg{position:fixed;inset:0;z-index:0;background:url('/assets/background%201.jpg') center/cover no-repeat;pointer-events:none;}
-.page-bg::after{content:'';position:absolute;inset:0;background:rgba(10,10,10,0.72);}
+/* fundo atmosférico — mesmo sistema da página inicial */
+.bg-gradient{position:fixed;inset:0;z-index:0;background:url('/assets/bg-fluid.jpg') center/cover no-repeat;background-color:#0c0b09;}
+.bg-video{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;pointer-events:none;transform:translateZ(0) scale(1.04);backface-visibility:hidden;filter:blur(0.6px) saturate(1.04);}
+@media(prefers-reduced-motion:reduce){.bg-video{display:none;}}
+.bg-breath{position:fixed;inset:0;z-index:0;background:rgba(8,8,10,0.50);}
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-size:200px;}
+.page-fg{position:relative;z-index:2;}
 img{display:block;max-width:100%;}
 a{color:inherit;text-decoration:none;}
 
@@ -261,7 +265,12 @@ a{color:inherit;text-decoration:none;}
 </head>
 <body>
 
-<div class="page-bg" aria-hidden="true"></div>
+<div class="bg-gradient" aria-hidden="true"></div>
+<video class="bg-video" src="/assets/bg-fluid-scroll.mp4" muted playsinline preload="auto" poster="/assets/bg-fluid.jpg" aria-hidden="true"></video>
+<div class="bg-breath" aria-hidden="true"></div>
+<div class="noise" aria-hidden="true"></div>
+
+<div class="page-fg">
 <div class="cursor-dot" id="cursor-dot"></div>
 <div class="cursor-ring" id="cursor-ring"></div>
 
@@ -915,7 +924,22 @@ function traduzErro(msg){
 })();
 
 if (window.lucide) lucide.createIcons();
+
+// bg-video — scrub controlado pela rolagem (mesmo sistema da página inicial)
+(function () {
+  var v = document.querySelector('.bg-video');
+  if (!v) return;
+  function up() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var p = max > 0 ? window.scrollY / max : 0;
+    if (v.duration) v.currentTime = p * v.duration;
+  }
+  v.addEventListener('loadedmetadata', up);
+  window.addEventListener('scroll', up, { passive: true });
+  up();
+})();
 </script>
 
+</div><!-- /page-fg -->
 </body>
 </html>
