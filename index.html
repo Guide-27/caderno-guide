@@ -157,7 +157,8 @@ a{color:inherit;text-decoration:none;}
 
 /* seção 2 — cápsula glassmorfismo com frase + vídeo */
 .hero-frase{padding:0 28px 64px;}
-.hero-glass{max-width:1160px;margin:0 auto;background:rgba(255,255,255,0.022);backdrop-filter:blur(8px) saturate(120%);-webkit-backdrop-filter:blur(8px) saturate(120%);border:1px solid rgba(255,255,255,0.07);border-radius:36px;padding:52px 56px;display:flex;align-items:center;gap:56px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 24px 60px rgba(0,0,0,0.3);}
+.hero-glass{max-width:1160px;margin:0 auto;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%);border:1px solid rgba(255,255,255,0.1);border-radius:36px;padding:52px 56px;display:flex;align-items:center;gap:56px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),0 24px 60px rgba(0,0,0,0.35);}
+.hero-glass .js-pintar span{color:rgba(241,240,238,0.18);}
 .hero-glass .hero-h1{flex:1 1 460px;margin:0;}
 .hero-video-slot{flex:0 0 auto;width:min(280px,34vw);aspect-ratio:1/1;border-radius:24px;overflow:hidden;background:#000;position:relative;}
 .hero-video-slot video{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06);transform-origin:center center;}
@@ -339,9 +340,9 @@ a{color:inherit;text-decoration:none;}
   <!-- seção 2: frase + vídeo em cápsula glass -->
   <div class="hero-frase">
     <div class="hero-glass">
-      <h1 class="hero-h1">O imóvel que você conquistou agora merece virar seu lar.</h1>
+      <h1 class="hero-h1 js-pintar">O imóvel que você conquistou agora merece virar seu lar.</h1>
       <div class="hero-video-slot">
-        <video src="/assets/hero-avatar.mp4" playsinline preload="auto"></video>
+        <video src="/assets/hero-card.mp4" playsinline preload="auto"></video>
         <button class="hero-vid-replay" aria-label="Assistir novamente">
           <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="26" cy="26" r="25" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
@@ -693,6 +694,43 @@ if (window.lucide) lucide.createIcons();
 
   window.addEventListener('scroll', aplicar, { passive: true });
   window.addEventListener('resize', aplicar, { passive: true });
+})();
+
+// Hero — frase da cápsula: palavras iluminam conforme o card entra na tela
+(function () {
+  var card = document.querySelector('.hero-glass');
+  var alvo = document.querySelector('.hero-glass .js-pintar');
+  if (!card || !alvo) return;
+
+  if (!alvo.dataset.pronto) {
+    alvo.innerHTML = alvo.textContent.trim().split(/\s+/)
+      .map(function (w) { return '<span>' + w + '</span>'; }).join(' ');
+    alvo.dataset.pronto = '1';
+  }
+  var palavras = [].slice.call(alvo.querySelectorAll('span'));
+
+  function limitar(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    palavras.forEach(function (w) { w.style.color = '#f1f0ee'; });
+    return;
+  }
+
+  function aplicar() {
+    var r = card.getBoundingClientRect();
+    var vh = window.innerHeight;
+    // p: 0 quando o card ainda está fora da tela (baixo), 1 quando o topo do card chega ao centro
+    var p = limitar((vh - r.top) / (vh * 0.75 + r.height * 0.4), 0, 1);
+    var cursor = p * (palavras.length + 4) - 2;
+    palavras.forEach(function (w, i) {
+      var d = limitar((cursor - i) / 2.5, 0, 1);
+      w.style.color = 'rgba(241,240,238,' + (0.18 + d * 0.82).toFixed(3) + ')';
+    });
+  }
+
+  window.addEventListener('scroll', aplicar, { passive: true });
+  window.addEventListener('resize', aplicar, { passive: true });
+  aplicar();
 })();
 
 // Hero — vídeo: toca ao entrar na tela; botão de replay ao terminar
