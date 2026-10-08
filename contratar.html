@@ -204,7 +204,8 @@ a{color:inherit;text-decoration:none;}
 .parcelas-wrap{margin-top:20px;display:none;}
 .parcelas-wrap.vis{display:block;}
 .parcelas-lbl{font-size:13px;color:var(--muted);margin-bottom:12px;font-weight:500;}
-.parcelas-grid{display:flex;flex-wrap:wrap;gap:10px;}
+.parcelas-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:500px){.parcelas-grid{grid-template-columns:repeat(5,1fr);gap:7px;}}
 .parcela-pill{background:var(--glass2);border:1px solid rgba(255,255,255,0.07);border-radius:var(--r-pill);padding:10px 20px;cursor:pointer;font-family:inherit;color:var(--fg);transition:all .2s;text-align:center;min-width:80px;}
 .parcela-pill:hover{border-color:var(--gold-mid);}
 .parcela-pill.sel{border-color:var(--gold);background:rgba(201,155,38,0.10);}
