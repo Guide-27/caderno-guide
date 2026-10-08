@@ -157,10 +157,12 @@ a{color:inherit;text-decoration:none;}
 
 /* seção 2 — cápsula glassmorfismo com frase + vídeo */
 .hero-frase{padding:0 28px 64px;}
-.hero-glass{max-width:1160px;margin:0 auto;background:rgba(255,255,255,0.055);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);border:1px solid rgba(255,255,255,0.09);border-radius:36px;padding:52px 56px;display:flex;align-items:center;gap:56px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),0 32px 80px rgba(0,0,0,0.45);}
+.hero-glass{max-width:1160px;margin:0 auto;background:rgba(255,255,255,0.022);backdrop-filter:blur(8px) saturate(120%);-webkit-backdrop-filter:blur(8px) saturate(120%);border:1px solid rgba(255,255,255,0.07);border-radius:36px;padding:52px 56px;display:flex;align-items:center;gap:56px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05),0 24px 60px rgba(0,0,0,0.3);}
 .hero-glass .hero-h1{flex:1 1 460px;margin:0;}
-.hero-video-slot{flex:0 0 auto;width:min(280px,34vw);aspect-ratio:1/1;border-radius:24px;overflow:hidden;background:#000;}
+.hero-video-slot{flex:0 0 auto;width:min(280px,34vw);aspect-ratio:1/1;border-radius:24px;overflow:hidden;background:#000;position:relative;}
 .hero-video-slot video{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06);transform-origin:center center;}
+.hero-vid-replay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.48);border:none;cursor:pointer;border-radius:0;}
+.hero-vid-replay svg{width:52px;height:52px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));}
 @media(max-width:820px){.hero-glass{flex-direction:column;gap:32px;padding:36px 28px;}.hero-video-slot{width:min(200px,55vw);}}
 /* seção 3 — parágrafos, botões e selos */
 .hero-cta{max-width:820px;margin:0 auto;padding:56px 28px 90px;}
@@ -340,6 +342,12 @@ a{color:inherit;text-decoration:none;}
       <h1 class="hero-h1">O imóvel que você conquistou agora merece virar seu lar.</h1>
       <div class="hero-video-slot">
         <video src="/assets/hero-avatar.mp4" playsinline preload="auto"></video>
+        <button class="hero-vid-replay" aria-label="Assistir novamente">
+          <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="26" cy="26" r="25" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+            <polygon points="21,17 38,26 21,35" fill="white"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -687,14 +695,30 @@ if (window.lucide) lucide.createIcons();
   window.addEventListener('resize', aplicar, { passive: true });
 })();
 
-// Hero — vídeo: toca uma vez ao entrar na tela, pausa ao sair, para ao terminar
+// Hero — vídeo: toca ao entrar na tela; botão de replay ao terminar
 (function () {
   var slot = document.querySelector('.hero-video-slot');
   if (!slot) return;
   var vid = slot.querySelector('video');
+  var btn = slot.querySelector('.hero-vid-replay');
   if (!vid) return;
+
   var fim = false;
-  vid.addEventListener('ended', function () { fim = true; });
+
+  vid.addEventListener('ended', function () {
+    fim = true;
+    if (btn) { btn.style.display = 'flex'; }
+  });
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      btn.style.display = 'none';
+      fim = false;
+      vid.currentTime = 0;
+      vid.play().catch(function () {});
+    });
+  }
+
   var obs = new IntersectionObserver(function (entries) {
     var e = entries[0];
     if (e.isIntersecting && !fim) {
