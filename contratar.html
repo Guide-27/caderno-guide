@@ -18,7 +18,10 @@
   --radius:20px;
   --glass:rgba(255,255,255,0.055);--glass2:rgba(255,255,255,0.035);--r-pill:999px;
 }
-body{background:var(--bg);color:var(--fg);font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;}
+body{background:var(--bg);color:var(--fg);font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;line-height:1.7;overflow-x:clip;}
+/* fundo atmosférico fixo em todos os passos */
+.page-bg{position:fixed;inset:0;z-index:0;background:url('/assets/background%201.jpg') center/cover no-repeat;pointer-events:none;}
+.page-bg::after{content:'';position:absolute;inset:0;background:rgba(10,10,10,0.72);}
 img{display:block;max-width:100%;}
 a{color:inherit;text-decoration:none;}
 
@@ -133,7 +136,7 @@ a{color:inherit;text-decoration:none;}
 @media(max-width:480px){.tb-cta{padding:0 18px;font-size:12.5px;}}
 
 /* WIZARD */
-.wiz{max-width:960px;margin:0 auto;padding:120px 28px 120px;}
+.wiz{max-width:960px;margin:0 auto;padding:120px 28px 120px;position:relative;z-index:1;}
 
 /* STEPPER */
 .stepper{display:flex;align-items:flex-start;justify-content:center;gap:0;margin-bottom:56px;}
@@ -150,11 +153,8 @@ a{color:inherit;text-decoration:none;}
 /* TELAS */
 .tela{display:none;position:relative;}
 .tela.ativa{display:block;animation:surgir .35s ease;}
-.tela-hero-bg{position:absolute;top:-24px;left:50%;width:100vw;transform:translateX(-50%);height:560px;z-index:-1;background:url('/assets/background%201.jpg') center/cover no-repeat;pointer-events:none;}
-.tela-hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.20) 0%,rgba(10,10,10,0.68) 58%,var(--bg) 100%);}
-@media(max-width:640px){.tela-hero-bg{height:420px;}}
 @keyframes surgir{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.tela-h{font-size:clamp(26px,4vw,38px);font-weight:700;text-align:center;margin-bottom:10px;}
+.tela-h{font-family:'Sora',sans-serif;font-size:clamp(26px,4vw,38px);font-weight:700;text-align:center;margin-bottom:10px;}
 .tela-h .d{color:var(--gold);}
 .tela-sub{font-size:15px;color:var(--muted);text-align:center;margin-bottom:44px;}
 
@@ -177,10 +177,11 @@ a{color:inherit;text-decoration:none;}
 .plano-preco{font-size:clamp(20px,2.8vw,26px);font-weight:800;color:var(--gold);text-align:right;line-height:1.2;}
 .plano-total{font-size:11px;color:var(--muted);text-align:right;margin-top:2px;}
 .plano-lista{list-style:none;margin-top:16px;}
-.plano-lista li{font-size:13px;color:var(--muted);padding:5px 0 5px 24px;position:relative;line-height:1.6;}
-.plano-lista li::before{content:'✓';position:absolute;left:0;color:var(--gold);font-size:12px;}
+.plano-lista li{font-size:13px;color:var(--muted);padding:5px 0;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
+.plano-lista li i,.plano-lista li svg{width:14px;height:14px;color:var(--gold);flex-shrink:0;margin-top:2px;}
 .plano-frase{font-size:12px;color:var(--muted2);font-style:italic;margin-top:12px;}
-.plano-check{position:absolute;top:24px;right:24px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .25s;}
+.plano-check{position:absolute;top:24px;right:24px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:transparent;transition:all .25s;}
+.plano-check i,.plano-check svg{width:12px;height:12px;}
 .plano.sel .plano-check{background:var(--gold);border-color:var(--gold);color:#0a0a0a;}
 @media(min-width:720px){.plano-check{display:none;}}
 
@@ -207,8 +208,8 @@ a{color:inherit;text-decoration:none;}
 .esc-item-val{font-size:15px;font-weight:600;}
 .esc-item-val.d{color:var(--gold);}
 .escopo-inclui{list-style:none;border-top:1px solid var(--border);padding-top:18px;margin-bottom:22px;}
-.escopo-inclui li{font-size:13px;color:var(--muted);padding:4px 0 4px 24px;position:relative;line-height:1.6;}
-.escopo-inclui li::before{content:'✓';position:absolute;left:0;color:var(--gold);font-size:12px;}
+.escopo-inclui li{font-size:13px;color:var(--muted);padding:4px 0;display:flex;align-items:flex-start;gap:10px;line-height:1.6;}
+.escopo-inclui li i,.escopo-inclui li svg{width:14px;height:14px;color:var(--gold);flex-shrink:0;margin-top:2px;}
 .politica{border-top:1px solid var(--border);padding-top:20px;}
 .politica-h{font-size:14px;font-weight:700;margin-bottom:9px;}
 .politica-p{font-size:12px;color:var(--muted);line-height:1.75;}
@@ -219,7 +220,8 @@ a{color:inherit;text-decoration:none;}
 .campo-data{font-size:12px;color:var(--muted2);margin-top:-6px;margin-bottom:16px;}
 .aceite-box{position:relative;display:flex;align-items:flex-start;gap:13px;background:var(--glass2);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-radius:var(--radius);padding:18px 20px;cursor:pointer;margin-bottom:26px;transition:border-color .25s;}
 .aceite-box.marcado{border-color:var(--gold-mid);}
-.aceite-check{width:22px;height:22px;border-radius:7px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all .2s;margin-top:2px;}
+.aceite-check{width:22px;height:22px;border-radius:7px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;margin-top:2px;}
+.aceite-check i,.aceite-check svg{width:12px;height:12px;}
 .aceite-box.marcado .aceite-check{background:var(--gold);border-color:var(--gold);color:#0a0a0a;}
 .aceite-txt{font-size:13px;color:var(--muted);line-height:1.7;}
 
@@ -259,6 +261,7 @@ a{color:inherit;text-decoration:none;}
 </head>
 <body>
 
+<div class="page-bg" aria-hidden="true"></div>
 <div class="cursor-dot" id="cursor-dot"></div>
 <div class="cursor-ring" id="cursor-ring"></div>
 
@@ -303,7 +306,6 @@ a{color:inherit;text-decoration:none;}
 
   <!-- ══ PASSO 1: PLANO ══ -->
   <div class="tela ativa" id="tela-1">
-    <div class="tela-hero-bg" aria-hidden="true"></div>
     <h1 class="tela-h">Escolha seu plano</h1>
     <p class="tela-sub">Selecione o plano que melhor atende suas necessidades</p>
 
@@ -317,43 +319,43 @@ a{color:inherit;text-decoration:none;}
 
     <div class="planos-col">
       <button class="plano" data-plano="essencial" onclick="selPlano('essencial')">
-        <span class="plano-check">✓</span>
+        <span class="plano-check"><i data-lucide="check"></i></span>
         <div class="plano-topo">
           <div><span class="plano-nome">Essencial</span></div>
           <div><div class="plano-preco" id="p-essencial">R$ —</div><div class="plano-total" id="t-essencial">informe a metragem</div></div>
         </div>
         <ul class="plano-lista">
-          <li>Acesso à plataforma Guide completa</li>
-          <li>Indicação de profissionais para execução da obra</li>
-          <li>Plataforma de controle da obra</li>
-          <li>Assessoria guiada pós entrega das chaves</li>
+          <li><i data-lucide="check"></i>Acesso à plataforma Guide completa</li>
+          <li><i data-lucide="check"></i>Indicação de profissionais para execução da obra</li>
+          <li><i data-lucide="check"></i>Plataforma de controle da obra</li>
+          <li><i data-lucide="check"></i>Assessoria guiada pós entrega das chaves</li>
         </ul>
         <div class="plano-frase">Ideal para quem quer organização e suporte para conduzir a reforma por conta própria.</div>
       </button>
 
       <button class="plano" data-plano="visual" onclick="selPlano('visual')">
-        <span class="plano-check">✓</span>
+        <span class="plano-check"><i data-lucide="check"></i></span>
         <div class="plano-topo">
           <div><span class="plano-nome">Visual</span></div>
           <div><div class="plano-preco" id="p-visual">R$ —</div><div class="plano-total" id="t-visual">informe a metragem</div></div>
         </div>
         <ul class="plano-lista">
-          <li>Tudo do plano Essencial</li>
-          <li>Projeto visual personalizado de referência: Layout 2D e Imagens 3D</li>
-          <li>Sem especificações técnicas de materiais e quantidades</li>
+          <li><i data-lucide="check"></i>Tudo do plano Essencial</li>
+          <li><i data-lucide="check"></i>Projeto visual personalizado de referência: Layout 2D e Imagens 3D</li>
+          <li><i data-lucide="check"></i>Sem especificações técnicas de materiais e quantidades</li>
         </ul>
         <div class="plano-frase">Ideal para quem quer se inspirar e visualizar o resultado antes de reformar.</div>
       </button>
 
       <button class="plano" data-plano="completo" onclick="selPlano('completo')">
-        <span class="plano-check">✓</span>
+        <span class="plano-check"><i data-lucide="check"></i></span>
         <div class="plano-topo">
           <div><span class="plano-nome">Completo</span><span class="plano-badge">MAIS COMPLETO</span></div>
           <div><div class="plano-preco" id="p-completo">R$ —</div><div class="plano-total" id="t-completo">informe a metragem</div></div>
         </div>
         <ul class="plano-lista">
-          <li>Tudo do plano Visual</li>
-          <li>Especificações completas: materiais, quantidades, dimensões gerais e links de compra</li>
+          <li><i data-lucide="check"></i>Tudo do plano Visual</li>
+          <li><i data-lucide="check"></i>Especificações completas: materiais, quantidades, dimensões gerais e links de compra</li>
         </ul>
         <div class="plano-frase">Ideal para quem quer o projeto mais completo, com tudo detalhado para executar com segurança.</div>
       </button>
@@ -430,7 +432,7 @@ a{color:inherit;text-decoration:none;}
     <div class="campo-data" id="data-hoje"></div>
 
     <div class="aceite-box" id="aceite-box" onclick="toggleAceite()">
-      <div class="aceite-check" id="aceite-check">✓</div>
+      <div class="aceite-check" id="aceite-check"><i data-lucide="check"></i></div>
       <div class="aceite-txt">Li e concordo com os termos acima. Declaro que as informações fornecidas são verdadeiras e autorizo o início do projeto.</div>
     </div>
 
@@ -557,7 +559,8 @@ function prepararP2(){
 function prepararP3(){
   const p = PLANOS[planoSel];
   document.getElementById('esc-plano').textContent = p.nome;
-  document.getElementById('esc-inclui').innerHTML = p.inclui.map(i=>'<li>'+i+'</li>').join('');
+  document.getElementById('esc-inclui').innerHTML = p.inclui.map(i=>'<li><i data-lucide="check"></i>'+i+'</li>').join('');
+  if(window.lucide) lucide.createIcons();
   document.getElementById('esc-valor').textContent = BRL(valorTotal());
   document.getElementById('esc-pag').textContent = pagSel === 'pix' ? 'Pix' : 'Cartão de crédito em até 10x';
   document.getElementById('data-hoje').textContent = 'Data: ' + new Date().toLocaleDateString('pt-BR');
