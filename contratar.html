@@ -221,7 +221,15 @@ a{color:inherit;text-decoration:none;}
 .campo-lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:7px;}
 .campo-input{width:100%;background:var(--glass2);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-radius:14px;padding:14px 16px;font-family:inherit;font-size:15px;color:var(--fg);transition:border-color .2s;}
 .campo-input:focus{outline:none;border-color:var(--gold);}
+input[type=file].campo-input{padding:10px 16px;cursor:pointer;}
+input[type=file].campo-input::file-selector-button{background:var(--gold-dim);border:1px solid var(--gold-mid);color:var(--gold);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;margin-right:12px;font-family:inherit;}
+.campo-hint{font-size:11.5px;color:var(--muted2);margin-top:5px;}
 .campo-data{font-size:12px;color:var(--muted2);margin-top:-6px;margin-bottom:16px;}
+/* prazo full-width dentro do escopo */
+.esc-prazo-block{padding:16px 0 4px;border-top:1px solid var(--border);margin-bottom:18px;}
+.esc-prazo-txt{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.7;}
+.esc-prazo-inicio{font-size:13px;color:var(--gold);margin-top:8px;display:flex;align-items:center;gap:7px;font-weight:500;}
+.esc-prazo-inicio i,.esc-prazo-inicio svg{width:15px;height:15px;flex-shrink:0;}
 .aceite-box{position:relative;display:flex;align-items:flex-start;gap:13px;background:var(--glass2);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-radius:var(--radius);padding:18px 20px;cursor:pointer;margin-bottom:26px;transition:border-color .25s;}
 .aceite-box.marcado{border-color:var(--gold-mid);}
 .aceite-check{width:22px;height:22px;border-radius:7px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;margin-top:2px;}
@@ -414,9 +422,12 @@ a{color:inherit;text-decoration:none;}
       <div class="escopo-h">Escopo do Projeto</div>
       <div class="escopo-sub">Plano <span class="d" id="esc-plano"></span> — Inclui:</div>
       <ul class="escopo-inclui" id="esc-inclui"></ul>
+      <div class="esc-prazo-block">
+        <div class="esc-item-lbl">Prazo estimado</div>
+        <div class="esc-prazo-txt">45 dias até a finalização do projeto, com etapas intermediárias conforme indicado na trilha da plataforma — a depender das aprovações e revisões.</div>
+        <div class="esc-prazo-inicio"><i data-lucide="arrow-right-circle"></i> O processo começa por você! Assim que puder, inicie a etapa de briefing.</div>
+      </div>
       <div class="escopo-grid">
-        <div><div class="esc-item-lbl">Prazo estimado</div><div class="esc-item-val" id="esc-prazo">A definir com sua arquiteta</div></div>
-        <div><div class="esc-item-lbl">Revisões incluídas</div><div class="esc-item-val" id="esc-revisoes">A definir com sua arquiteta</div></div>
         <div><div class="esc-item-lbl">Valor total</div><div class="esc-item-val d" id="esc-valor">—</div></div>
         <div><div class="esc-item-lbl">Pagamento</div><div class="esc-item-val" id="esc-pag">—</div></div>
       </div>
@@ -437,6 +448,15 @@ a{color:inherit;text-decoration:none;}
     <div class="campo">
       <label class="campo-lbl" for="whatsapp">WhatsApp (opcional)</label>
       <input class="campo-input" id="whatsapp" type="tel" placeholder="(11) 99999-9999">
+    </div>
+    <div class="campo">
+      <label class="campo-lbl" for="empreendimento">Empreendimento, bairro e construtora <span style="color:var(--red)">*</span></label>
+      <input class="campo-input" id="empreendimento" type="text" placeholder="Ex: Parque das Flores, Vila Madalena — Cyrela" oninput="validarP3()">
+    </div>
+    <div class="campo">
+      <label class="campo-lbl" for="planta">Planta do imóvel <span style="color:var(--red)">*</span></label>
+      <input class="campo-input" id="planta" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validarP3()">
+      <div class="campo-hint">Envie a planta recebida da construtora (PDF, JPG ou PNG)</div>
     </div>
     <div class="campo-data" id="data-hoje"></div>
 
@@ -489,12 +509,18 @@ const PLANOS = {
     'Assessoria guiada pós entrega das chaves'
   ]},
   visual: { nome: 'Visual', preco: 40, inclui: [
-    'Tudo do plano Essencial',
-    'Projeto visual personalizado de referência: Layout 2D e Imagens 3D',
-    'Sem especificações técnicas de materiais e quantidades'
+    'Acesso à plataforma Guide completa',
+    'Indicação de profissionais para execução da obra',
+    'Plataforma de controle da obra',
+    'Assessoria guiada pós entrega das chaves',
+    'Projeto visual personalizado de referência: Layout 2D e Imagens 3D'
   ]},
   completo: { nome: 'Completo', preco: 60, inclui: [
-    'Tudo do plano Visual',
+    'Acesso à plataforma Guide completa',
+    'Indicação de profissionais para execução da obra',
+    'Plataforma de controle da obra',
+    'Assessoria guiada pós entrega das chaves',
+    'Projeto visual personalizado de referência: Layout 2D e Imagens 3D',
     'Especificações completas: materiais, quantidades, dimensões gerais e links de compra'
   ]}
 };
@@ -586,7 +612,9 @@ function validarP3(){
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  document.getElementById('btn-p3').disabled = !(nome.length >= 3 && emailOk && aceiteOk);
+  const empreendimento = document.getElementById('empreendimento').value.trim();
+  const planta = document.getElementById('planta').files.length > 0;
+  document.getElementById('btn-p3').disabled = !(nome.length >= 3 && emailOk && empreendimento.length >= 3 && planta && aceiteOk);
 }
 
 // ── NAVEGAÇÃO ──
@@ -614,6 +642,9 @@ async function confirmarContratacao(){
   const nome = document.getElementById('nome').value.trim();
   const email = document.getElementById('email').value.trim();
   const whatsapp = document.getElementById('whatsapp').value.trim();
+  const empreendimento = document.getElementById('empreendimento').value.trim();
+  const plantaArquivo = document.getElementById('planta').files[0];
+  const plantaNome = plantaArquivo ? plantaArquivo.name : null;
 
   btn.disabled = true;
   btn.textContent = 'Enviando...';
@@ -624,6 +655,8 @@ async function confirmarContratacao(){
       const { error } = await sb.from('contratacoes').insert({
         nome, email,
         whatsapp: whatsapp || null,
+        empreendimento,
+        planta_nome: plantaNome,
         metragem,
         plano: planoSel,
         valor_total: valorTotal(),
