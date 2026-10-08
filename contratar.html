@@ -236,6 +236,25 @@ a{color:inherit;text-decoration:none;}
 input[type=file].campo-input{padding:10px 16px;cursor:pointer;}
 input[type=file].campo-input::file-selector-button{background:var(--gold-dim);border:1px solid var(--gold-mid);color:var(--gold);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;margin-right:12px;font-family:inherit;}
 .campo-hint{font-size:11.5px;color:rgba(241,240,238,0.65);font-weight:400;margin-top:5px;text-shadow:0 1px 8px rgba(0,0,0,0.8);}
+/* card de upload da planta */
+.planta-card{position:relative;background:linear-gradient(145deg,rgba(201,155,38,0.08),rgba(255,255,255,0.035) 60%);border:1px solid rgba(201,155,38,0.25);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-radius:var(--radius);padding:28px 28px 24px;margin-bottom:16px;}
+.planta-card-topo{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;}
+.planta-card-ico{width:48px;height:48px;border-radius:14px;background:var(--gold-dim);border:1px solid var(--gold-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.planta-card-ico i,.planta-card-ico svg{width:22px;height:22px;color:var(--gold);}
+.planta-card-txt{}
+.planta-card-lbl{font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;}
+.planta-card-lbl span{color:var(--red);}
+.planta-card-desc{font-size:13px;color:rgba(255,255,255,0.78);line-height:1.7;}
+.planta-card-desc strong{color:rgba(255,255,255,0.95);font-weight:600;}
+.planta-upload{width:100%;background:rgba(255,255,255,0.045);border:1.5px dashed rgba(201,155,38,0.35);border-radius:12px;padding:14px 18px;cursor:pointer;display:block;transition:border-color .2s,background .2s;}
+.planta-upload:hover{border-color:var(--gold);background:rgba(201,155,38,0.06);}
+.planta-upload input[type=file]{display:none;}
+.planta-upload-inner{display:flex;align-items:center;gap:14px;}
+.planta-upload-btn{background:var(--gold-dim);border:1px solid var(--gold-mid);color:var(--gold);padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;white-space:nowrap;font-family:inherit;}
+.planta-upload-nome{font-size:13px;color:rgba(255,255,255,0.60);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.planta-upload-nome.ok{color:rgba(255,255,255,0.90);font-weight:500;}
+.planta-formatos{font-size:11px;color:rgba(255,255,255,0.45);margin-top:9px;}
+@media(max-width:480px){.planta-card-topo{flex-direction:column;gap:12px;}}
 .campo-data{font-size:12px;color:rgba(241,240,238,0.65);font-weight:400;margin-top:-6px;margin-bottom:16px;text-shadow:0 1px 8px rgba(0,0,0,0.8);}
 /* prazo full-width dentro do escopo */
 .esc-prazo-block{padding:16px 0 4px;border-top:1px solid var(--border);margin-bottom:18px;}
@@ -470,10 +489,22 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
       <label class="campo-lbl" for="empreendimento">Empreendimento, bairro e construtora <span style="color:var(--red)">*</span></label>
       <input class="campo-input" id="empreendimento" type="text" placeholder="Ex: Parque das Flores, Vila Madalena — Cyrela" oninput="validarP3()">
     </div>
-    <div class="campo">
-      <label class="campo-lbl" for="planta">Planta do imóvel <span style="color:var(--red)">*</span></label>
-      <input class="campo-input" id="planta" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validarP3()">
-      <div class="campo-hint">Envie a planta recebida da construtora (PDF, JPG ou PNG)</div>
+    <div class="planta-card">
+      <div class="planta-card-topo">
+        <div class="planta-card-ico"><i data-lucide="file-scan"></i></div>
+        <div class="planta-card-txt">
+          <div class="planta-card-lbl">Planta do imóvel <span>*</span></div>
+          <div class="planta-card-desc">A planta é a <strong>base de todo o seu projeto</strong>. É a partir dela que sua arquiteta vai entender o espaço, propor o melhor layout e criar cada detalhe pensado para a sua rotina. Sem ela, não conseguimos dar o primeiro passo.</div>
+        </div>
+      </div>
+      <label class="planta-upload" for="planta" id="planta-label">
+        <input type="file" id="planta" accept=".pdf,.jpg,.jpeg,.png" onchange="onPlantaChange(this)">
+        <div class="planta-upload-inner">
+          <span class="planta-upload-btn">Escolher arquivo</span>
+          <span class="planta-upload-nome" id="planta-nome">Nenhum arquivo selecionado</span>
+        </div>
+        <div class="planta-formatos">PDF, JPG ou PNG · Planta recebida da construtora</div>
+      </label>
     </div>
     <div class="campo-data" id="data-hoje"></div>
 
@@ -661,6 +692,18 @@ function prepararP3(){
   document.getElementById('data-hoje').textContent = 'Data: ' + new Date().toLocaleDateString('pt-BR');
 }
 
+function onPlantaChange(input){
+  const nome = document.getElementById('planta-nome');
+  if(input.files.length > 0){
+    nome.textContent = input.files[0].name;
+    nome.classList.add('ok');
+  } else {
+    nome.textContent = 'Nenhum arquivo selecionado';
+    nome.classList.remove('ok');
+  }
+  validarP3();
+}
+
 let aceiteOk = false;
 function toggleAceite(){
   aceiteOk = !aceiteOk;
@@ -673,7 +716,7 @@ function validarP3(){
   const email = document.getElementById('email').value.trim();
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const empreendimento = document.getElementById('empreendimento').value.trim();
-  const planta = document.getElementById('planta').files.length > 0;
+  const planta = document.getElementById('planta') && document.getElementById('planta').files.length > 0;
   document.getElementById('btn-p3').disabled = !(nome.length >= 3 && emailOk && empreendimento.length >= 3 && planta && aceiteOk);
 }
 
