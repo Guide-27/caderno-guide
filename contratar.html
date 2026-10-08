@@ -200,6 +200,17 @@ a{color:inherit;text-decoration:none;}
 .pag-sub{font-size:12px;color:var(--muted);margin-bottom:18px;}
 .pag-val{font-size:clamp(22px,3vw,27px);font-weight:800;color:var(--gold);}
 .pag-det{font-size:12px;color:var(--muted);margin-top:3px;}
+/* parcelas */
+.parcelas-wrap{margin-top:20px;display:none;}
+.parcelas-wrap.vis{display:block;}
+.parcelas-lbl{font-size:13px;color:var(--muted);margin-bottom:12px;font-weight:500;}
+.parcelas-grid{display:flex;flex-wrap:wrap;gap:10px;}
+.parcela-pill{background:var(--glass2);border:1px solid rgba(255,255,255,0.07);border-radius:var(--r-pill);padding:10px 20px;cursor:pointer;font-family:inherit;color:var(--fg);transition:all .2s;text-align:center;min-width:80px;}
+.parcela-pill:hover{border-color:var(--gold-mid);}
+.parcela-pill.sel{border-color:var(--gold);background:rgba(201,155,38,0.10);}
+.parcela-pill-n{font-size:14px;font-weight:700;color:var(--gold);}
+.parcela-pill-v{font-size:11px;color:var(--muted);margin-top:3px;}
+.parcela-pill.sel .parcela-pill-v{color:var(--muted);}
 
 /* PASSO 3 — ACEITE */
 .escopo{position:relative;background:linear-gradient(155deg,rgba(201,155,38,0.10),var(--glass2) 55%);border:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border-radius:var(--radius);padding:32px;margin-bottom:26px;box-shadow:0 0 40px rgba(201,155,38,0.08) inset;}
@@ -407,6 +418,11 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
       </button>
     </div>
 
+    <div class="parcelas-wrap" id="parcelas-wrap">
+      <div class="parcelas-lbl">Selecione o número de parcelas</div>
+      <div class="parcelas-grid" id="parcelas-grid"></div>
+    </div>
+
     <div class="wiz-nav">
       <button class="btn-voltar" onclick="irPara(1)">← Voltar</button>
       <button class="btn-avancar" id="btn-p2" disabled onclick="irPara(3)">Continuar →</button>
@@ -527,6 +543,7 @@ const PLANOS = {
 let metragem = 0;
 let planoSel = null;
 let pagSel = null;
+let parcelasSel = null;
 let enviado = false;
 
 const BRL = v => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
@@ -577,17 +594,54 @@ function validarP1(){
 // ── PASSO 2 ──
 function selPag(p){
   pagSel = p;
+  parcelasSel = null;
   document.querySelectorAll('.pag').forEach(el=>el.classList.toggle('sel', el.dataset.pag === p));
-  document.getElementById('btn-p2').disabled = !pagSel;
+  const wrap = document.getElementById('parcelas-wrap');
+  if(p === 'cartao'){
+    wrap.classList.add('vis');
+    renderParcelas();
+  } else {
+    wrap.classList.remove('vis');
+  }
+  validarP2();
+}
+
+function renderParcelas(){
+  const total = valorTotal();
+  const grid = document.getElementById('parcelas-grid');
+  grid.innerHTML = '';
+  for(let n = 1; n <= 10; n++){
+    const v = total / n;
+    const pill = document.createElement('button');
+    pill.className = 'parcela-pill' + (parcelasSel === n ? ' sel' : '');
+    pill.innerHTML = '<div class="parcela-pill-n">' + n + 'x</div><div class="parcela-pill-v">' + BRL(v) + '</div>';
+    pill.onclick = function(){ selParcela(n); };
+    grid.appendChild(pill);
+  }
+}
+
+function selParcela(n){
+  parcelasSel = n;
+  document.querySelectorAll('.parcela-pill').forEach((el, i)=>el.classList.toggle('sel', i+1 === n));
+  validarP2();
+}
+
+function validarP2(){
+  const ok = pagSel === 'pix' || (pagSel === 'cartao' && parcelasSel !== null);
+  document.getElementById('btn-p2').disabled = !ok;
 }
 
 function prepararP2(){
   const total = valorTotal();
+  parcelasSel = null;
+  document.getElementById('parcelas-wrap').classList.remove('vis');
   document.getElementById('sub-plano').textContent = PLANOS[planoSel].nome;
-  // Pix e Cartão: mesmo valor total (sem desconto — decisão travada)
   document.getElementById('pix-val').textContent = BRL(total);
   document.getElementById('cartao-val').textContent = BRL(total);
   document.getElementById('cartao-det').textContent = '10x de ' + BRL(total/10) + ' sem juros';
+  document.querySelectorAll('.pag').forEach(el=>el.classList.remove('sel'));
+  pagSel = null;
+  validarP2();
 }
 
 // ── PASSO 3 ──
@@ -597,7 +651,12 @@ function prepararP3(){
   document.getElementById('esc-inclui').innerHTML = p.inclui.map(i=>'<li><i data-lucide="check"></i>'+i+'</li>').join('');
   if(window.lucide) lucide.createIcons();
   document.getElementById('esc-valor').textContent = BRL(valorTotal());
-  document.getElementById('esc-pag').textContent = pagSel === 'pix' ? 'Pix' : 'Cartão de crédito em até 10x';
+  if(pagSel === 'pix'){
+    document.getElementById('esc-pag').textContent = 'Pix';
+  } else {
+    const total = valorTotal();
+    document.getElementById('esc-pag').textContent = 'Cartão — ' + parcelasSel + 'x de ' + BRL(total / parcelasSel);
+  }
   document.getElementById('data-hoje').textContent = 'Data: ' + new Date().toLocaleDateString('pt-BR');
 }
 
@@ -661,6 +720,7 @@ async function confirmarContratacao(){
         plano: planoSel,
         valor_total: valorTotal(),
         forma_pagamento: pagSel,
+        parcelas: pagSel === 'cartao' ? parcelasSel : null,
         aceite: true,
         aceite_data: new Date().toISOString()
       });
