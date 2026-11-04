@@ -934,11 +934,16 @@ async function confirmarContratacao(){
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Pré-seleção de plano vinda da home (?plano=essencial|visual|completo)
-  const p = new URLSearchParams(window.location.search).get('plano');
+  // Pré-seleção de plano e metragem vindas da home (?plano=...&m=...)
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('plano');
   if(p && PLANOS[p]) selPlano(p);
-  calcular();
+  const mParam = parseFloat(params.get('m'));
+  if(mParam && mParam > 0) document.getElementById('metragem').value = mParam;
+  calcular();  // guarda a metragem e calcula os valores
   if(window.lucide) lucide.createIcons();
+  // Se já veio com plano e metragem, pula direto para a forma de pagamento
+  if(p && PLANOS[p] && metragem > 0) irPara(2);
 });
 </script>
 

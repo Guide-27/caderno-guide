@@ -244,13 +244,13 @@ a{color:inherit;text-decoration:none;}
 .plano-badge{position:absolute;top:-11px;left:28px;background:var(--gold);color:#0a0a0a;font-size:9px;font-weight:700;letter-spacing:0.14em;padding:4px 13px;border-radius:999px;}
 .plano-nome{font-size:20px;font-weight:700;margin-bottom:16px;}
 .plano-preco{font-size:clamp(24px,3vw,30px);font-weight:800;color:var(--gold);line-height:1.15;}
-.plano-total{font-size:12px;color:var(--muted);margin-top:3px;margin-bottom:20px;}
-.plano-m2{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.plano-total{font-size:12px;color:#c6c2b7;margin-top:3px;margin-bottom:20px;}
+.plano-m2{font-size:12px;color:#c6c2b7;margin-bottom:20px;}
 .plano-lista{list-style:none;flex:1;margin-bottom:20px;}
-.plano-lista li{font-size:13px;color:var(--muted);padding:7px 0 7px 26px;position:relative;line-height:1.6;border-top:1px solid var(--border);}
+.plano-lista li{font-size:13px;color:#e7e4dc;padding:7px 0 7px 26px;position:relative;line-height:1.6;border-top:1px solid rgba(255,255,255,0.12);}
 .plano-lista li:first-child{border-top:none;}
 .plano-lista li::before{content:'✓';position:absolute;left:2px;color:var(--gold);font-size:12px;}
-.plano-frase{font-size:12px;color:var(--muted2);font-style:italic;line-height:1.6;margin-bottom:22px;}
+.plano-frase{font-size:12px;color:#bdb9ae;font-style:italic;line-height:1.6;margin-bottom:22px;}
 .btn-plano{background:transparent;color:var(--gold);font-family:inherit;font-size:14px;font-weight:600;padding:13px;border-radius:999px;border:1px solid var(--gold-mid);cursor:pointer;transition:all .25s;text-align:center;display:block;}
 .btn-plano:hover{background:var(--gold);color:#0a0a0a;}
 .plano.destaque .btn-plano{background:var(--gold);color:#0a0a0a;}
@@ -521,7 +521,7 @@ a{color:inherit;text-decoration:none;}
         <li>Assessoria guiada pós entrega das chaves</li>
       </ul>
       <div class="plano-frase">Ideal para quem quer organização e suporte para conduzir a reforma por conta própria.</div>
-      <a class="btn-plano" href="/contratar?plano=essencial">Contratar agora</a>
+      <a class="btn-plano" href="/contratar?plano=essencial" onclick="return irPlano(event,'essencial')">Contratar agora</a>
     </div>
 
     <div class="plano">
@@ -535,7 +535,7 @@ a{color:inherit;text-decoration:none;}
         <li>Sem especificações técnicas de materiais e quantidades</li>
       </ul>
       <div class="plano-frase">Ideal para quem quer se inspirar e visualizar o resultado antes de reformar.</div>
-      <a class="btn-plano" href="/contratar?plano=visual">Contratar agora</a>
+      <a class="btn-plano" href="/contratar?plano=visual" onclick="return irPlano(event,'visual')">Contratar agora</a>
     </div>
 
     <div class="plano destaque">
@@ -549,7 +549,7 @@ a{color:inherit;text-decoration:none;}
         <li>Especificações completas: materiais, quantidades, dimensões gerais e links de compra</li>
       </ul>
       <div class="plano-frase">Ideal para quem quer o projeto mais completo, com tudo detalhado para executar com segurança.</div>
-      <a class="btn-plano" href="/contratar?plano=completo">Contratar agora</a>
+      <a class="btn-plano" href="/contratar?plano=completo" onclick="return irPlano(event,'completo')">Contratar agora</a>
     </div>
   </div>
 </section>
@@ -649,6 +649,15 @@ function calcular(){
     document.getElementById('p-'+p).textContent = '10x ' + BRL(total/10);
     document.getElementById('t-'+p).textContent = 'Total: ' + BRL(total);
   }
+}
+// Leva a metragem digitada aqui para a contratação (e, lá, pula direto pro pagamento)
+function irPlano(e, plano){
+  const m = parseFloat(document.getElementById('metragem').value);
+  let url = '/contratar?plano=' + plano;
+  if(m && m > 0) url += '&m=' + m;
+  if(e) e.preventDefault();
+  window.location.href = url;
+  return false;
 }
 </script>
 
