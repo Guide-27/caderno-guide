@@ -267,6 +267,42 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
 .aceite-check i,.aceite-check svg{width:12px;height:12px;}
 .aceite-box.marcado .aceite-check{background:var(--gold);border-color:var(--gold);color:#0a0a0a;}
 .aceite-txt{font-size:13px;color:#fff;line-height:1.7;}
+.aceite-txt .ver-termos{color:var(--gold);text-decoration:underline;text-underline-offset:2px;}
+
+/* ── MODAL DOS TERMOS DE USO ── */
+.termos-modal{position:fixed;inset:0;z-index:650;background:rgba(5,5,6,0.62);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);display:none;align-items:center;justify-content:center;padding:32px;opacity:0;transition:opacity .25s;}
+.termos-modal.aberto{display:flex;}
+.termos-modal.mostrar{opacity:1;}
+.termos-card{width:100%;max-width:680px;max-height:86vh;display:flex;flex-direction:column;background:rgba(18,17,20,0.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--gold-mid);border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,0.6);overflow:hidden;transform:translateY(16px);transition:transform .3s;}
+.termos-modal.mostrar .termos-card{transform:translateY(0);}
+.termos-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:26px 28px 18px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.termos-eyebrow{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.termos-eyebrow i{width:14px;height:14px;}
+.termos-titulo{font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.01em;line-height:1.15;}
+.termos-x{flex-shrink:0;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
+.termos-x:hover{background:rgba(255,255,255,0.16);}
+.termos-x i{width:18px;height:18px;}
+.termos-body{padding:22px 28px;overflow-y:auto;}
+.termos-body h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:22px 0 8px;letter-spacing:-0.01em;}
+.termos-body h3:first-child{margin-top:0;}
+.termos-body p{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:10px;}
+.termos-body ul{margin:4px 0 10px;padding-left:2px;list-style:none;}
+.termos-body li{font-size:13.5px;color:var(--muted);line-height:1.7;padding-left:18px;position:relative;margin-bottom:5px;}
+.termos-body li::before{content:'';position:absolute;left:4px;top:10px;width:4px;height:4px;border-radius:50%;background:var(--gold);}
+.termos-body strong{color:#e8e6df;font-weight:600;}
+.termos-foot{display:flex;align-items:center;gap:12px;padding:16px 28px;border-top:1px solid rgba(255,255,255,0.08);flex-wrap:wrap;}
+.termos-aceito-info{font-size:12.5px;color:var(--green);display:none;align-items:center;gap:8px;}
+.termos-aceito-info.vis{display:flex;}
+.termos-aceito-info i{width:15px;height:15px;}
+.termos-foot-acoes{display:flex;gap:10px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.btn-termos-fechar{background:transparent;border:1px solid rgba(255,255,255,0.14);border-radius:999px;padding:11px 22px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+.btn-termos-fechar:hover{color:#fff;border-color:rgba(255,255,255,0.3);}
+.btn-termos-aceitar{background:var(--gold);border:none;border-radius:999px;padding:12px 26px;color:#0a0a0a;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-termos-aceitar:hover{background:var(--gold-light);}
+.btn-termos-remover{background:transparent;border:1px solid var(--gold-mid);border-radius:999px;padding:11px 20px;color:var(--gold);font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-termos-remover:hover{border-color:var(--gold);}
+.btn-termos-remover i,.btn-termos-aceitar i{width:15px;height:15px;}
+@media(max-width:640px){.termos-modal{padding:14px;}.termos-card{max-height:92vh;}.termos-body{padding:18px 20px;}.termos-head{padding:20px 20px 14px;}.termos-foot{padding:14px 20px;}.termos-foot-acoes{margin-left:0;width:100%;}}
 
 /* PASSO 4 — CONFIRMAÇÃO */
 .conf{text-align:center;padding:26px 0;}
@@ -508,9 +544,9 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
     </div>
     <div class="campo-data" id="data-hoje"></div>
 
-    <div class="aceite-box" id="aceite-box" onclick="toggleAceite()">
+    <div class="aceite-box" id="aceite-box" onclick="abrirTermos()">
       <div class="aceite-check" id="aceite-check"><i data-lucide="check"></i></div>
-      <div class="aceite-txt">Li e concordo com os termos acima. Declaro que as informações fornecidas são verdadeiras e autorizo o início do projeto.</div>
+      <div class="aceite-txt">Li e concordo com os <span class="ver-termos">Termos de Uso da Guide</span> (toque para ler). Declaro que as informações fornecidas são verdadeiras e autorizo o início do projeto.</div>
     </div>
 
     <div class="wiz-nav">
@@ -537,6 +573,78 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ MODAL DOS TERMOS DE USO ══ -->
+<div class="termos-modal" id="termos-modal" onclick="if(event.target===this)fecharTermos()">
+  <div class="termos-card">
+    <div class="termos-head">
+      <div>
+        <div class="termos-eyebrow"><i data-lucide="file-text"></i> Termo de aceite</div>
+        <div class="termos-titulo">Termos de Uso — Guide</div>
+      </div>
+      <button class="termos-x" onclick="fecharTermos()" aria-label="Fechar"><i data-lucide="x"></i></button>
+    </div>
+    <div class="termos-body">
+      <h3>1. Introdução e aceitação dos termos</h3>
+      <p>Estes Termos de Uso explicam como funciona a plataforma Guide e as regras para utilizá-la. Eles valem para todos os Guiders (nossos clientes) que criam uma conta ou usam qualquer parte da plataforma.</p>
+      <p>Ao se cadastrar ou usar a Guide, você confirma que leu e concorda com estes Termos e com a nossa Política de Privacidade.</p>
+
+      <h3>2. Cadastro e conta</h3>
+      <p>Para usar a Guide, você precisa criar uma conta com informações verdadeiras e atualizadas. É preciso ter 18 anos ou mais.</p>
+      <p>Você é responsável por manter sua senha em segurança e por tudo o que acontece na sua conta. Se perceber qualquer uso não autorizado, avise a Guide imediatamente.</p>
+
+      <h3>3. Uso da plataforma e regras de conduta</h3>
+      <p>Ao usar a Guide, você concorda em não:</p>
+      <ul>
+        <li>Usar a plataforma para fins ilegais ou fraudulentos;</li>
+        <li>Tentar acessar áreas, dados ou sistemas que não sejam seus, sem autorização;</li>
+        <li>Copiar, reproduzir ou explorar comercialmente conteúdo da Guide sem autorização;</li>
+        <li>Publicar, no espaço da Comunidade, conteúdo ofensivo, discriminatório ou que viole direitos de terceiros;</li>
+        <li>Usar robôs, scraping ou qualquer ferramenta automatizada para extrair dados da plataforma.</li>
+      </ul>
+      <p>Se identificarmos alguma dessas situações, podemos suspender ou remover o conteúdo ou a conta envolvida, avisando o usuário sempre que possível. Em casos pertinentes, a Guide poderá tomar as devidas providências legais.</p>
+
+      <h3>4. Planos, pagamentos e cancelamento</h3>
+      <p>Quando a Guide tiver planos pagos, os valores, formas de pagamento e condições de cada serviço serão sempre apresentados antes da contratação. Eventuais reajustes de preço não afetam pagamentos já realizados.</p>
+      <p>Você pode cancelar a contratação em até 7 dias corridos após a compra, com devolução integral do valor pago, conforme o Código de Defesa do Consumidor. Depois desse prazo, como o trabalho já terá sido iniciado, não é mais possível devolver o valor integralmente; eventual reembolso de etapas ainda não iniciadas fica a critério da Guide, conforme as condições do serviço contratado.</p>
+
+      <h3>5. Propriedade intelectual e uso de imagens para divulgação</h3>
+      <p>A marca, o logotipo, a identidade visual, os textos, as imagens, o código e a metodologia dos cadernos pertencem à Guide ou a seus licenciantes, protegidos pela legislação de propriedade intelectual.</p>
+      <p>O conteúdo que você envia (fotos do imóvel, preferências, comentários) continua sendo seu. Você autoriza a Guide a usar esse conteúdo apenas para prestar o serviço contratado.</p>
+      <p>A Guide pode utilizar imagens e elementos do seu projeto em materiais de divulgação (como site, redes sociais e portfólio), sempre sem expor dados pessoais ou informações que identifiquem o cliente. Ao aceitar estes Termos, você declara estar ciente dessa possibilidade de uso.</p>
+
+      <h3>6. Privacidade e proteção de dados (LGPD)</h3>
+      <p>Seus dados pessoais são tratados conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018) e a nossa Política de Privacidade, que faz parte destes Termos.</p>
+      <p>Usamos seus dados para prestar o serviço, falar com você e melhorar a plataforma. Eles só são compartilhados com parceiros quando necessário para a execução do serviço, sempre respeitando seus direitos como titular (acesso, correção, exclusão, portabilidade, entre outros).</p>
+
+      <h3>7. Limitação de responsabilidade</h3>
+      <p>A Guide trabalha para manter a plataforma sempre disponível e funcionando bem, mas não garante que ela estará livre de falhas o tempo todo. Não nos responsabilizamos por problemas causados por caso fortuito, força maior, uso indevido da plataforma, ou por serviços de terceiros (fornecedores, prestadores de obra, parceiros) indicados através da Guide.</p>
+      <p>O orçamento, os prazos e a qualidade dos materiais da obra são de responsabilidade do cliente — a Guide não responde por esses resultados.</p>
+      <p>É responsabilidade do cliente fornecer informações verdadeiras sobre o imóvel, sendo obrigatório o anexo da planta do imóvel para o desenvolvimento do projeto. Todas as decisões técnicas do projeto são tomadas com base nos documentos anexados pelo cliente. Como não são realizadas medições presenciais pela Guide, a aferição de medidas no local é de responsabilidade do prestador de serviço contratado para cada etapa ou do proprietário, quando pertinente.</p>
+
+      <h3>8. Encerramento e suspensão de conta</h3>
+      <p>Você pode encerrar sua conta quando quiser, pelos canais disponíveis na plataforma. O direito de cancelar a contratação com devolução integral do valor pago está descrito no item 5 (prazo de 7 dias).</p>
+      <p>A Guide pode suspender ou encerrar o acesso de uma conta, mediante aviso, em caso de violação destes Termos, uso fraudulento ou determinação legal. Encerrar a conta não cancela obrigações financeiras já assumidas até a data do encerramento.</p>
+
+      <h3>9. Alterações nestes Termos</h3>
+      <p>Podemos atualizar estes Termos quando necessário, por mudanças na plataforma, na lei ou em nossas práticas. Mudanças importantes serão avisadas com antecedência, e continuar usando a Guide depois delas significa que você concorda com a nova versão.</p>
+
+      <h3>10. Lei aplicável e foro</h3>
+      <p>Estes Termos seguem as leis brasileiras. Fica eleito o foro do domicílio do consumidor para resolver eventuais conflitos, conforme o Código de Defesa do Consumidor, sem prejuízo de uma solução amigável entre as partes.</p>
+
+      <h3>11. Contato</h3>
+      <p>Dúvidas sobre estes Termos ou sobre seus dados pessoais podem ser enviadas pelo canal de atendimento oficial da Guide, disponível na plataforma.</p>
+    </div>
+    <div class="termos-foot">
+      <div class="termos-aceito-info" id="termos-aceito-info"><i data-lucide="badge-check"></i> Você aceitou os termos</div>
+      <div class="termos-foot-acoes">
+        <button class="btn-termos-fechar" onclick="fecharTermos()">Fechar</button>
+        <button class="btn-termos-aceitar" id="btn-termos-aceitar" onclick="aceitarTermos()"><i data-lucide="check"></i> Li e concordo</button>
+        <button class="btn-termos-remover" id="btn-termos-remover" onclick="removerAceite()" style="display:none;"><i data-lucide="x"></i> Remover aceite</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <script>
@@ -710,6 +818,43 @@ function toggleAceite(){
   document.getElementById('aceite-box').classList.toggle('marcado', aceiteOk);
   validarP3();
 }
+
+// ── TERMOS DE USO (card) ──
+function sincronizarTermosUI(){
+  const info = document.getElementById('termos-aceito-info');
+  const bAcc = document.getElementById('btn-termos-aceitar');
+  const bRem = document.getElementById('btn-termos-remover');
+  if(aceiteOk){ info && info.classList.add('vis'); if(bAcc) bAcc.style.display='none'; if(bRem) bRem.style.display=''; }
+  else { info && info.classList.remove('vis'); if(bAcc) bAcc.style.display=''; if(bRem) bRem.style.display='none'; }
+}
+function abrirTermos(){
+  const m = document.getElementById('termos-modal');
+  if(!m) return;
+  sincronizarTermosUI();
+  m.classList.add('aberto');
+  requestAnimationFrame(()=>m.classList.add('mostrar'));
+  if(window.lucide && lucide.createIcons) lucide.createIcons();
+}
+function fecharTermos(){
+  const m = document.getElementById('termos-modal');
+  if(!m) return;
+  m.classList.remove('mostrar');
+  setTimeout(()=>m.classList.remove('aberto'), 250);
+}
+function aceitarTermos(){
+  aceiteOk = true;
+  document.getElementById('aceite-box').classList.add('marcado');
+  sincronizarTermosUI();
+  validarP3();
+  fecharTermos();
+}
+function removerAceite(){
+  aceiteOk = false;
+  document.getElementById('aceite-box').classList.remove('marcado');
+  sincronizarTermosUI();
+  validarP3();
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') fecharTermos(); });
 
 function validarP3(){
   const nome = document.getElementById('nome').value.trim();
