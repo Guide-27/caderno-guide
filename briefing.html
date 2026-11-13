@@ -9,7 +9,7 @@
 :root {
   --black:#08080a;--dark:#111113;--card:#15151a;--card2:#1a1a20;
   --gold:#C9A227;--gold-light:#e2b93b;--gold-dim:rgba(201,162,39,0.08);--gold-mid:rgba(201,162,39,0.22);
-  --white:#f5f4f0;--off:#e0ddd6;--muted:#7a7870;--muted2:#4a4845;
+  --white:#f5f4f0;--off:#e0ddd6;--muted:#d8d5cd;--muted2:#b4b0a7;
   --border:rgba(201,162,39,0.14);--border2:rgba(255,255,255,0.06);
   --green:#50C878;--green-dim:rgba(80,200,120,0.09);--green-border:rgba(80,200,120,0.28);
   --blue:rgba(80,140,220,0.9);--blue-dim:rgba(80,140,220,0.09);--blue-border:rgba(80,140,220,0.28);
@@ -259,10 +259,10 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 .cap-spacer{flex:1;}
 
 .etapa-tela#tela-0{display:none;}
-.etapa-tela#tela-0.ativa{display:block;text-align:center;}
-.capa-headline{font-family:"Sora",sans-serif;font-weight:800;font-size:clamp(28px,4.4vw,52px);color:var(--white);letter-spacing:-0.02em;line-height:1.05;margin-bottom:clamp(18px,3vh,30px);text-shadow:0 2px 40px rgba(0,0,0,.6);}
+.etapa-tela#tela-0.ativa{display:block;text-align:center;padding-top:clamp(10px,3.5vh,44px);}
+.capa-headline{font-family:"Sora",sans-serif;font-weight:400;font-size:clamp(27px,4.2vw,48px);color:var(--white);letter-spacing:0.005em;line-height:1.14;margin-bottom:clamp(38px,6vh,72px);text-shadow:0 2px 40px rgba(0,0,0,.5);}
 /* carrossel coverflow 3D — cards absolutos transbordam a coluna, centralizados na viewport */
-.coverflow{position:relative;overflow:visible;height:clamp(300px,48vh,480px);perspective:1700px;margin-bottom:clamp(26px,4vh,46px);--cf-w:clamp(300px,32vw,430px);--cf-h:clamp(340px,44vh,500px);}
+.coverflow{position:relative;overflow:visible;height:clamp(300px,48vh,480px);perspective:1700px;margin-bottom:clamp(50px,7vh,92px);--cf-w:clamp(300px,32vw,430px);--cf-h:clamp(340px,44vh,500px);}
 .cf-card{position:absolute;left:50%;top:50%;width:var(--cf-w);height:var(--cf-h);border-radius:26px;overflow:hidden;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.22,.9,.32,1),opacity .55s;will-change:transform,opacity;box-shadow:0 34px 80px rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.14);background:var(--glass-bg);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .cf-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
 .cf-card .ph-glass{min-height:100%;height:100%;border-radius:0;}
@@ -2209,15 +2209,16 @@ function setPaletaAmb(i,v){ if(briefingEnviado)return; const p=PALETAS.find(x=>x
 
 // ── TELA-0 · CARROSSEL COVERFLOW 3D (auto-avança; placeholders por ora) ──
 let cfCards=[],cfActive=0,cfTimer=null;
+// mesmas imagens do card "Seu estilo, em resumo" (meu-projeto.html)
+const CAPA_IMGS=['imagem_2025-01-06_092758413.webp','images (1).jfif','images.jfif','microespacos-abre-1682099953022_v2_450x600.jpg']
+  .map(f=>'assets/o-que-voce-sonhou/genericas/'+encodeURIComponent(f));
 async function initCoverflow(){
   const cont=document.getElementById('coverflow'); if(!cont)return;
-  const urls=await carregarSequencia('assets/background_capa_inicial_');   // usa assets quando existirem
-  const n=urls.length||7;                                                  // por ora: 7 placeholders
+  let urls=await carregarSequencia('assets/background_capa_inicial_');      // assets dedicados da capa, se existirem
+  if(!urls.length) urls=CAPA_IMGS.concat(CAPA_IMGS);                        // senão, as imagens do "Seu estilo, em resumo" (dobradas p/ carrossel cheio)
+  const n=urls.length;
   let html='';
-  for(let i=0;i<n;i++){
-    const inner=urls.length?`<img src="${urls[i]}" alt="" draggable="false">`:phGlass('','image');
-    html+=`<div class="cf-card">${inner}</div>`;
-  }
+  for(let i=0;i<n;i++){ html+=`<div class="cf-card"><img src="${urls[i]}" alt="" draggable="false"></div>`; }
   cont.innerHTML=html; icons();
   cfCards=[...cont.querySelectorAll('.cf-card')];
   cfActive=Math.floor(cfCards.length/2);
