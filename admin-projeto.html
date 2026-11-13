@@ -554,7 +554,7 @@ const BF_LABELS = {
 };
 
 const BF_GRUPOS = [
-  {titulo:'Como o cliente quer se sentir', campos:['sensacao','consciencia-estilo','estilo','estilo-obs','paleta','cor-nao-quer']},
+  {titulo:'Como o cliente quer se sentir', campos:['sensacao','consciencia-estilo','estilo-obs','cor-nao-quer']},
   {titulo:'O que o cliente não quer', campos:['nao-quer','erros-passados','lugar-referencia']},
   {titulo:'Rotina e hobbies', campos:['trabalho','espaco-trabalho','ritmo-casa','visitas','cozinha-habito','quarto-extra','hobbies','hobbies-outros','hobbies-espaco']},
   {titulo:'Necessidades e referências', campos:['necessidades','acessibilidade','acessibilidade-desc','ambientes-prioritarios','objetos-coração','reutilizar','reutilizar-desc','ja-adquiriu','ja-adquiriu-desc','refs-texto','refs-links']},
@@ -605,6 +605,35 @@ function bfUploads(d){
   return `<div class="bf-grupo aberto"><div class="bf-grupo-hd" onclick="this.closest('.bf-grupo').classList.toggle('aberto')"><span class="bf-grupo-tit">Imagens enviadas pelo cliente</span><span class="bf-grupo-cta">▼</span></div><div class="bf-grupo-body">${blocos}</div></div>`;
 }
 
+// Estética do briefing reformulado (estilo 2 fases, paleta, texturas, ambientes)
+function bfEstetica(d){
+  const PAL={neblina:'Neblina',areia:'Areia e vento',floresta:'Floresta urbana',terra:'Terra quente',mar:'Mar profundo',noite:'Noite clara',flor:'Flor de inverno','nuvem-serena':'Nuvem serena','verde-profundo':'Verde profundo','argila-mel':'Argila e mel','tarde-dourada':'Tarde dourada','cimento-suave':'Cimento suave'};
+  const item=(k,v)=> v?`<div class="bf-item"><span class="bf-k">${bfEscapar(k)}</span><span class="bf-v">${bfEscapar(v)}</span></div>`:'';
+  const linhas=[];
+  if(d.estilo_escolhido||d.estilo_escolhido_label) linhas.push(item('Estilo escolhido', d.estilo_escolhido_label||d.estilo_escolhido));
+  if(d.estilo_aplicar_todos!==undefined) linhas.push(item('Aplicar estilo a todos os ambientes', d.estilo_aplicar_todos?'Sim':'Não'));
+  if(Array.isArray(d.estilo_ambientes_diferenciados)) d.estilo_ambientes_diferenciados.forEach(a=>{
+    let v=a.estilo_label||a.estilo_escolhido||'—';
+    if(a.infantil){ const inf=[a.infantil.faixa_etaria,a.infantil.genero].filter(Boolean).join(' · '); if(inf)v+=' ('+inf+')'; }
+    linhas.push(item('Ambiente: '+a.ambiente, v));
+  });
+  if(d.estilo_avaliacoes&&Object.keys(d.estilo_avaliacoes).length){
+    const RE={amei:'Amei',gostei:'Gostei',nao:'Não é pra mim'};
+    const av=Object.keys(d.estilo_avaliacoes).map(k=>{const a=d.estilo_avaliacoes[k]||{};const p=[];if(a.reacao)p.push(RE[a.reacao]||a.reacao);if(a.estrelas)p.push(a.estrelas+'/8 ★');return p.length?`${k}: ${p.join(', ')}`:'';}).filter(Boolean).join('   ·   ');
+    if(av)linhas.push(item('Avaliação dos estilos (fase 1)', av));
+  }
+  if(d.paleta_escolhida) linhas.push(item('Paleta escolhida', PAL[d.paleta_escolhida]||d.paleta_escolhida));
+  if(Array.isArray(d.paleta_custom)&&d.paleta_custom.length) linhas.push(item('Paleta personalizada', d.paleta_custom.join('  ')));
+  if(d.paleta_aplicar_todos!==undefined) linhas.push(item('Aplicar paleta a todos os ambientes', d.paleta_aplicar_todos?'Sim':'Não'));
+  if(Array.isArray(d.paleta_por_ambiente)) d.paleta_por_ambiente.forEach(a=>{ linhas.push(item('Paleta — '+a.ambiente, a.label||(a.paleta_escolhida?(PAL[a.paleta_escolhida]||a.paleta_escolhida):'—'))); });
+  const tex=(d.texturas_escolhidas_labels&&d.texturas_escolhidas_labels.length?d.texturas_escolhidas_labels:d.texturas_escolhidas)||[];
+  if(tex.length) linhas.push(item('Texturas', tex.join(', ')));
+  if(d.texturas_livre) linhas.push(item('Textura específica', d.texturas_livre));
+  const itens=linhas.filter(Boolean).join('');
+  if(!itens) return '';
+  return `<div class="bf-grupo aberto"><div class="bf-grupo-hd" onclick="this.closest('.bf-grupo').classList.toggle('aberto')"><span class="bf-grupo-tit">Estética — estilo, paleta e texturas</span><span class="bf-grupo-cta">▼</span></div><div class="bf-grupo-body">${itens}</div></div>`;
+}
+
 async function carregarBriefing() {
   const alvo = document.getElementById('bf-conteudo');
   const stat = document.getElementById('bf-status');
@@ -652,7 +681,7 @@ async function carregarBriefing() {
     html += `<div class="bf-grupo aberto"><div class="bf-grupo-hd" onclick="this.closest('.bf-grupo').classList.toggle('aberto')"><span class="bf-grupo-tit">${bfEscapar(g.titulo)}</span><span class="bf-grupo-cta">▼</span></div><div class="bf-grupo-body">${itens}</div></div>`;
   });
 
-  html = bfFamilia(d) + html + bfUploads(d);
+  html = bfFamilia(d) + bfEstetica(d) + html + bfUploads(d);
   alvo.innerHTML = html || '<div class="bf-vazio">O cliente ainda não respondeu nenhuma pergunta.</div>';
 }
 
