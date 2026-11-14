@@ -550,24 +550,36 @@ const BF_LABELS = {
   'tomada-grill':'Tomada para grill', 'maquina-lavar':'Máquina de lavar',
   'lavanderia-coletiva':'Lavanderia coletiva',
   'restricoes-condominio':'Restrições do condomínio',
+  'trabalho-obs':'Trabalho — comentário','ritmo-casa-obs':'Clima da casa — comentário','visitas-obs':'Visitas — comentário','cozinha-obs':'Cozinha — comentário','quarto-extra-obs':'Quarto extra — comentário',
+  'teto-trocar':'Deseja trocar o teto','teto-trocar-tipo':'Teto — acabamento desejado',
+  'piso-trocar':'Deseja trocar o piso','piso-trocar-tipo':'Piso — material desejado',
+  'banheiro-trocar':'Deseja trocar o banheiro','banheiro-trocar-onde':'Banheiro — o que trocar','banheiro-trocar-tipo':'Banheiro — revestimento desejado',
+  'bancada-banheiro':'Bancada no banheiro (entrega)','bancada-banheiro-pedra':'Bancada banheiro — pedra','bancada-banheiro-manter':'Bancada banheiro — manter?',
+  'pia-coluna':'Pia com coluna (entrega)','pia-coluna-manter':'Pia com coluna — manter?',
+  'bancada-cozinha':'Bancada da cozinha (entrega)','bancada-cozinha-manter':'Bancada cozinha — manter?',
+  'tanque':'Tanque (entrega)','tanque-coluna':'Tanque — coluna','tanque-material':'Tanque — material',
+  'ar-instalar':'Pretende instalar ar-condicionado','lava-loucas-ponto':'Ponto p/ lava-louças','lava-loucas-instalar':'Pretende instalar lava-louças',
+  'aquecimento-ambientes':'Água quente — ambientes atendidos','area-servico':'Área de serviço','varanda-grill-bancada':'Varanda — grill/bancada',
   'frase-lar':'Frase para o lar', 'obs-gerais':'Observações gerais'
 };
 
 const BF_GRUPOS = [
   {titulo:'Como o cliente quer se sentir', campos:['sensacao','consciencia-estilo','estilo-obs','cor-nao-quer']},
   {titulo:'O que o cliente não quer', campos:['nao-quer','erros-passados','lugar-referencia']},
-  {titulo:'Rotina e hobbies', campos:['trabalho','espaco-trabalho','ritmo-casa','visitas','cozinha-habito','quarto-extra','hobbies','hobbies-outros','hobbies-espaco']},
+  {titulo:'Rotina e hobbies', campos:['trabalho','trabalho-obs','espaco-trabalho','ritmo-casa','ritmo-casa-obs','visitas','visitas-obs','cozinha-habito','cozinha-obs','quarto-extra','quarto-extra-obs','hobbies','hobbies-outros','hobbies-espaco']},
   {titulo:'Necessidades e referências', campos:['necessidades','acessibilidade','acessibilidade-desc','ambientes-prioritarios','objetos-coração','reutilizar','reutilizar-desc','ja-adquiriu','ja-adquiriu-desc','refs-texto','refs-links']},
   {titulo:'Investimento e prazo', campos:['perfil-reforma','orcamento','orcamento-prioridade','inicio-obra','tem-prazo','prazo-data','prazo-motivo']},
   {titulo:'O imóvel', campos:['empreendimento','construtora','bairro','cidade','tipologia','metragem','andar','garagem','banheiros','varanda-tipo','integrar-varanda','envidracar-varanda','restricoes-condominio']},
-  {titulo:'Entrega e infraestrutura', campos:['estado-entrega','teto-entrega','metodologia-construtiva','piso-revestimento','piso-material','banheiro-revestimento','banheiro-rev-tipo','banheiro-rev-parcial','banheiro-ventilacao','forro-rebaixado','forro-ambientes','trocar-portas','trocar-fechaduras','ar-condicionado','ar-pontos','aquecimento','fogao','forno-eletrico','tomada-grill','maquina-lavar','lavanderia-coletiva']},
+  {titulo:'Entrega e infraestrutura', campos:['estado-entrega','teto-entrega','teto-trocar','teto-trocar-tipo','metodologia-construtiva','piso-revestimento','piso-material','piso-trocar','piso-trocar-tipo','banheiro-revestimento','banheiro-rev-tipo','banheiro-rev-parcial','banheiro-trocar','banheiro-trocar-onde','banheiro-trocar-tipo','banheiro-ventilacao','bancada-banheiro','bancada-banheiro-pedra','bancada-banheiro-manter','pia-coluna','pia-coluna-manter','bancada-cozinha','bancada-cozinha-manter','tanque','tanque-coluna','tanque-material','forro-rebaixado','forro-ambientes','trocar-portas','trocar-fechaduras','ar-condicionado','ar-pontos','ar-instalar','lava-loucas-ponto','lava-loucas-instalar','aquecimento','aquecimento-ambientes','fogao','forno-eletrico','tomada-grill','varanda-grill-bancada','maquina-lavar','lavanderia-coletiva','area-servico']},
   {titulo:'Intenções finais', campos:['frase-lar','obs-gerais']},
 ];
 
 const BF_UPLOAD_LABELS = {
   'reutilizar-prev':'Móveis a reutilizar',
   'adquiriu-prev':'Itens já adquiridos',
-  'refs-prev':'Imagens de referência'
+  'refs-prev':'Imagens de referência',
+  'apartamento-bruto-prev':'Fotos do apartamento atual',
+  'memorial-prev':'Memorial descritivo'
 };
 
 function bfEscapar(t){

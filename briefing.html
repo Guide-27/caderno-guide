@@ -184,6 +184,11 @@ html,body{background:var(--black);color:var(--off);font-family:"Outfit",sans-ser
 .upload-icon{font-size:26px;opacity:0.3;display:block;margin-bottom:8px;}
 .upload-txt{font-size:13px;color:var(--muted);}
 .upload-sub{font-size:11px;color:var(--muted2);margin-top:4px;}
+/* 7 — input de arquivo vira overlay invisível (clica em qualquer lugar) + botão em cápsula */
+.upload-area input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;}
+.upload-btn{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:9px 18px;border-radius:100px;border:1px solid var(--gold-mid);background:var(--gold-dim);color:var(--gold-light);font-size:12px;font-weight:500;font-family:"Outfit",sans-serif;transition:all .2s;}
+.upload-area:hover .upload-btn{background:rgba(201,162,39,0.16);border-color:var(--gold);}
+.upload-btn svg.lucide{width:15px;height:15px;}
 .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .upload-thumb{width:68px;height:68px;border-radius:12px;background:var(--card2);border:1px solid var(--border2);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:22px;}
 .upload-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.75);border:none;border-radius:50%;width:16px;height:16px;color:white;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -707,6 +712,7 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="card-sel" data-val="qualquer-lugar">Qualquer lugar serve</div>
 </div>
 </div>
+<textarea class="input" rows="1" placeholder="Quer falar mais sobre seu trabalho e rotina? (opcional)" data-campo="trabalho-obs" style="margin-top:12px;min-height:42px;resize:vertical;"></textarea>
 </div>
 <div class="campo">
 <label class="campo-label">Como é o clima da sua casa no dia a dia?</label>
@@ -715,6 +721,7 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="radio-item" data-val="tranquila"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Tranquila — ambiente calmo, poucas pessoas</div></div></div>
   <div class="radio-item" data-val="variavel"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Variável — depende muito do dia</div></div></div>
 </div>
+<textarea class="input" rows="1" placeholder="Quer falar mais sobre o clima da casa? (opcional)" data-campo="ritmo-casa-obs" style="margin-top:12px;min-height:42px;resize:vertical;"></textarea>
 </div>
 <div class="campo">
 <label class="campo-label">Com que frequência você recebe visitas em casa?</label>
@@ -724,6 +731,7 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="card-sel" data-val="frequente">Frequentemente</div>
   <div class="card-sel" data-val="jantares"><span class="cs-icon">🍽</span><span class="cs-label">Faço jantares e reuniões regularmente</span></div>
 </div>
+<textarea class="input" rows="1" placeholder="Quer falar mais sobre como recebe visitas? (opcional)" data-campo="visitas-obs" style="margin-top:12px;min-height:42px;resize:vertical;"></textarea>
 </div>
 <div class="campo">
 <label class="campo-label">Você cozinha?</label>
@@ -732,6 +740,7 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="card-sel" data-val="basico">Cozinho o básico do dia a dia</div>
   <div class="card-sel" data-val="raramente">Raramente — prefiro pedir ou comer fora</div>
 </div>
+<textarea class="input" rows="1" placeholder="Quer falar mais sobre seus hábitos na cozinha? (opcional)" data-campo="cozinha-obs" style="margin-top:12px;min-height:42px;resize:vertical;"></textarea>
 </div>
 <div class="campo">
 <label class="campo-label">Se tiver um quarto que não será usado como dormitório, o que faria com ele?</label>
@@ -746,6 +755,7 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="card-sel" data-val="atelie"><span class="cs-icon">🎨</span><span class="cs-label">Ateliê / espaço criativo</span></div>
   <div class="card-sel" data-val="integrar"><span class="cs-icon">🔓</span><span class="cs-label">Integrar com outro ambiente, se possível</span></div>
 </div>
+<textarea class="input" rows="1" placeholder="Quer falar mais sobre esse quarto extra? (opcional)" data-campo="quarto-extra-obs" style="margin-top:12px;min-height:42px;resize:vertical;"></textarea>
 </div>
 <div class="nav-btns"><button class="btn-anterior" onclick="irParaEtapa(6)">← Anterior</button><button class="btn-proximo" onclick="irParaEtapa(8)">Próximo →</button></div>
 </div><div class="etapa-tela" id="tela-8">
@@ -1039,9 +1049,23 @@ svg.lucide.ic-xl{width:28px;height:28px;}
   <div class="radio-item" data-val="com-piso"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com piso entregue</div><div class="radio-sub">A construtora instala um piso padrão. Paredes podem precisar de acabamento.</div></div></div>
   <div class="radio-item" data-val="completo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com revestimento completo</div><div class="radio-sub">Piso e paredes já com acabamento padrão da construtora.</div></div></div>
   <div class="radio-item" data-val="reforma-anterior"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Já teve reforma anterior</div></div></div>
+  <div class="radio-item" data-val="personalizado"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Com acabamentos personalizados</div><div class="radio-sub">Isto é, o que você escolheu junto à construtora.</div></div></div>
+  <div class="radio-item" data-val="tudo-novo"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-txt"><div class="radio-titulo">Independente — quero tudo novo</div><div class="radio-sub">Vou refazer os acabamentos do meu jeito, do zero.</div></div></div>
 </div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos e no material de vendas entregue pela construtora. Se não tiver, solicite direto à construtora.</div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Tem o memorial descritivo em mãos?</label>
+<div class="campo-hint">Anexe-o aqui — assim analisamos todos esses detalhes de entrega junto com você.</div>
+<div class="upload-area" style="margin-top:8px;">
+  <input type="file" accept="image/*,.pdf" multiple onchange="handleUpload(this,'memorial-prev')">
+  <span class="upload-icon">📎</span>
+  <div class="upload-txt">Envie o memorial descritivo</div>
+  <div class="upload-sub">PDF ou imagem · da construtora</div>
+</div>
+<div class="upload-preview" id="memorial-prev"></div>
 </div>
 
 <div class="campo">
@@ -1049,6 +1073,9 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="cards-sel" data-grupo="teto-entrega" data-max="1"><div class="card-sel" data-val="laje-aparente">Laje aparente</div><div class="card-sel" data-val="gesso-liso">Gesso liso</div><div class="card-sel" data-val="gesso-sanca">Gesso com sanca</div><div class="card-sel" data-val="textura">Textura</div><div class="card-sel" data-val="rebaixado">Rebaixado</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo de acabamentos entregue pela construtora no ato da compra.</div>
+<label class="campo-label" style="margin-top:16px;display:block;">Deseja trocar o acabamento do teto?</label>
+<div class="cards-sel" data-grupo="teto-trocar" data-max="1" data-trigger="teto-trocar"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Ainda não sei</div></div>
+<div class="campo-condicional" id="cond-teto-trocar-sim"><input class="input" type="text" placeholder="Qual acabamento você gostaria? Ex: gesso liso, sanca, rebaixado..." data-campo="teto-trocar-tipo" style="margin-top:8px;"></div>
 </div>
 
 <div class="campo">
@@ -1057,6 +1084,9 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="campo-condicional" id="cond-piso-revestimento-sim"><input class="input" type="text" placeholder="Qual material? Ex: porcelanato, cerâmica..." data-campo="piso-material" style="margin-top:8px;"></div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou manual do proprietário. Também pode estar no contrato de compra e venda.</div>
+<label class="campo-label" style="margin-top:16px;display:block;">Deseja trocar o piso?</label>
+<div class="cards-sel" data-grupo="piso-trocar" data-max="1" data-trigger="piso-trocar"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Ainda não sei</div></div>
+<div class="campo-condicional" id="cond-piso-trocar-sim"><input class="input" type="text" placeholder="Qual piso você gostaria? Ex: porcelanato, madeira, cimento queimado..." data-campo="piso-trocar-tipo" style="margin-top:8px;"></div>
 </div>
 
 <div class="campo">
@@ -1066,11 +1096,53 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="campo-condicional" id="cond-banheiro-revestimento-sim-parcial"><input class="input" type="text" placeholder="O que está incluído? Ex: piso em cerâmica, sem paredes..." data-campo="banheiro-rev-parcial" style="margin-top:8px;"></div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Memorial descritivo da construtora ou folder de vendas do empreendimento.</div>
+<label class="campo-label" style="margin-top:16px;display:block;">Deseja trocar o revestimento do banheiro?</label>
+<div class="cards-sel" data-grupo="banheiro-trocar" data-max="1" data-trigger="banheiro-trocar"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Ainda não sei</div></div>
+<div class="campo-condicional" id="cond-banheiro-trocar-sim">
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">O que você quer trocar?</label>
+  <div class="cards-sel" data-grupo="banheiro-trocar-onde" data-max="4"><div class="card-sel" data-val="piso">Piso</div><div class="card-sel" data-val="paredes">Paredes</div><div class="card-sel" data-val="uma-parede">Somente uma parede</div><div class="card-sel" data-val="parede-box">Somente a parede dentro do box</div></div>
+  <input class="input" type="text" placeholder="Qual revestimento você gostaria? Ex: porcelanato, pastilha, mármore..." data-campo="banheiro-trocar-tipo" style="margin-top:8px;">
+</div>
 </div>
 
 <div class="campo">
 <label class="campo-label">O banheiro tem janela ou ventilação natural?</label>
 <div class="cards-sel" data-grupo="banheiro-ventilacao" data-max="1"><div class="card-sel" data-val="janela">🪟 Sim, tem janela</div><div class="card-sel" data-val="ventilacao">Ventilação técnica</div><div class="card-sel" data-val="nao">Sem ventilação natural</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">Bancadas e louças entregues pela construtora</label>
+<div class="campo-hint">O que já vem pronto — e o que você quer manter ou trocar.</div>
+
+<label class="campo-label" style="margin-top:12px;display:block;font-size:12px;color:var(--muted);">A construtora entrega bancada no banheiro?</label>
+<div class="cards-sel" data-grupo="bancada-banheiro" data-max="1" data-trigger="bancada-banheiro"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-bancada-banheiro-sim">
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Tipo de pedra</label>
+  <div class="cards-sel" data-grupo="bancada-banheiro-pedra" data-max="1"><div class="card-sel" data-val="branco">Branco</div><div class="card-sel" data-val="preto">Preto</div><div class="card-sel" data-val="cinza">Cinza</div></div>
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Quer manter a bancada do banheiro?</label>
+  <div class="cards-sel" data-grupo="bancada-banheiro-manter" data-max="1"><div class="card-sel" data-val="manter">Sim, manter</div><div class="card-sel" data-val="trocar">Não, trocar</div></div>
+</div>
+
+<label class="campo-label" style="margin-top:14px;display:block;font-size:12px;color:var(--muted);">Entrega pia com coluna?</label>
+<div class="cards-sel" data-grupo="pia-coluna" data-max="1" data-trigger="pia-coluna"><div class="card-sel" data-val="sim">Sim, com coluna</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-pia-coluna-sim">
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Quer manter a pia com coluna?</label>
+  <div class="cards-sel" data-grupo="pia-coluna-manter" data-max="1"><div class="card-sel" data-val="manter">Sim, manter</div><div class="card-sel" data-val="trocar">Não, trocar</div></div>
+</div>
+
+<label class="campo-label" style="margin-top:14px;display:block;font-size:12px;color:var(--muted);">Qual o tipo de bancada da cozinha?</label>
+<div class="cards-sel" data-grupo="bancada-cozinha" data-max="1"><div class="card-sel" data-val="granito-branco">Granito branco</div><div class="card-sel" data-val="granito-cinza">Granito cinza</div><div class="card-sel" data-val="granito-preto">Granito preto</div><div class="card-sel" data-val="marmore-sintetico">Mármore sintético</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Quer manter a bancada da cozinha?</label>
+<div class="cards-sel" data-grupo="bancada-cozinha-manter" data-max="1"><div class="card-sel" data-val="manter">Sim, manter</div><div class="card-sel" data-val="trocar">Não, trocar</div></div>
+
+<label class="campo-label" style="margin-top:14px;display:block;font-size:12px;color:var(--muted);">A construtora entrega tanque?</label>
+<div class="cards-sel" data-grupo="tanque" data-max="1" data-trigger="tanque"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-condicional" id="cond-tanque-sim">
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Com coluna?</label>
+  <div class="cards-sel" data-grupo="tanque-coluna" data-max="1"><div class="card-sel" data-val="com-coluna">Com coluna</div><div class="card-sel" data-val="sem-coluna">Sem coluna</div></div>
+  <label class="campo-label" style="margin-top:10px;display:block;font-size:12px;color:var(--muted);">Material do tanque</label>
+  <div class="cards-sel" data-grupo="tanque-material" data-max="1"><div class="card-sel" data-val="marmore-sintetico">Mármore sintético</div><div class="card-sel" data-val="louca">Louça</div></div>
+</div>
 </div>
 
 <div class="campo">
@@ -1080,11 +1152,25 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="campo-dica">A infraestrutura para ar-condicionado inclui o duto de passagem para o condensador externo e o ponto elétrico. Sem ela, a instalação é mais cara e invasiva.</div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento entregues pela construtora.</div>
+<label class="campo-label" style="margin-top:16px;display:block;">Pretende instalar ar-condicionado?</label>
+<div class="cards-sel" data-grupo="ar-instalar" data-max="1"><div class="card-sel" data-val="sim">Sim, quero instalar</div><div class="card-sel" data-val="nao">Não pretendo</div><div class="card-sel" data-val="depois">Deixar para mais pra frente</div></div>
+</div>
+
+<div class="campo">
+<label class="campo-label">É entregue ponto para máquina de lavar louça?</label>
+<div class="cards-sel" data-grupo="lava-loucas-ponto" data-max="1"><div class="card-sel" data-val="sim">Sim, tem ponto</div><div class="card-sel" data-val="nao">Não entrega</div><div class="card-sel" data-val="nao-gostaria">Não entrega, mas gostaria de ter</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<label class="campo-label" style="margin-top:12px;display:block;">Pretende instalar lava-louças?</label>
+<div class="cards-sel" data-grupo="lava-loucas-instalar" data-max="1"><div class="card-sel" data-val="sim">Sim, quero instalar</div><div class="card-sel" data-val="nao">Não pretendo</div><div class="card-sel" data-val="depois">Deixar para mais pra frente</div></div>
+<button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
+<div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações da cozinha entregues pela construtora.</div>
 </div>
 
 <div class="campo">
 <label class="campo-label">Aquecimento de água</label>
 <div class="cards-sel" data-grupo="aquecimento" data-max="1"><div class="card-sel" data-val="gas-central">🔥 Gás central</div><div class="card-sel" data-val="gas-individual">🔥 Gás individual</div><div class="card-sel" data-val="eletrico">⚡ Chuveiro elétrico</div><div class="card-sel" data-val="solar">☀️ Solar</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<label class="campo-label" style="margin-top:12px;display:block;">Quais ambientes são atendidos pela água quente?</label>
+<div class="cards-sel" data-grupo="aquecimento-ambientes" data-max="4"><div class="card-sel" data-val="chuveiro">Chuveiro</div><div class="card-sel" data-val="torneira-banheiro">Torneira do banheiro</div><div class="card-sel" data-val="cozinha">Cozinha</div><div class="card-sel" data-val="nao-sei">Não sei</div></div>
+<div class="campo-dica" style="margin-top:8px;">Os pontos de água quente são definidos pela construtora e, infelizmente, <strong>não podem ser alterados</strong> na reforma. Por isso é importante sabermos quais ambientes já são atendidos.</div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Manual do proprietário ou especificações técnicas do empreendimento.</div>
 </div>
@@ -1107,6 +1193,8 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="campo-dica" style="margin-top:8px;">Se não houver lavanderia coletiva, é importante prever espaço para a máquina no projeto.</div>
 <div class="cards-sel" data-grupo="maquina-lavar" data-max="1" style="margin-top:10px;"><div class="card-sel" data-val="convencional">🫧 Máquina convencional</div><div class="card-sel" data-val="lava-seca">🌀 Lava e seca</div><div class="card-sel" data-val="nao">Não usarei máquina em casa</div></div>
 </div>
+<label class="campo-label" style="margin-top:12px;display:block;">O que você quer na sua área de serviço?</label>
+<div class="cards-sel" data-grupo="area-servico" data-max="1"><div class="card-sel" data-val="maquina-tanque">Máquina de lavar e tanque</div><div class="card-sel" data-val="so-maquina">Só máquina</div><div class="card-sel" data-val="so-tanque">Só tanque</div><div class="card-sel" data-val="coletiva">Não, pretendo usar a coletiva</div></div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Folder de vendas, material do empreendimento ou pergunte direto à construtora ou incorporadora.</div>
 </div>
@@ -1114,6 +1202,8 @@ svg.lucide.ic-xl{width:28px;height:28px;}
 <div class="campo">
 <label class="campo-label">A varanda tem tomada grill?</label>
 <div class="cards-sel" data-grupo="tomada-grill" data-max="1"><div class="card-sel" data-val="sim">Sim</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
+<label class="campo-label" style="margin-top:12px;display:block;">Gostaria de ter um grill ou bancada na varanda?</label>
+<div class="cards-sel" data-grupo="varanda-grill-bancada" data-max="1"><div class="card-sel" data-val="grill">Sim, um grill</div><div class="card-sel" data-val="bancada">Sim, uma bancada</div><div class="card-sel" data-val="ambos">Os dois</div><div class="card-sel" data-val="nao">Não</div><div class="card-sel" data-val="sem-varanda">Não tenho varanda</div></div>
 <button class="btn-onde" type="button" onclick="this.nextElementSibling.classList.toggle('vis')">🔍 Onde encontro essa informação?</button>
 <div class="onde-bloco"><strong>Onde verificar:</strong> Especificações técnicas da planta ou manual do proprietário.</div>
 </div>
@@ -2286,6 +2376,8 @@ function restaurarBriefingExtra(d){
 function initBriefingExtra(){
   lerEstilos(); renderFase1(); renderPaletas(); renderRoda(); renderTexturas(); renderPaletaAplicar();
   initCoverflow(); trocarEmojis();
+  // 7 — botão em cápsula em todas as áreas de upload
+  document.querySelectorAll('.upload-area').forEach(a=>{ if(!a.querySelector('.upload-btn')){ const b=document.createElement('span'); b.className='upload-btn'; b.innerHTML='<i data-lucide="upload"></i> Escolher arquivos'; a.appendChild(b); } });
   icons();
 }
 
