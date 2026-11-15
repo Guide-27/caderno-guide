@@ -87,6 +87,7 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
   </div>
   <div class="top-right">
     <span class="top-arquiteto" id="top-arquiteto"></span>
+    <button class="btn-logout" id="btn-admin" style="display:none" onclick="window.location.href='/admin-dono'">Administração</button>
     <button class="btn-logout" onclick="window.location.href='/admin-fornecedores'">Fornecedores</button>
     <button class="btn-logout" onclick="fazerLogout()">Sair</button>
   </div>
@@ -146,6 +147,9 @@ async function inicializar() {
   arquitetoAtual = arq;
   document.getElementById('top-arquiteto').textContent = arq.nome;
   document.getElementById('saudacao').textContent = `Olá, ${arq.nome.split(' ')[0]}`;
+  // acesso à sessão de Administração — só para os donos da plataforma
+  const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
+  if (DONOS.includes((email||'').toLowerCase())) document.getElementById('btn-admin').style.display = '';
   carregarProjetos();
 }
 async function carregarProjetos() {

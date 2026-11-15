@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administração — Painel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#9a968d; --muted2:#6a665e;
+  --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
+  --green:#50C878; --green-dim:rgba(80,200,120,0.09); --blue:#5a8cdc; --blue-dim:rgba(90,140,220,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--black); color: var(--off); font-family: 'Outfit', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+#bg-canvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+.noise { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size: 200px; }
+.top-bar { position: fixed; top: 24px; left: 28px; right: 28px; height: 60px; background: rgba(255,255,255,0.06); backdrop-filter: blur(32px) saturate(160%); -webkit-backdrop-filter: blur(32px) saturate(160%); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 18px 44px rgba(0,0,0,0.45), 0 0 24px rgba(201,162,39,0.04); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 300; }
+.top-left { display: flex; align-items: center; gap: 12px; }
+.top-logo-img { height: 28px; width: auto; display: block; }
+.top-painel-badge { font-size: 9px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--gold-dim); }
+.top-right { display: flex; align-items: center; gap: 14px; }
+.top-arquiteto { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+.btn-logout { background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 6px 14px; font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; letter-spacing: 0.06em; text-transform: uppercase; }
+.btn-logout:hover { color: var(--gold); border-color: var(--border); }
+.main { max-width: 1180px; margin: 0 auto; padding: 130px 28px 80px; position: relative; z-index: 2; }
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 16px; }
+.page-saudacao { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.page-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; margin-top: 6px; }
+
+/* KPIs */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.kpi { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 16px; padding: 20px 22px; position: relative; overflow: hidden; }
+.kpi::after { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background: linear-gradient(180deg, var(--gold), transparent); opacity:.5; }
+.kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.kpi-valor { font-family: 'Quicksand', sans-serif; font-size: 28px; font-weight: 700; color: var(--white); line-height: 1; }
+.kpi-sub { font-size: 12px; color: var(--muted); margin-top: 9px; }
+.kpi-sub strong { color: var(--gold-light); font-weight: 600; }
+
+.sec-titulo { font-family: 'Quicksand', sans-serif; font-size: 15px; font-weight: 600; color: var(--white); margin: 6px 0 14px; letter-spacing: 0.02em; }
+
+/* por plano */
+.plano-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 30px; }
+.plano-card { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 14px; padding: 16px 18px; }
+.plano-card-top { display: flex; align-items: baseline; justify-content: space-between; }
+.plano-card-nome { font-size: 13px; font-weight: 600; color: var(--gold-light); }
+.plano-card-preco { font-size: 11px; color: var(--muted); }
+.plano-card-n { font-family: 'Quicksand', sans-serif; font-size: 24px; font-weight: 700; color: var(--white); margin-top: 8px; }
+.plano-card-rec { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.plano-bar { height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+.plano-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 3px; transition: width .6s ease; }
+
+/* filtros + tabela */
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.filtro-sel, .busca-input { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 13px; font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--white); outline: none; transition: border-color .2s; }
+.filtro-sel:focus, .busca-input:focus { border-color: var(--gold-mid); }
+.busca-input { min-width: 200px; }
+.busca-input::placeholder { color: var(--muted2); }
+.btn-export { margin-left: auto; background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 9px 14px; font-size: 12px; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 7px; font-family: 'Outfit', sans-serif; transition: all .2s; }
+.btn-export:hover { color: var(--gold); border-color: var(--border); }
+.tabela-wrap { overflow-x: auto; border: 1px solid var(--border2); border-radius: 14px; }
+table.contratacoes { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 860px; }
+table.contratacoes th { text-align: left; padding: 12px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border2); background: rgba(255,255,255,0.02); font-weight: 600; white-space: nowrap; }
+table.contratacoes td { padding: 12px 14px; border-bottom: 1px solid var(--border2); color: var(--off); }
+table.contratacoes tr:last-child td { border-bottom: none; }
+table.contratacoes tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.cel-cliente { font-weight: 500; color: var(--white); }
+.cel-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cel-valor { font-weight: 600; color: var(--white); white-space: nowrap; }
+.tag-plano { font-size: 10px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--gold-dim); color: var(--gold-light); white-space: nowrap; }
+.tag-conv { font-size: 10px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.tag-conv.sim { background: var(--green-dim); color: var(--green); border: 1px solid rgba(80,200,120,0.3); }
+.tag-conv.nao { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border2); }
+.tabela-vazia { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+
+.loading { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 13px; }
+.spinner { display: inline-block; width: 26px; height: 26px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.aviso { background: var(--blue-dim); border: 1px solid rgba(90,140,220,0.3); border-radius: 12px; padding: 14px 16px; font-size: 12.5px; color: var(--off); line-height: 1.6; margin-bottom: 24px; }
+.aviso strong { color: var(--white); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(20,20,24,0.96); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 11px; padding: 13px 22px; font-size: 12px; color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.toast.vis { opacity: 1; }
+@media (max-width: 600px){ .top-bar{left:12px;right:12px;padding:0 16px;} .main{padding:116px 16px 80px;} }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="top-bar">
+  <div class="top-left">
+    <img class="top-logo-img" src="/assets/logo-guide.svg" alt="Guide">
+    <span class="top-painel-badge">Administração</span>
+  </div>
+  <div class="top-right">
+    <span class="top-arquiteto" id="top-arquiteto"></span>
+    <button class="btn-logout" onclick="window.location.href='/admin-projetos'">Projetos</button>
+    <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+  </div>
+</div>
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-saudacao" id="saudacao">Visão da plataforma</div>
+      <h1 class="page-titulo">Administração</h1>
+    </div>
+  </div>
+  <div id="conteudo">
+    <div class="loading"><div class="spinner"></div><p>Carregando dados...</p></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+else { console.error('Biblioteca Supabase não carregou.'); }
+
+// ── DONOS da plataforma (acesso a esta sessão) — ajuste a lista aqui ──
+const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
+
+// ── Planos e preços (espelham o contratar.html) ──
+const PLANOS = {
+  essencial: { nome: 'Essencial', preco: 20 },
+  visual:    { nome: 'Visual',    preco: 40 },
+  completo:  { nome: 'Completo',  preco: 60 },
+};
+const FORMA_PAG = { cartao: 'Cartão', pix: 'Pix', boleto: 'Boleto', transferencia: 'Transferência' };
+
+let contratacoes = [];
+let emailsProjetos = new Set();
+
+// fundo animado (mesmo do painel)
+(function(){
+  const c = document.getElementById('bg-canvas'); const ctx = c.getContext('2d'); let W, H, t = 0;
+  const orbs = [ { x: 0.15, y: 0.2, r: 0.42, c: [201,162,39], a: 0.045 }, { x: 0.85, y: 0.8, r: 0.36, c: [201,162,39], a: 0.03 }, { x: 0.5, y: 0.5, r: 0.28, c: [80,100,200], a: 0.02 } ];
+  function resize() { W = c.width = innerWidth; H = c.height = innerHeight; }
+  function draw() { ctx.clearRect(0,0,W,H); t += 0.0025; orbs.forEach((o,i) => { const dx = Math.sin(t*0.7+i*1.3)*0.05; const dy = Math.cos(t*0.5+i*0.9)*0.04; const x=(o.x+dx)*W, y=(o.y+dy)*H; const r=o.r*Math.min(W,H); const g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,`rgba(${o.c}, ${o.a})`); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(draw); }
+  window.addEventListener('resize', resize); resize(); draw();
+})();
+
+const fmtBRL = (n) => (n||0).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: 0 });
+const fmtData = (iso) => { if(!iso) return '—'; const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleDateString('pt-BR'); };
+const dataContratacao = (c) => c.aceite_data || c.created_at || c.criado_em || null;
+const esc = (t) => String(t==null?'':t).replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+
+async function inicializar() {
+  if (!sb) { document.getElementById('conteudo').innerHTML = '<div class="tabela-vazia">Erro de conexão. Recarregue a página.</div>'; return; }
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = '/admin'; return; }
+  const email = (data.session.user.email || '').toLowerCase();
+
+  // trava: só donos da plataforma
+  if (!DONOS.includes(email)) {
+    document.getElementById('conteudo').innerHTML = '<div class="tabela-vazia">Esta área é exclusiva da administração da plataforma.</div>';
+    setTimeout(() => window.location.href = '/admin-projetos', 1800);
+    return;
+  }
+
+  // nome (se for arquiteto cadastrado) — opcional
+  try {
+    const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', email).maybeSingle();
+    if (arq && arq.nome) { document.getElementById('top-arquiteto').textContent = arq.nome; document.getElementById('saudacao').textContent = `Olá, ${arq.nome.split(' ')[0]}`; }
+    else { document.getElementById('top-arquiteto').textContent = email; }
+  } catch(_) {}
+
+  carregarDados();
+}
+
+async function carregarDados() {
+  const [cRes, pRes] = await Promise.all([
+    sb.from('contratacoes').select('*').order('aceite_data', { ascending: false }),
+    sb.from('projetos').select('email'),
+  ]);
+  if (cRes.error) {
+    document.getElementById('conteudo').innerHTML = `<div class="aviso"><strong>Não foi possível ler as contratações.</strong> Provavelmente falta liberar a leitura para a administração no Supabase. Rode a migração <code>supabase-migration-admin-dono.sql</code> e recarregue.</div>`;
+    console.error(cRes.error); return;
+  }
+  contratacoes = cRes.data || [];
+  emailsProjetos = new Set((pRes.data || []).map(p => (p.email||'').toLowerCase()).filter(Boolean));
+  render();
+}
+
+function convertida(c) { return !!(c.email && emailsProjetos.has(c.email.toLowerCase())); }
+function noMes(c) { const d = dataContratacao(c); if(!d) return false; const dt = new Date(d); const now = new Date(); return dt.getMonth()===now.getMonth() && dt.getFullYear()===now.getFullYear(); }
+
+function render() {
+  const total = contratacoes.length;
+  const receita = contratacoes.reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
+  const ticket = total ? receita/total : 0;
+  const convertidas = contratacoes.filter(convertida).length;
+  const conv = total ? Math.round((convertidas/total)*100) : 0;
+  const mesN = contratacoes.filter(noMes).length;
+  const mesRec = contratacoes.filter(noMes).reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
+
+  // por plano
+  const porPlano = {};
+  for (const k in PLANOS) porPlano[k] = { n:0, rec:0 };
+  contratacoes.forEach(c => { const k = c.plano; if (porPlano[k]) { porPlano[k].n++; porPlano[k].rec += Number(c.valor_total)||0; } });
+
+  const kpis = `
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Contratações</div><div class="kpi-valor">${total}</div><div class="kpi-sub"><strong>${mesN}</strong> este mês</div></div>
+      <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub"><strong>${fmtBRL(mesRec)}</strong> este mês</div></div>
+      <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-valor">${fmtBRL(ticket)}</div><div class="kpi-sub">por contratação</div></div>
+      <div class="kpi"><div class="kpi-label">Conversão</div><div class="kpi-valor">${conv}%</div><div class="kpi-sub"><strong>${convertidas}</strong> viraram projeto</div></div>
+    </div>`;
+
+  const planosHtml = Object.keys(PLANOS).map(k => {
+    const p = PLANOS[k]; const d = porPlano[k]; const pct = total ? Math.round((d.n/total)*100) : 0;
+    return `<div class="plano-card"><div class="plano-card-top"><span class="plano-card-nome">${p.nome}</span><span class="plano-card-preco">R$ ${p.preco}/m²</span></div><div class="plano-card-n">${d.n}</div><div class="plano-card-rec">${fmtBRL(d.rec)} · ${pct}% das vendas</div><div class="plano-bar"><div class="plano-bar-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+
+  const filtros = `
+    <div class="filtros">
+      <select class="filtro-sel" id="f-periodo" onchange="renderTabela()">
+        <option value="todos">Todo o período</option>
+        <option value="mes">Este mês</option>
+        <option value="30">Últimos 30 dias</option>
+      </select>
+      <select class="filtro-sel" id="f-plano" onchange="renderTabela()">
+        <option value="todos">Todos os planos</option>
+        <option value="essencial">Essencial</option>
+        <option value="visual">Visual</option>
+        <option value="completo">Completo</option>
+      </select>
+      <select class="filtro-sel" id="f-conv" onchange="renderTabela()">
+        <option value="todos">Convertidos e não</option>
+        <option value="sim">Só convertidos</option>
+        <option value="nao">Só não convertidos</option>
+      </select>
+      <input class="busca-input" id="f-busca" placeholder="Buscar por nome, email..." oninput="renderTabela()">
+      <button class="btn-export" onclick="exportarCSV()">⭳ Exportar CSV</button>
+    </div>`;
+
+  document.getElementById('conteudo').innerHTML =
+    kpis +
+    `<div class="sec-titulo">Vendas por plano</div><div class="plano-grid">${planosHtml}</div>` +
+    `<div class="sec-titulo">Contratações</div>` + filtros +
+    `<div class="tabela-wrap" id="tabela-wrap"></div>`;
+
+  renderTabela();
+}
+
+function contratacoesFiltradas() {
+  const periodo = (document.getElementById('f-periodo')||{}).value || 'todos';
+  const plano = (document.getElementById('f-plano')||{}).value || 'todos';
+  const conv = (document.getElementById('f-conv')||{}).value || 'todos';
+  const busca = ((document.getElementById('f-busca')||{}).value || '').toLowerCase().trim();
+  const agora = new Date();
+  return contratacoes.filter(c => {
+    if (plano !== 'todos' && c.plano !== plano) return false;
+    if (conv === 'sim' && !convertida(c)) return false;
+    if (conv === 'nao' && convertida(c)) return false;
+    if (periodo === 'mes' && !noMes(c)) return false;
+    if (periodo === '30') { const d = dataContratacao(c); if(!d || (agora - new Date(d)) > 30*864e5) return false; }
+    if (busca) {
+      const alvo = `${c.nome||''} ${c.email||''} ${c.empreendimento||''}`.toLowerCase();
+      if (!alvo.includes(busca)) return false;
+    }
+    return true;
+  });
+}
+
+function renderTabela() {
+  const wrap = document.getElementById('tabela-wrap'); if (!wrap) return;
+  const linhas = contratacoesFiltradas();
+  if (!linhas.length) { wrap.innerHTML = '<div class="tabela-vazia">Nenhuma contratação para os filtros selecionados.</div>'; return; }
+  const corpo = linhas.map(c => {
+    const plano = PLANOS[c.plano] ? PLANOS[c.plano].nome : (c.plano || '—');
+    const pag = FORMA_PAG[c.forma_pagamento] || c.forma_pagamento || '—';
+    const parc = c.parcelas ? ` ${c.parcelas}x` : '';
+    const cv = convertida(c);
+    return `<tr>
+      <td>${fmtData(dataContratacao(c))}</td>
+      <td><div class="cel-cliente">${esc(c.nome)||'—'}</div><div class="cel-sub">${esc(c.email)||''}</div></td>
+      <td>${esc(c.empreendimento)||'—'}</td>
+      <td>${c.metragem ? esc(c.metragem)+' m²' : '—'}</td>
+      <td><span class="tag-plano">${esc(plano)}</span></td>
+      <td class="cel-valor">${fmtBRL(c.valor_total)}</td>
+      <td>${esc(pag)}${parc}</td>
+      <td><span class="tag-conv ${cv?'sim':'nao'}">${cv?'✓ Projeto':'Lead'}</span></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table class="contratacoes"><thead><tr>
+    <th>Data</th><th>Cliente</th><th>Empreendimento</th><th>Metragem</th><th>Plano</th><th>Valor</th><th>Pagamento</th><th>Status</th>
+  </tr></thead><tbody>${corpo}</tbody></table>`;
+}
+
+function exportarCSV() {
+  const linhas = contratacoesFiltradas();
+  if (!linhas.length) { mostrarToast('Nada para exportar'); return; }
+  const cab = ['Data','Nome','Email','WhatsApp','Empreendimento','Metragem','Plano','Valor','Pagamento','Parcelas','Convertido'];
+  const rows = linhas.map(c => [
+    fmtData(dataContratacao(c)), c.nome||'', c.email||'', c.whatsapp||'', c.empreendimento||'',
+    c.metragem||'', (PLANOS[c.plano]?PLANOS[c.plano].nome:c.plano)||'', c.valor_total||'',
+    FORMA_PAG[c.forma_pagamento]||c.forma_pagamento||'', c.parcelas||'', convertida(c)?'Sim':'Não'
+  ]);
+  const csv = [cab, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(["﻿"+csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `contratacoes-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+async function fazerLogout() { await sb.auth.signOut(); window.location.href = '/admin'; }
+function mostrarToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('vis'); setTimeout(() => toast.classList.remove('vis'), 3000); }
+
+inicializar();
+</script>
+</body>
+</html>
