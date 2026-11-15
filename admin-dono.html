@@ -77,6 +77,42 @@ table.contratacoes tbody tr:hover td { background: rgba(255,255,255,0.02); }
 .tag-conv.nao { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border2); }
 .tabela-vazia { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
 
+/* comparativo mês a mês */
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-bottom: 30px; }
+.comp-card { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 14px; padding: 16px 18px; }
+.comp-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.comp-valor { font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); }
+.comp-delta { font-size: 12px; margin-top: 6px; font-weight: 600; }
+.comp-delta.up { color: var(--green); } .comp-delta.down { color: #e06b6b; } .comp-delta.flat { color: var(--muted); }
+.comp-delta .comp-prev { color: var(--muted); font-weight: 400; margin-left: 5px; }
+
+/* situação (status) */
+.status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 10px; }
+.status-card { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-left: 3px solid var(--muted2); border-radius: 14px; padding: 14px 16px; }
+.status-card.ativa { border-left-color: var(--gold); }
+.status-card.concluida { border-left-color: var(--green); }
+.status-card.pausada { border-left-color: var(--blue); }
+.status-card.cancelada { border-left-color: #e06b6b; }
+.status-nome { font-size: 12px; color: var(--off); margin-bottom: 6px; }
+.status-n { font-family: 'Quicksand', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); }
+.status-rec { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.status-churn { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+.status-churn strong { color: #e06b6b; }
+
+/* gráfico de evolução */
+.chart-wrap { background: rgba(255,255,255,0.025); border: 1px solid var(--border2); border-radius: 14px; padding: 18px 16px 10px; margin-bottom: 30px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 5px; height: 150px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 5px; min-width: 0; }
+.chart-val { font-size: 10px; color: var(--muted); }
+.chart-bar { width: 100%; max-width: 34px; background: linear-gradient(180deg, var(--gold-light), var(--gold)); border-radius: 5px 5px 0 0; min-height: 2px; transition: height .5s ease; }
+.chart-xlbl { font-size: 9px; color: var(--muted2); text-transform: uppercase; }
+
+/* selects editáveis na tabela */
+.sel-inline { background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: var(--white); font-family: 'Outfit', sans-serif; cursor: pointer; outline: none; }
+.sel-inline:focus { border-color: var(--gold-mid); }
+.sel-inline.st-ativa { color: var(--gold-light); } .sel-inline.st-concluida { color: var(--green); } .sel-inline.st-pausada { color: var(--blue); } .sel-inline.st-cancelada { color: #e06b6b; }
+.sel-inline.pg-pago { color: var(--green); } .sel-inline.pg-pendente { color: var(--muted); }
+
 .loading { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 13px; }
 .spinner { display: inline-block; width: 26px; height: 26px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -145,6 +181,10 @@ const PLANOS = {
   completo:  { nome: 'Completo',  preco: 60 },
 };
 const FORMA_PAG = { cartao: 'Cartão', pix: 'Pix', boleto: 'Boleto', transferencia: 'Transferência' };
+// Situação (ciclo de vida) da contratação — manual. 'concluida' = projeto entregue (NÃO é churn); 'cancelada' = churn.
+const STATUS = { ativa:{nome:'Ativa'}, concluida:{nome:'Concluída'}, pausada:{nome:'Pausada'}, cancelada:{nome:'Cancelada'} };
+const PAG = { pendente:'Pendente', pago:'Pago' };
+const val = c => Number(c.valor_total) || 0;
 
 let contratacoes = [];
 let emailsProjetos = new Set();
@@ -196,7 +236,7 @@ async function carregarDados() {
     document.getElementById('conteudo').innerHTML = `<div class="aviso"><strong>Não foi possível ler as contratações.</strong> Provavelmente falta liberar a leitura para a administração no Supabase. Rode a migração <code>supabase-migration-admin-dono.sql</code> e recarregue.</div>`;
     console.error(cRes.error); return;
   }
-  contratacoes = cRes.data || [];
+  contratacoes = (cRes.data || []).map(c => ({ ...c, status: c.status || 'ativa', pagamento_status: c.pagamento_status || 'pendente' }));
   totalProjetos = (pRes.data || []).length;
   emailsProjetos = new Set((pRes.data || []).map(p => (p.email||'').toLowerCase()).filter(Boolean));
   render();
@@ -246,11 +286,15 @@ function onPeriodoChange() {
 function render() {
   document.getElementById('conteudo').innerHTML = `
     <div class="kpi-grid" id="kpis"></div>
+    <div class="sec-titulo">Este mês vs. mês passado</div><div class="comp-grid" id="comparativo"></div>
+    <div class="sec-titulo">Situação das contratações</div><div class="status-grid" id="status"></div><div class="status-churn" id="churn"></div>
+    <div class="sec-titulo">Evolução — últimos 12 meses</div><div class="chart-wrap" id="chart"></div>
     <div class="sec-titulo">Vendas por plano</div><div class="plano-grid" id="planos"></div>
     <div class="sec-titulo">Contratações</div>
     <div class="filtros">
       <select class="filtro-sel" id="f-plano" onchange="atualizar()"><option value="todos">Todos os planos</option><option value="essencial">Essencial</option><option value="visual">Visual</option><option value="completo">Completo</option></select>
-      <select class="filtro-sel" id="f-conv" onchange="atualizar()"><option value="todos">Convertidos e não</option><option value="sim">Só convertidos</option><option value="nao">Só não convertidos</option></select>
+      <select class="filtro-sel" id="f-status" onchange="atualizar()"><option value="todos">Todas as situações</option><option value="ativa">Ativas</option><option value="concluida">Concluídas</option><option value="pausada">Pausadas</option><option value="cancelada">Canceladas</option></select>
+      <select class="filtro-sel" id="f-pag" onchange="atualizar()"><option value="todos">Pago e pendente</option><option value="pago">Só pagos</option><option value="pendente">Só pendentes</option></select>
       <input class="busca-input" id="f-busca" placeholder="Buscar por nome, email..." oninput="atualizar()">
       <button class="btn-export" onclick="exportarCSV()">⭳ Exportar CSV</button>
     </div>
@@ -258,24 +302,69 @@ function render() {
   atualizar();
 }
 
+function doMes(c, offset) {
+  const d = dataContratacao(c); if (!d) return false;
+  const dt = new Date(d); const now = new Date();
+  const ini = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+  const fim = new Date(now.getFullYear(), now.getMonth()+offset+1, 1);
+  return dt >= ini && dt < fim;
+}
+function dadosMensais() {
+  const arr = []; const now = new Date();
+  for (let i=11; i>=0; i--) {
+    const m = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const rows = contratacoes.filter(c => { const d = dataContratacao(c); if(!d) return false; const dt = new Date(d); return dt.getFullYear()===m.getFullYear() && dt.getMonth()===m.getMonth(); });
+    arr.push({ label: m.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''), n: rows.length, rec: rows.reduce((s,c)=>s+val(c),0) });
+  }
+  return arr;
+}
+function cardComparativo(label, atual, anterior, moeda) {
+  const v = moeda ? fmtBRL(atual) : atual;
+  let delta, cls, seta;
+  if (anterior === 0) { delta = atual>0 ? '+100%' : '—'; cls = atual>0?'up':'flat'; seta = atual>0?'↑':'→'; }
+  else { const p = Math.round(((atual-anterior)/anterior)*100); cls = p>0?'up':(p<0?'down':'flat'); seta = p>0?'↑':(p<0?'↓':'→'); delta = (p>0?'+':'')+p+'%'; }
+  const prev = moeda ? fmtBRL(anterior) : anterior;
+  return `<div class="comp-card"><div class="comp-label">${label} — este mês</div><div class="comp-valor">${v}</div><div class="comp-delta ${cls}">${seta} ${delta}<span class="comp-prev">vs ${prev} mês passado</span></div></div>`;
+}
+
 function atualizar() {
   const base = contratacoes.filter(dentroPeriodo);
   const total = base.length;
-  const receita = base.reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
+  const receita = base.reduce((s,c)=> s + val(c), 0);
   const ticket = total ? receita/total : 0;
-  const convertidas = base.filter(convertida).length;
-  const leadsAbertos = Math.max(0, total - convertidas);
+  const recebido = base.filter(c=> c.pagamento_status==='pago').reduce((s,c)=> s + val(c), 0);
+  const aReceber = base.filter(c=> c.status!=='cancelada' && c.pagamento_status!=='pago').reduce((s,c)=> s + val(c), 0);
+  const pctReceb = receita ? Math.round((recebido/receita)*100) : 0;
+
+  const st = {}; for (const k in STATUS) st[k] = { n:0, rec:0 };
+  base.forEach(c => { const k = STATUS[c.status] ? c.status : 'ativa'; st[k].n++; st[k].rec += val(c); });
+  const churn = total ? Math.round((st.cancelada.n/total)*100) : 0;
+  const canceladoRec = st.cancelada.rec;
 
   const kpis = document.getElementById('kpis');
   if (kpis) kpis.innerHTML = `
     <div class="kpi"><div class="kpi-label">Contratações</div><div class="kpi-valor">${total}</div><div class="kpi-sub">${rotuloPeriodo()}</div></div>
-    <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub">faturamento do período</div></div>
-    <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-valor">${fmtBRL(ticket)}</div><div class="kpi-sub">por contratação</div></div>
-    <div class="kpi"><div class="kpi-label">Projetos ativos</div><div class="kpi-valor">${totalProjetos}</div><div class="kpi-sub"><strong>${leadsAbertos}</strong> leads a converter</div></div>`;
+    <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub">ticket médio <strong>${fmtBRL(ticket)}</strong></div></div>
+    <div class="kpi"><div class="kpi-label">Recebido</div><div class="kpi-valor">${fmtBRL(recebido)}</div><div class="kpi-sub"><strong>${pctReceb}%</strong> do contratado</div></div>
+    <div class="kpi"><div class="kpi-label">A receber</div><div class="kpi-valor">${fmtBRL(aReceber)}</div><div class="kpi-sub">cancelado: ${fmtBRL(canceladoRec)}</div></div>`;
+
+  const cm = contratacoes.filter(c=>doMes(c,0)), cp = contratacoes.filter(c=>doMes(c,-1));
+  const recM = cm.reduce((s,c)=>s+val(c),0), recP = cp.reduce((s,c)=>s+val(c),0);
+  const comp = document.getElementById('comparativo');
+  if (comp) comp.innerHTML = cardComparativo('Contratações', cm.length, cp.length, false) + cardComparativo('Receita', recM, recP, true);
+
+  const elSt = document.getElementById('status');
+  if (elSt) elSt.innerHTML = Object.keys(STATUS).map(k => `<div class="status-card ${k}"><div class="status-nome">${STATUS[k].nome}</div><div class="status-n">${st[k].n}</div><div class="status-rec">${fmtBRL(st[k].rec)}</div></div>`).join('');
+  const elChurn = document.getElementById('churn');
+  if (elChurn) elChurn.innerHTML = `Churn (canceladas): <strong>${churn}%</strong> · receita perdida ${fmtBRL(canceladoRec)}`;
+
+  const dm = dadosMensais(); const max = Math.max(1, ...dm.map(x=>x.rec));
+  const chart = document.getElementById('chart');
+  if (chart) chart.innerHTML = `<div class="chart-bars">` + dm.map(x => `<div class="chart-col"><div class="chart-val">${x.n||''}</div><div class="chart-bar" style="height:${Math.round((x.rec/max)*100)}%" title="${x.label}: ${fmtBRL(x.rec)} · ${x.n} contratações"></div><div class="chart-xlbl">${x.label}</div></div>`).join('') + `</div>`;
 
   const porPlano = {};
   for (const k in PLANOS) porPlano[k] = { n:0, rec:0 };
-  base.forEach(c => { const k = c.plano; if (porPlano[k]) { porPlano[k].n++; porPlano[k].rec += Number(c.valor_total)||0; } });
+  base.forEach(c => { const k = c.plano; if (porPlano[k]) { porPlano[k].n++; porPlano[k].rec += val(c); } });
   const planos = document.getElementById('planos');
   if (planos) planos.innerHTML = Object.keys(PLANOS).map(k => {
     const p = PLANOS[k]; const d = porPlano[k]; const pct = total ? Math.round((d.n/total)*100) : 0;
@@ -287,13 +376,14 @@ function atualizar() {
 
 function contratacoesFiltradas() {
   const plano = (document.getElementById('f-plano')||{}).value || 'todos';
-  const conv = (document.getElementById('f-conv')||{}).value || 'todos';
+  const status = (document.getElementById('f-status')||{}).value || 'todos';
+  const pag = (document.getElementById('f-pag')||{}).value || 'todos';
   const busca = ((document.getElementById('f-busca')||{}).value || '').toLowerCase().trim();
   return contratacoes.filter(c => {
     if (!dentroPeriodo(c)) return false;
     if (plano !== 'todos' && c.plano !== plano) return false;
-    if (conv === 'sim' && !convertida(c)) return false;
-    if (conv === 'nao' && convertida(c)) return false;
+    if (status !== 'todos' && c.status !== status) return false;
+    if (pag !== 'todos' && c.pagamento_status !== pag) return false;
     if (busca) {
       const alvo = `${c.nome||''} ${c.email||''} ${c.empreendimento||''}`.toLowerCase();
       if (!alvo.includes(busca)) return false;
@@ -308,33 +398,34 @@ function renderTabela() {
   if (!linhas.length) { wrap.innerHTML = '<div class="tabela-vazia">Nenhuma contratação para os filtros selecionados.</div>'; return; }
   const corpo = linhas.map(c => {
     const plano = PLANOS[c.plano] ? PLANOS[c.plano].nome : (c.plano || '—');
-    const pag = FORMA_PAG[c.forma_pagamento] || c.forma_pagamento || '—';
+    const forma = FORMA_PAG[c.forma_pagamento] || c.forma_pagamento || '—';
     const parc = c.parcelas ? ` ${c.parcelas}x` : '';
-    const cv = convertida(c);
+    const optsPag = Object.keys(PAG).map(k=>`<option value="${k}" ${c.pagamento_status===k?'selected':''}>${PAG[k]}</option>`).join('');
+    const optsSt = Object.keys(STATUS).map(k=>`<option value="${k}" ${c.status===k?'selected':''}>${STATUS[k].nome}</option>`).join('');
     return `<tr>
       <td>${fmtData(dataContratacao(c))}</td>
       <td><div class="cel-cliente">${esc(c.nome)||'—'}</div><div class="cel-sub">${esc(c.email)||''}</div></td>
       <td>${esc(c.empreendimento)||'—'}</td>
       <td>${c.metragem ? esc(c.metragem)+' m²' : '—'}</td>
       <td><span class="tag-plano">${esc(plano)}</span></td>
-      <td class="cel-valor">${fmtBRL(c.valor_total)}</td>
-      <td>${esc(pag)}${parc}</td>
-      <td><span class="tag-conv ${cv?'sim':'nao'}">${cv?'✓ Projeto':'Lead'}</span></td>
+      <td class="cel-valor">${fmtBRL(c.valor_total)}<div class="cel-sub">${esc(forma)}${parc}</div></td>
+      <td><select class="sel-inline pg-${c.pagamento_status}" onchange="setPagamento('${c.id}', this.value)">${optsPag}</select></td>
+      <td><select class="sel-inline st-${c.status}" onchange="setStatus('${c.id}', this.value)">${optsSt}</select></td>
     </tr>`;
   }).join('');
   wrap.innerHTML = `<table class="contratacoes"><thead><tr>
-    <th>Data</th><th>Cliente</th><th>Empreendimento</th><th>Metragem</th><th>Plano</th><th>Valor</th><th>Pagamento</th><th>Status</th>
+    <th>Data</th><th>Cliente</th><th>Empreendimento</th><th>Metragem</th><th>Plano</th><th>Valor</th><th>Pago?</th><th>Situação</th>
   </tr></thead><tbody>${corpo}</tbody></table>`;
 }
 
 function exportarCSV() {
   const linhas = contratacoesFiltradas();
   if (!linhas.length) { mostrarToast('Nada para exportar'); return; }
-  const cab = ['Data','Nome','Email','WhatsApp','Empreendimento','Metragem','Plano','Valor','Pagamento','Parcelas','Convertido'];
+  const cab = ['Data','Nome','Email','WhatsApp','Empreendimento','Metragem','Plano','Valor','Forma','Pagamento','Parcelas','Situacao'];
   const rows = linhas.map(c => [
     fmtData(dataContratacao(c)), c.nome||'', c.email||'', c.whatsapp||'', c.empreendimento||'',
     c.metragem||'', (PLANOS[c.plano]?PLANOS[c.plano].nome:c.plano)||'', c.valor_total||'',
-    FORMA_PAG[c.forma_pagamento]||c.forma_pagamento||'', c.parcelas||'', convertida(c)?'Sim':'Não'
+    FORMA_PAG[c.forma_pagamento]||c.forma_pagamento||'', PAG[c.pagamento_status]||c.pagamento_status||'', c.parcelas||'', (STATUS[c.status]?STATUS[c.status].nome:c.status)||''
   ]);
   const csv = [cab, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob = new Blob(["﻿"+csv], { type: 'text/csv;charset=utf-8;' });
@@ -342,6 +433,16 @@ function exportarCSV() {
   a.download = `contratacoes-${new Date().toISOString().slice(0,10)}.csv`; a.click();
 }
 
+async function setStatus(id, valor) {
+  const c = contratacoes.find(x => String(x.id)===String(id)); if (c) c.status = valor;
+  atualizar();
+  if (sb && id) { const { error } = await sb.from('contratacoes').update({ status: valor }).eq('id', id); mostrarToast(error ? 'Erro ao salvar situação' : 'Situação atualizada'); }
+}
+async function setPagamento(id, valor) {
+  const c = contratacoes.find(x => String(x.id)===String(id)); if (c) c.pagamento_status = valor;
+  atualizar();
+  if (sb && id) { const { error } = await sb.from('contratacoes').update({ pagamento_status: valor }).eq('id', id); mostrarToast(error ? 'Erro ao salvar pagamento' : 'Pagamento atualizado'); }
+}
 async function fazerLogout() { await sb.auth.signOut(); window.location.href = '/admin'; }
 function mostrarToast(msg) { const toast = document.getElementById('toast'); toast.textContent = msg; toast.classList.add('vis'); setTimeout(() => toast.classList.remove('vis'), 3000); }
 

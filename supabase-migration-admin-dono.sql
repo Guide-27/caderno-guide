@@ -44,3 +44,27 @@ create policy "donos leem projetos" on projetos
       'lucas.2002louenco@gmail.com'
     )
   );
+
+-- ── SITUAÇÃO (ciclo de vida) e PAGAMENTO das contratações ──
+-- status: ativa | concluida | pausada | cancelada  (padrão ativa)
+-- pagamento_status: pendente | pago                (padrão pendente)
+alter table contratacoes add column if not exists status text default 'ativa';
+alter table contratacoes add column if not exists pagamento_status text default 'pendente';
+
+-- Permite que os donos ALTEREM situação/pagamento pelo painel.
+drop policy if exists "donos editam contratacoes" on contratacoes;
+create policy "donos editam contratacoes" on contratacoes
+  for update
+  to authenticated
+  using (
+    lower(auth.jwt() ->> 'email') in (
+      'lucas_montre@hotmail.com',
+      'lucas.2002louenco@gmail.com'
+    )
+  )
+  with check (
+    lower(auth.jwt() ->> 'email') in (
+      'lucas_montre@hotmail.com',
+      'lucas.2002louenco@gmail.com'
+    )
+  );
