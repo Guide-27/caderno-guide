@@ -29,6 +29,8 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 16px; }
 .page-saudacao { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 .page-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; margin-top: 6px; }
+.periodo-wrap { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.periodo-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
 /* KPIs */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 30px; }
@@ -104,6 +106,20 @@ table.contratacoes tbody tr:hover td { background: rgba(255,255,255,0.02); }
     <div>
       <div class="page-saudacao" id="saudacao">Visão da plataforma</div>
       <h1 class="page-titulo">Administração</h1>
+    </div>
+    <div class="periodo-wrap">
+      <span class="periodo-lbl">Período</span>
+      <select class="filtro-sel" id="f-periodo" onchange="onPeriodoChange()">
+        <option value="todos">Todo o período</option>
+        <option value="mes">Este mês</option>
+        <option value="mes-passado">Mês passado</option>
+        <option value="ano">Este ano</option>
+        <option value="30">Últimos 30 dias</option>
+        <option value="90">Últimos 90 dias</option>
+        <option value="custom">Personalizado…</option>
+      </select>
+      <input type="date" class="filtro-sel" id="f-ini" style="display:none" onchange="atualizar()">
+      <input type="date" class="filtro-sel" id="f-fim" style="display:none" onchange="atualizar()">
     </div>
   </div>
   <div id="conteudo">
@@ -189,76 +205,95 @@ async function carregarDados() {
 function convertida(c) { return !!(c.email && emailsProjetos.has(c.email.toLowerCase())); }
 function noMes(c) { const d = dataContratacao(c); if(!d) return false; const dt = new Date(d); const now = new Date(); return dt.getMonth()===now.getMonth() && dt.getFullYear()===now.getFullYear(); }
 
-function render() {
-  const total = contratacoes.length;
-  const receita = contratacoes.reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
-  const ticket = total ? receita/total : 0;
-  const convertidas = contratacoes.filter(convertida).length;
-  const leadsAbertos = Math.max(0, total - convertidas);
-  const mesN = contratacoes.filter(noMes).length;
-  const mesRec = contratacoes.filter(noMes).reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
+// ── período GLOBAL (controla KPIs, planos e tabela) ──
+function periodoRange() {
+  const v = (document.getElementById('f-periodo')||{}).value || 'todos';
+  const now = new Date(); let ini = null, fim = null;
+  if (v === 'mes') { ini = new Date(now.getFullYear(), now.getMonth(), 1); fim = new Date(now.getFullYear(), now.getMonth()+1, 1); }
+  else if (v === 'mes-passado') { ini = new Date(now.getFullYear(), now.getMonth()-1, 1); fim = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else if (v === 'ano') { ini = new Date(now.getFullYear(), 0, 1); fim = new Date(now.getFullYear()+1, 0, 1); }
+  else if (v === '30') { ini = new Date(Date.now() - 30*864e5); }
+  else if (v === '90') { ini = new Date(Date.now() - 90*864e5); }
+  else if (v === 'custom') {
+    const a = (document.getElementById('f-ini')||{}).value, b = (document.getElementById('f-fim')||{}).value;
+    if (a) ini = new Date(a + 'T00:00:00');
+    if (b) fim = new Date(new Date(b + 'T00:00:00').getTime() + 864e5);
+  }
+  return { ini, fim };
+}
+function dentroPeriodo(c) {
+  const d = dataContratacao(c); if (!d) return false;
+  const dt = new Date(d); const { ini, fim } = periodoRange();
+  if (ini && dt < ini) return false;
+  if (fim && dt >= fim) return false;
+  return true;
+}
+function rotuloPeriodo() {
+  const sel = document.getElementById('f-periodo'); if (!sel) return '';
+  if (sel.value === 'custom') {
+    const a = (document.getElementById('f-ini')||{}).value, b = (document.getElementById('f-fim')||{}).value;
+    return (a || b) ? `${a||'…'} a ${b||'…'}` : 'personalizado';
+  }
+  return sel.options[sel.selectedIndex].text.toLowerCase();
+}
+function onPeriodoChange() {
+  const custom = (document.getElementById('f-periodo').value === 'custom');
+  document.getElementById('f-ini').style.display = custom ? '' : 'none';
+  document.getElementById('f-fim').style.display = custom ? '' : 'none';
+  atualizar();
+}
 
-  // por plano
+function render() {
+  document.getElementById('conteudo').innerHTML = `
+    <div class="kpi-grid" id="kpis"></div>
+    <div class="sec-titulo">Vendas por plano</div><div class="plano-grid" id="planos"></div>
+    <div class="sec-titulo">Contratações</div>
+    <div class="filtros">
+      <select class="filtro-sel" id="f-plano" onchange="atualizar()"><option value="todos">Todos os planos</option><option value="essencial">Essencial</option><option value="visual">Visual</option><option value="completo">Completo</option></select>
+      <select class="filtro-sel" id="f-conv" onchange="atualizar()"><option value="todos">Convertidos e não</option><option value="sim">Só convertidos</option><option value="nao">Só não convertidos</option></select>
+      <input class="busca-input" id="f-busca" placeholder="Buscar por nome, email..." oninput="atualizar()">
+      <button class="btn-export" onclick="exportarCSV()">⭳ Exportar CSV</button>
+    </div>
+    <div class="tabela-wrap" id="tabela-wrap"></div>`;
+  atualizar();
+}
+
+function atualizar() {
+  const base = contratacoes.filter(dentroPeriodo);
+  const total = base.length;
+  const receita = base.reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
+  const ticket = total ? receita/total : 0;
+  const convertidas = base.filter(convertida).length;
+  const leadsAbertos = Math.max(0, total - convertidas);
+
+  const kpis = document.getElementById('kpis');
+  if (kpis) kpis.innerHTML = `
+    <div class="kpi"><div class="kpi-label">Contratações</div><div class="kpi-valor">${total}</div><div class="kpi-sub">${rotuloPeriodo()}</div></div>
+    <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub">faturamento do período</div></div>
+    <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-valor">${fmtBRL(ticket)}</div><div class="kpi-sub">por contratação</div></div>
+    <div class="kpi"><div class="kpi-label">Projetos ativos</div><div class="kpi-valor">${totalProjetos}</div><div class="kpi-sub"><strong>${leadsAbertos}</strong> leads a converter</div></div>`;
+
   const porPlano = {};
   for (const k in PLANOS) porPlano[k] = { n:0, rec:0 };
-  contratacoes.forEach(c => { const k = c.plano; if (porPlano[k]) { porPlano[k].n++; porPlano[k].rec += Number(c.valor_total)||0; } });
-
-  const kpis = `
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">Contratações</div><div class="kpi-valor">${total}</div><div class="kpi-sub"><strong>${mesN}</strong> este mês</div></div>
-      <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub"><strong>${fmtBRL(mesRec)}</strong> este mês</div></div>
-      <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-valor">${fmtBRL(ticket)}</div><div class="kpi-sub">por contratação</div></div>
-      <div class="kpi"><div class="kpi-label">Projetos ativos</div><div class="kpi-valor">${totalProjetos}</div><div class="kpi-sub"><strong>${leadsAbertos}</strong> leads a converter</div></div>
-    </div>`;
-
-  const planosHtml = Object.keys(PLANOS).map(k => {
+  base.forEach(c => { const k = c.plano; if (porPlano[k]) { porPlano[k].n++; porPlano[k].rec += Number(c.valor_total)||0; } });
+  const planos = document.getElementById('planos');
+  if (planos) planos.innerHTML = Object.keys(PLANOS).map(k => {
     const p = PLANOS[k]; const d = porPlano[k]; const pct = total ? Math.round((d.n/total)*100) : 0;
     return `<div class="plano-card"><div class="plano-card-top"><span class="plano-card-nome">${p.nome}</span><span class="plano-card-preco">R$ ${p.preco}/m²</span></div><div class="plano-card-n">${d.n}</div><div class="plano-card-rec">${fmtBRL(d.rec)} · ${pct}% das vendas</div><div class="plano-bar"><div class="plano-bar-fill" style="width:${pct}%"></div></div></div>`;
   }).join('');
-
-  const filtros = `
-    <div class="filtros">
-      <select class="filtro-sel" id="f-periodo" onchange="renderTabela()">
-        <option value="todos">Todo o período</option>
-        <option value="mes">Este mês</option>
-        <option value="30">Últimos 30 dias</option>
-      </select>
-      <select class="filtro-sel" id="f-plano" onchange="renderTabela()">
-        <option value="todos">Todos os planos</option>
-        <option value="essencial">Essencial</option>
-        <option value="visual">Visual</option>
-        <option value="completo">Completo</option>
-      </select>
-      <select class="filtro-sel" id="f-conv" onchange="renderTabela()">
-        <option value="todos">Convertidos e não</option>
-        <option value="sim">Só convertidos</option>
-        <option value="nao">Só não convertidos</option>
-      </select>
-      <input class="busca-input" id="f-busca" placeholder="Buscar por nome, email..." oninput="renderTabela()">
-      <button class="btn-export" onclick="exportarCSV()">⭳ Exportar CSV</button>
-    </div>`;
-
-  document.getElementById('conteudo').innerHTML =
-    kpis +
-    `<div class="sec-titulo">Vendas por plano</div><div class="plano-grid">${planosHtml}</div>` +
-    `<div class="sec-titulo">Contratações</div>` + filtros +
-    `<div class="tabela-wrap" id="tabela-wrap"></div>`;
 
   renderTabela();
 }
 
 function contratacoesFiltradas() {
-  const periodo = (document.getElementById('f-periodo')||{}).value || 'todos';
   const plano = (document.getElementById('f-plano')||{}).value || 'todos';
   const conv = (document.getElementById('f-conv')||{}).value || 'todos';
   const busca = ((document.getElementById('f-busca')||{}).value || '').toLowerCase().trim();
-  const agora = new Date();
   return contratacoes.filter(c => {
+    if (!dentroPeriodo(c)) return false;
     if (plano !== 'todos' && c.plano !== plano) return false;
     if (conv === 'sim' && !convertida(c)) return false;
     if (conv === 'nao' && convertida(c)) return false;
-    if (periodo === 'mes' && !noMes(c)) return false;
-    if (periodo === '30') { const d = dataContratacao(c); if(!d || (agora - new Date(d)) > 30*864e5) return false; }
     if (busca) {
       const alvo = `${c.nome||''} ${c.email||''} ${c.empreendimento||''}`.toLowerCase();
       if (!alvo.includes(busca)) return false;
