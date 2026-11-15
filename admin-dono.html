@@ -132,6 +132,7 @@ const FORMA_PAG = { cartao: 'Cartão', pix: 'Pix', boleto: 'Boleto', transferenc
 
 let contratacoes = [];
 let emailsProjetos = new Set();
+let totalProjetos = 0;
 
 // fundo animado (mesmo do painel)
 (function(){
@@ -180,6 +181,7 @@ async function carregarDados() {
     console.error(cRes.error); return;
   }
   contratacoes = cRes.data || [];
+  totalProjetos = (pRes.data || []).length;
   emailsProjetos = new Set((pRes.data || []).map(p => (p.email||'').toLowerCase()).filter(Boolean));
   render();
 }
@@ -192,7 +194,7 @@ function render() {
   const receita = contratacoes.reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
   const ticket = total ? receita/total : 0;
   const convertidas = contratacoes.filter(convertida).length;
-  const conv = total ? Math.round((convertidas/total)*100) : 0;
+  const leadsAbertos = Math.max(0, total - convertidas);
   const mesN = contratacoes.filter(noMes).length;
   const mesRec = contratacoes.filter(noMes).reduce((s,c)=> s + (Number(c.valor_total)||0), 0);
 
@@ -206,7 +208,7 @@ function render() {
       <div class="kpi"><div class="kpi-label">Contratações</div><div class="kpi-valor">${total}</div><div class="kpi-sub"><strong>${mesN}</strong> este mês</div></div>
       <div class="kpi"><div class="kpi-label">Receita contratada</div><div class="kpi-valor">${fmtBRL(receita)}</div><div class="kpi-sub"><strong>${fmtBRL(mesRec)}</strong> este mês</div></div>
       <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-valor">${fmtBRL(ticket)}</div><div class="kpi-sub">por contratação</div></div>
-      <div class="kpi"><div class="kpi-label">Conversão</div><div class="kpi-valor">${conv}%</div><div class="kpi-sub"><strong>${convertidas}</strong> viraram projeto</div></div>
+      <div class="kpi"><div class="kpi-label">Projetos ativos</div><div class="kpi-valor">${totalProjetos}</div><div class="kpi-sub"><strong>${leadsAbertos}</strong> leads a converter</div></div>
     </div>`;
 
   const planosHtml = Object.keys(PLANOS).map(k => {
