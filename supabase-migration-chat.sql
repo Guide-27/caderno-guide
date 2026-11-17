@@ -7,7 +7,7 @@
 -- migração da Comunidade — recriamos aqui com "if not exists" por segurança).
 --
 -- Duas frentes de conversa:
---   • origem = 'institucional'  → visitante anônimo do site (Base44).
+--   • origem = 'institucional'  → visitante anônimo do site institucional.
 --       Usa LOGIN ANÔNIMO do Supabase: o visitante NÃO cria conta nem faz
 --       login — o Supabase dá um "crachá" invisível ao navegador, guardado
 --       no localStorage, com um id estável (auth.uid()). É isso que deixa a

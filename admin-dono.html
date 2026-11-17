@@ -134,7 +134,7 @@ table.contratacoes tbody tr:hover td { background: rgba(255,255,255,0.02); }
   <div class="top-right">
     <span class="top-arquiteto" id="top-arquiteto"></span>
     <button class="btn-logout" onclick="window.location.href='/admin-projetos'">Projetos</button>
-    <button class="btn-logout" onclick="window.location.href='/admin-atendimento'">Atendimento</button>
+    <button class="btn-logout" id="btn-atendimento" onclick="window.location.href='/admin-atendimento'">Atendimento</button>
     <button class="btn-logout" onclick="fazerLogout()">Sair</button>
   </div>
 </div>
@@ -223,6 +223,16 @@ async function inicializar() {
     const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', email).maybeSingle();
     if (arq && arq.nome) { document.getElementById('top-arquiteto').textContent = arq.nome; document.getElementById('saudacao').textContent = `Olá, ${arq.nome.split(' ')[0]}`; }
     else { document.getElementById('top-arquiteto').textContent = email; }
+  } catch(_) {}
+
+  // destaque no botão Atendimento quando há conversas pedindo atendimento
+  try {
+    const { count } = await sb.from('chat_conversas').select('id', { count: 'exact', head: true }).eq('status', 'pendente');
+    const b = document.getElementById('btn-atendimento');
+    if (b && count && count > 0) {
+      b.innerHTML = 'Atendimento <span style="display:inline-block;min-width:16px;padding:0 5px;margin-left:6px;background:#e06b6b;color:#fff;border-radius:999px;font-size:10px;line-height:16px;text-align:center;font-weight:700;">' + count + '</span>';
+      b.style.borderColor = 'rgba(224,107,107,0.55)'; b.style.color = '#e06b6b';
+    }
   } catch(_) {}
 
   carregarDados();

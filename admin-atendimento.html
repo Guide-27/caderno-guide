@@ -30,8 +30,15 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .page-saudacao { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 .page-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; margin-top: 6px; }
 .filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.filtro-sel, .busca-input { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 13px; font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--white); outline: none; transition: border-color .2s; }
-.filtro-sel:focus, .busca-input:focus { border-color: var(--gold-mid); }
+.filtro-sel, .busca-input { background: rgba(255,255,255,0.06); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 13px; font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--white); outline: none; transition: border-color .2s, background .2s; color-scheme: dark; }
+/* seta própria + remove a nativa; color-scheme:dark deixa o menu aberto escuro e legível */
+.filtro-sel { -webkit-appearance: none; appearance: none; cursor: pointer; padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C9A227' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center; background-size: 12px; }
+.filtro-sel:hover { background-color: rgba(255,255,255,0.10); border-color: var(--border); }
+.filtro-sel:focus, .busca-input:focus { border-color: var(--gold-mid); background-color: rgba(255,255,255,0.08); }
+.filtro-sel option { background: #15151a; color: #e8e5de; }
+.filtro-sel option:checked { background: rgba(201,162,39,0.22); color: var(--gold-light); }
 .busca-input { min-width: 180px; } .busca-input::placeholder { color: var(--muted2); }
 
 /* layout 2 colunas */
@@ -48,6 +55,10 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .conv-card.st-em_atendimento { border-left-color: var(--green); }
 .conv-card.st-bot { border-left-color: var(--blue); }
 .conv-card.st-resolvido { border-left-color: var(--muted2); opacity: .72; }
+.conv-card.nova { border-color: var(--gold-mid); background: rgba(201,162,39,0.07); box-shadow: 0 0 0 1px var(--gold-mid) inset; }
+.conv-card.nova .conv-nome { color: #fff; font-weight: 600; }
+.conv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-right: 7px; vertical-align: middle; box-shadow: 0 0 0 3px rgba(201,162,39,0.18); animation: convpulse 1.6s ease-in-out infinite; }
+@keyframes convpulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 .conv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
 .conv-nome { font-size: 13px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv-hora { font-size: 10px; color: var(--muted); white-space: nowrap; }
@@ -244,6 +255,14 @@ function subConversa(c) {
   if (c.origem === 'painel') { const p = projetosMap[c.cliente_id]; return p && p.email ? p.email : ''; }
   return c.visitante_email || '';
 }
+// "precisa de resposta": conversa não resolvida que pediu atendimento (pendente)
+// ou cuja última mensagem foi do usuário (está esperando a gente responder).
+function precisaResposta(c) {
+  if (!c || c.status === 'resolvido') return false;
+  if (c.status === 'pendente') return true;
+  const m = ultimaMsg[c.id];
+  return !!(m && m.remetente === 'usuario');
+}
 
 function renderLista() {
   const lista = document.getElementById('lista');
@@ -263,8 +282,9 @@ function renderLista() {
   lista.innerHTML = arr.map(c => {
     const prev = ultimaMsg[c.id];
     const pTxt = prev ? ((prev.remetente === 'usuario' ? '' : prev.remetente === 'bot' ? 'Bot: ' : 'Você: ') + prev.conteudo) : 'Sem mensagens ainda';
-    return `<button class="conv-card st-${c.status} ${c.id===selId?'sel':''}" onclick="abrirConversa('${c.id}')">
-      <div class="conv-top"><span class="conv-nome">${esc(nomeConversa(c))}</span><span class="conv-hora">${horaCurta(c.atualizado_em)}</span></div>
+    const nova = precisaResposta(c) && c.id !== selId;
+    return `<button class="conv-card st-${c.status} ${c.id===selId?'sel':''} ${nova?'nova':''}" onclick="abrirConversa('${c.id}')">
+      <div class="conv-top"><span class="conv-nome">${nova?'<span class="conv-dot"></span>':''}${esc(nomeConversa(c))}</span><span class="conv-hora">${horaCurta(c.atualizado_em)}</span></div>
       <div class="conv-prev">${esc(pTxt)}</div>
       <div class="conv-tags">
         <span class="chip origem">${c.origem === 'painel' ? 'Painel' : 'Site'}</span>

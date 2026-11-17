@@ -152,7 +152,17 @@ async function inicializar() {
   const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
   if (DONOS.includes((email||'').toLowerCase())) {
     document.getElementById('btn-admin').style.display = '';
-    document.getElementById('btn-atendimento').style.display = '';
+    const btnAt = document.getElementById('btn-atendimento');
+    btnAt.style.display = '';
+    // destaque quando há conversas pedindo atendimento (status 'pendente')
+    try {
+      const { count } = await sb.from('chat_conversas').select('id', { count: 'exact', head: true }).eq('status', 'pendente');
+      if (count && count > 0) {
+        btnAt.innerHTML = 'Atendimento <span style="display:inline-block;min-width:16px;padding:0 5px;margin-left:6px;background:#e06b6b;color:#fff;border-radius:999px;font-size:10px;line-height:16px;text-align:center;font-weight:700;">' + count + '</span>';
+        btnAt.style.borderColor = 'rgba(224,107,107,0.55)';
+        btnAt.style.color = '#e06b6b';
+      }
+    } catch (_) {}
   }
   carregarProjetos();
 }

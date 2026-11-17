@@ -42,6 +42,9 @@ window.GuideChat = (function () {
     agent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11V3H7v8"/><path d="M4 11h16a1 1 0 0 1 1 1v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a1 1 0 0 1 1-1z"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>'
   };
 
+  // Frase de abertura (subtítulo do cabeçalho do chat).
+  var FRASE_ABERTURA = 'A gente te entende, a gente te atende.';
+
   // STUB da resposta automática — PLACEHOLDER DA FASE 2 (integração com LLM).
   var MSG_BOT_STUB =
     'Recebi sua mensagem! Em breve deixo isso mais inteligente — por ora, se ' +
@@ -75,10 +78,10 @@ window.GuideChat = (function () {
     partes.push(
       '<div class="gc-panel" role="dialog" aria-label="Conversa com a Guide">' +
         '<div class="gc-header">' +
-          '<div class="gc-avatar">' + SVG.agent + '</div>' +
+          '<div class="gc-avatar"><img src="' + esc(cfg.avatarUrl) + '" alt="Gui"></div>' +
           '<div class="gc-head-txt">' +
             '<div class="gc-head-title">' + esc(titulo) + '</div>' +
-            '<div class="gc-head-sub"><span class="gc-status-pip"></span><span class="gc-status-txt">A Guide acolhe você</span></div>' +
+            '<div class="gc-head-sub"><span class="gc-status-pip"></span><span class="gc-status-txt">' + esc(FRASE_ABERTURA) + '</span></div>' +
           '</div>' +
           '<button class="gc-close" type="button" aria-label="Fechar">' + SVG.close + '</button>' +
         '</div>' +
@@ -173,7 +176,7 @@ window.GuideChat = (function () {
       conversa.status === 'em_atendimento' ? 'Você está falando com a equipe'
       : conversa.status === 'pendente' ? 'Avisamos a equipe — já te respondem'
       : conversa.status === 'resolvido' ? 'Conversa encerrada'
-      : 'A Guide acolhe você';
+      : FRASE_ABERTURA;
   }
 
   // ── abrir / fechar ──────────────────────────────────────────────────────
@@ -375,6 +378,7 @@ window.GuideChat = (function () {
       clienteId: opts.clienteId || null,
       clienteNome: opts.clienteNome || null,
       bubble: opts.bubble !== false, // padrão: tem bolha (institucional). Painel passa false.
+      avatarUrl: opts.avatarUrl || '/assets/character-1.png', // imagem do Gui
       onUnread: typeof opts.onUnread === 'function' ? opts.onUnread : null
     };
     sb = cfg.sb;
