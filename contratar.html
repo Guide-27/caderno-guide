@@ -337,6 +337,7 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
 .calc-ico svg,.pag-ico svg{width:20px;height:20px;stroke-width:1.8;}
 .conf-ico svg{width:36px;height:36px;stroke-width:1.5;}
 </style>
+<link rel="stylesheet" href="/chat-widget.css">
 </head>
 <body>
 
@@ -646,7 +647,8 @@ input[type=file].campo-input::file-selector-button{background:var(--gold-dim);bo
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/chat-widget.js"></script>
 <script>
 // ── SUPABASE ──
 const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
@@ -1228,5 +1230,11 @@ if (window.lucide) lucide.createIcons();
 </script>
 
 </div><!-- /page-fg -->
+<script>
+  // Chat da Guide (visitante do site) — nasce o login anônimo só ao abrir.
+  if (window.GuideChat && typeof sb !== 'undefined' && sb) {
+    GuideChat.init({ sb: sb, origem: 'institucional', bubble: true });
+  }
+</script>
 </body>
 </html>

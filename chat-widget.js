@@ -29,6 +29,8 @@ window.GuideChat = (function () {
   var aberto = false;
   var enviando = false;
   var iniciado = false;
+  var preparado = false;   // já resolvemos sessão + histórico?
+  var preparando = null;   // promise de preparo em andamento (evita corrida)
   var vistos = {};         // ids de mensagens já renderizadas (dedupe do realtime)
   var el = {};             // refs de DOM
 
@@ -180,6 +182,7 @@ window.GuideChat = (function () {
     el.root.classList.add('gc-aberto');
     if (el.dot) el.dot.style.display = 'none';
     if (cfg.onUnread) cfg.onUnread(false);
+    if (!preparado) preparar(); // institucional: só aqui nasce o login anônimo
     setTimeout(function () { el.input && el.input.focus(); scrollFim(); }, 120);
   }
   function close() { aberto = false; el.root.classList.remove('gc-aberto'); }
@@ -211,6 +214,20 @@ window.GuideChat = (function () {
       }
     }
     return sessao && sessao.user ? sessao.user.id : null;
+  }
+
+  // Resolve a sessão (login anônimo no institucional) e carrega o histórico.
+  // Roda no máximo uma vez; chamadas simultâneas compartilham a mesma promise.
+  function preparar() {
+    if (preparado) return Promise.resolve();
+    if (preparando) return preparando;
+    preparando = (async function () {
+      uid = await garantirSessao();
+      if (!uid) { addNota('Não foi possível conectar o chat agora.'); preparando = null; return; }
+      await retomarConversa();
+      preparado = true;
+    })();
+    return preparando;
   }
 
   async function retomarConversa() {
@@ -301,11 +318,12 @@ window.GuideChat = (function () {
   async function enviar() {
     var texto = (el.input.value || '').trim();
     if (!texto || enviando) return;
-    if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); return; }
     enviando = true; el.send.setAttribute('disabled', 'disabled');
     el.input.value = ''; el.input.style.height = 'auto';
 
     try {
+      if (!preparado) await preparar();
+      if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); return; }
       if (!conversa) { if (!(await criarConversa())) throw new Error('sem conversa'); }
       var ins = await sb.from('chat_mensagens').insert({
         conversa_id: conversa.id, remetente: 'usuario', conteudo: texto
@@ -327,6 +345,8 @@ window.GuideChat = (function () {
     if (enviando) return;
     el.handoff.setAttribute('disabled', 'disabled');
     try {
+      if (!preparado) await preparar();
+      if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); el.handoff.removeAttribute('disabled'); return; }
       if (!conversa) { if (!(await criarConversa())) throw new Error('sem conversa'); }
       if (conversa.status === 'bot' || conversa.status === 'resolvido') {
         var up = await sb.from('chat_conversas')
@@ -366,9 +386,10 @@ window.GuideChat = (function () {
     construir();
     mostrarVazio();
 
-    uid = await garantirSessao();
-    if (!uid) { addNota('Não foi possível conectar o chat agora.'); return; }
-    await retomarConversa();
+    // Painel: cliente já logado — preparamos logo (histórico + pontinho de não-lida).
+    // Institucional: só preparamos quando o visitante abrir o chat, para não criar
+    // um login anônimo em todo mundo que apenas passa pela página.
+    if (cfg.origem === 'painel') preparar();
   }
 
   return { init: init, open: open, close: close, toggle: toggle,

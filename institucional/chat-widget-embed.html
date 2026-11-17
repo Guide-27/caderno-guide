@@ -1,75 +1,40 @@
 <!-- ═══════════════════════════════════════════════════════════════════════
-     CHAT DA GUIDE — BLOCO PARA COLAR NO SITE INSTITUCIONAL (Base44)
+     CHAT DA GUIDE — EXEMPLO PARA ADICIONAR EM OUTRA PÁGINA DO SITE
      ═══════════════════════════════════════════════════════════════════════
 
-     ONDE COLAR:
-       No Base44, abra as configurações do site → Custom Code / Código
-       personalizado → campo de "Header" ou "Body (fim da página)" e cole
-       TODO o conteúdo abaixo (de <!-- GUIDE CHAT START --> até END).
-       Se houver as duas opções, prefira o final do <body>.
+     O chat JÁ ESTÁ nas páginas públicas principais: index.html, sobre.html e
+     contratar.html. Este arquivo é só um MODELO, caso você queira ligar o chat
+     numa página nova do site no futuro.
 
-     ANTES DE COLAR, confira só uma coisa:
-       • GUIDE_BASE abaixo precisa apontar para o endereço onde o painel está
-         publicado na Vercel (o mesmo domínio do meu-projeto.html). É de lá que
-         o site institucional vai carregar o chat-widget.js e o chat-widget.css,
-         assim o chat fica sempre igual nos dois lugares, sem precisar editar
-         em dois sítios. Troque pelo seu domínio real se for diferente.
+     Como usar numa página nova:
+       1. No <head>, inclua o CSS:          <link rel="stylesheet" href="/chat-widget.css">
+       2. Antes de </body>, inclua os scripts e o init abaixo.
+       3. Se a página JÁ carrega o supabase-js e já tem um `sb`, NÃO carregue o
+          supabase de novo — só chame GuideChat.init({ sb, origem:'institucional', bubble:true }).
 
-     PRÉ-REQUISITOS (uma vez só, no painel do Supabase):
-       • Rode supabase-migration-chat.sql.
-       • Authentication → ligar "Allow anonymous sign-ins" (o visitante não faz
-         login; o Supabase só dá um crachá invisível ao navegador dele).
+     Atenção à versão do supabase-js: o login anônimo do visitante (sem conta,
+     sem senha) só existe a partir da versão 2.43. Por isso usamos @2 (última
+     2.x). Nas páginas que ainda estavam em 2.39.7, já atualizamos para @2.
 
-     Não precisa mexer em mais nada. O resto se vira sozinho.
+     Pré-requisitos (uma vez só, no Supabase):
+       • Rodar supabase-migration-chat.sql.
+       • Authentication → ligar "Allow anonymous sign-ins".
      ═══════════════════════════════════════════════════════════════════════ -->
 
-<!-- GUIDE CHAT START -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- 1) No <head> da página -->
+<link rel="stylesheet" href="/chat-widget.css">
 
+<!-- 2) Antes de </body> -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/chat-widget.js"></script>
 <script>
-  // Endereço do painel publicado (de onde vêm o CSS e o JS do chat).
-  // >>> TROQUE pelo seu domínio real da Vercel, se for diferente. <<<
-  window.GUIDE_CHAT_BASE = 'https://caderno-guide.vercel.app';
+  // Se a página já tem um `sb`, reutilize-o e apague estas 3 linhas.
+  const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+  const sbChat = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-  // Credenciais públicas do Supabase (mesmas usadas no painel — a anon key é
-  // segura de expor; quem protege os dados é a RLS do banco).
-  window.GUIDE_CHAT_SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
-  window.GUIDE_CHAT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
-</script>
-
-<script>
-(function () {
-  function carregarScript(src) {
-    return new Promise(function (ok, erro) {
-      var s = document.createElement('script');
-      s.src = src; s.async = true; s.onload = ok; s.onerror = erro;
-      document.head.appendChild(s);
-    });
+  if (window.GuideChat && sbChat) {
+    GuideChat.init({ sb: sbChat, origem: 'institucional', bubble: true });
   }
-  function carregarCss(href) {
-    var l = document.createElement('link');
-    l.rel = 'stylesheet'; l.href = href;
-    document.head.appendChild(l);
-  }
-
-  var base = window.GUIDE_CHAT_BASE.replace(/\/$/, '');
-  carregarCss(base + '/chat-widget.css');
-
-  // Versão recente do supabase-js: o login anônimo (signInAnonymously) só
-  // existe a partir da 2.43. @2 pega sempre a última 2.x estável.
-  carregarScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js')
-    .then(function () { return carregarScript(base + '/chat-widget.js'); })
-    .then(function () {
-      if (!window.supabase || !window.supabase.createClient) { console.error('[GuideChat] Supabase não carregou.'); return; }
-      var sb = window.supabase.createClient(window.GUIDE_CHAT_SUPABASE_URL, window.GUIDE_CHAT_SUPABASE_ANON_KEY);
-      window.GuideChat.init({
-        sb: sb,
-        origem: 'institucional',
-        bubble: true   // bolha flutuante no canto da tela
-      });
-    })
-    .catch(function (e) { console.error('[GuideChat] falha ao carregar o chat:', e); });
-})();
 </script>
-<!-- GUIDE CHAT END -->

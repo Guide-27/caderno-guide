@@ -291,6 +291,7 @@ a{color:inherit;text-decoration:none;}
 .s-card::before,.plus-card::before,.plano::before,.dep::before,.etapa::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:radial-gradient(240px circle at var(--x,50%) var(--y,50%),rgba(201,155,38,0.14),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none;}
 .s-card:hover::before,.plus-card:hover::before,.plano:hover::before,.dep:hover::before,.etapa:hover::before{opacity:1;}
 </style>
+<link rel="stylesheet" href="/chat-widget.css">
 </head>
 <body>
 
@@ -915,7 +916,8 @@ document.querySelectorAll('.s-card, .plus-card, .plano, .dep, .etapa').forEach((
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/chat-widget.js"></script>
 <script>
 const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
@@ -1063,5 +1065,11 @@ function traduzErro(msg){
 if (window.lucide) lucide.createIcons();
 </script>
 
+<script>
+  // Chat da Guide (visitante do site) — nasce o login anônimo só ao abrir.
+  if (window.GuideChat && typeof sb !== 'undefined' && sb) {
+    GuideChat.init({ sb: sb, origem: 'institucional', bubble: true });
+  }
+</script>
 </body>
 </html>
