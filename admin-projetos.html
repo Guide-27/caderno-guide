@@ -88,6 +88,7 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
   <div class="top-right">
     <span class="top-arquiteto" id="top-arquiteto"></span>
     <button class="btn-logout" id="btn-admin" style="display:none" onclick="window.location.href='/admin-dono'">Administração</button>
+    <button class="btn-logout" id="btn-atendimento" style="display:none" onclick="window.location.href='/admin-atendimento'">Atendimento</button>
     <button class="btn-logout" onclick="window.location.href='/admin-fornecedores'">Fornecedores</button>
     <button class="btn-logout" onclick="fazerLogout()">Sair</button>
   </div>
@@ -149,7 +150,10 @@ async function inicializar() {
   document.getElementById('saudacao').textContent = `Olá, ${arq.nome.split(' ')[0]}`;
   // acesso à sessão de Administração — só para os donos da plataforma
   const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
-  if (DONOS.includes((email||'').toLowerCase())) document.getElementById('btn-admin').style.display = '';
+  if (DONOS.includes((email||'').toLowerCase())) {
+    document.getElementById('btn-admin').style.display = '';
+    document.getElementById('btn-atendimento').style.display = '';
+  }
   carregarProjetos();
 }
 async function carregarProjetos() {
