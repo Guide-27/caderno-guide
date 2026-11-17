@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atendimento — Painel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#08080a; --dark:#111113; --card:#15151a; --card2:#1a1a20;
+  --gold:#C9A227; --gold-light:#e2b93b; --gold-dim:rgba(201,162,39,0.08); --gold-mid:rgba(201,162,39,0.22);
+  --white:#f5f4f0; --off:#e0ddd6; --muted:#9a968d; --muted2:#6a665e;
+  --border:rgba(201,162,39,0.14); --border2:rgba(255,255,255,0.06);
+  --green:#50C878; --green-dim:rgba(80,200,120,0.09); --blue:#5a8cdc; --blue-dim:rgba(90,140,220,0.1); --red:#e06b6b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--black); color: var(--off); font-family: 'Outfit', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+#bg-canvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+.noise { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); background-size: 200px; }
+.top-bar { position: fixed; top: 24px; left: 28px; right: 28px; height: 60px; background: rgba(255,255,255,0.06); backdrop-filter: blur(32px) saturate(160%); -webkit-backdrop-filter: blur(32px) saturate(160%); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; box-shadow: 0 1px 0 rgba(255,255,255,0.07) inset, 0 18px 44px rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 300; }
+.top-left { display: flex; align-items: center; gap: 12px; }
+.top-logo-img { height: 28px; width: auto; display: block; }
+.top-painel-badge { font-size: 9px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--gold-dim); }
+.top-right { display: flex; align-items: center; gap: 14px; }
+.top-arquiteto { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+.btn-logout { background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 6px 14px; font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; letter-spacing: 0.06em; text-transform: uppercase; }
+.btn-logout:hover { color: var(--gold); border-color: var(--border); }
+.main { max-width: 1280px; margin: 0 auto; padding: 118px 28px 40px; position: relative; z-index: 2; }
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+.page-saudacao { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.page-titulo { font-family: 'Quicksand', sans-serif; font-size: 30px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; margin-top: 6px; }
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filtro-sel, .busca-input { background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-radius: 10px; padding: 9px 13px; font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--white); outline: none; transition: border-color .2s; }
+.filtro-sel:focus, .busca-input:focus { border-color: var(--gold-mid); }
+.busca-input { min-width: 180px; } .busca-input::placeholder { color: var(--muted2); }
+
+/* layout 2 colunas */
+.at-grid { display: grid; grid-template-columns: 360px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 880px) { .at-grid { grid-template-columns: 1fr; } .at-thread { min-height: 420px; } }
+
+/* lista de conversas */
+.at-lista { display: flex; flex-direction: column; gap: 9px; max-height: calc(100vh - 230px); overflow-y: auto; padding-right: 4px; }
+.at-lista::-webkit-scrollbar { width: 7px; } .at-lista::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.25); border-radius: 4px; }
+.conv-card { text-align: left; width: 100%; background: rgba(255,255,255,0.035); border: 1px solid var(--border2); border-left: 3px solid var(--muted2); border-radius: 13px; padding: 12px 14px; cursor: pointer; font-family: 'Outfit', sans-serif; transition: border-color .2s, background .2s; }
+.conv-card:hover { background: rgba(255,255,255,0.05); }
+.conv-card.sel { border-color: var(--gold-mid); border-left-color: var(--gold); background: var(--gold-dim); }
+.conv-card.st-pendente { border-left-color: var(--red); }
+.conv-card.st-em_atendimento { border-left-color: var(--green); }
+.conv-card.st-bot { border-left-color: var(--blue); }
+.conv-card.st-resolvido { border-left-color: var(--muted2); opacity: .72; }
+.conv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.conv-nome { font-size: 13px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-hora { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.conv-prev { font-size: 11.5px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.conv-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.chip { font-size: 9.5px; padding: 2px 8px; border-radius: 999px; letter-spacing: .03em; text-transform: uppercase; border: 1px solid var(--border2); color: var(--muted); }
+.chip.origem { color: var(--off); }
+.chip.st-bot { color: var(--blue); border-color: rgba(90,140,220,0.3); }
+.chip.st-pendente { color: var(--red); border-color: rgba(224,107,107,0.35); background: rgba(224,107,107,0.08); }
+.chip.st-em_atendimento { color: var(--green); border-color: rgba(80,200,120,0.3); }
+.chip.st-resolvido { color: var(--muted); }
+.lista-vazia { padding: 30px 14px; text-align: center; color: var(--muted); font-size: 12.5px; }
+
+/* thread */
+.at-thread { background: rgba(255,255,255,0.025); border: 1px solid var(--border2); border-radius: 16px; display: flex; flex-direction: column; height: calc(100vh - 230px); min-height: 460px; overflow: hidden; }
+.thread-vazio { margin: auto; text-align: center; color: var(--muted); font-size: 13px; padding: 40px; }
+.thread-head { display: flex; align-items: center; gap: 12px; padding: 15px 18px; border-bottom: 1px solid var(--border2); }
+.thread-head-txt { flex: 1; min-width: 0; }
+.thread-head-nome { font-family: 'Quicksand', sans-serif; font-weight: 600; font-size: 15px; color: var(--white); }
+.thread-head-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.thread-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-acao { background: transparent; border: 1px solid var(--border2); border-radius: 10px; padding: 7px 13px; font-size: 11.5px; color: var(--off); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all .2s; white-space: nowrap; }
+.btn-acao:hover { border-color: var(--gold); color: var(--gold); }
+.btn-acao.primario { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; font-weight: 600; }
+.btn-acao.primario:hover { color: #12100a; opacity: .92; }
+.btn-acao.ok { border-color: rgba(80,200,120,0.35); color: var(--green); }
+.btn-acao[disabled] { opacity: .45; cursor: default; }
+.thread-body { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.thread-body::-webkit-scrollbar { width: 7px; } .thread-body::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.25); border-radius: 4px; }
+.tmsg { max-width: 76%; display: flex; flex-direction: column; gap: 3px; }
+.tmsg-label { font-size: 10px; color: var(--muted); padding: 0 4px; }
+.tmsg-bolha { padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.tmsg.in { align-self: flex-start; } .tmsg.in .tmsg-bolha { background: rgba(255,255,255,0.06); color: var(--off); border-bottom-left-radius: 4px; }
+.tmsg.bot { align-self: flex-start; } .tmsg.bot .tmsg-bolha { background: var(--blue-dim); color: #bcd0f0; border: 1px solid rgba(90,140,220,0.18); border-bottom-left-radius: 4px; }
+.tmsg.out { align-self: flex-end; align-items: flex-end; } .tmsg.out .tmsg-bolha { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border-bottom-right-radius: 4px; }
+.tmsg-time { font-size: 9px; color: var(--muted); padding: 0 4px; }
+.thread-foot { border-top: 1px solid var(--border2); padding: 12px 14px; }
+.foot-aviso { font-size: 11.5px; color: var(--muted); text-align: center; padding: 4px; }
+.reply-row { display: flex; align-items: flex-end; gap: 9px; }
+.reply-input { flex: 1; resize: none; max-height: 120px; background: rgba(255,255,255,0.04); color: var(--white); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; font-family: 'Outfit', sans-serif; font-size: 13px; line-height: 1.4; outline: none; transition: border-color .2s; }
+.reply-input:focus { border-color: var(--gold-mid); }
+.reply-send { flex-shrink: 0; width: 42px; height: 42px; border: none; cursor: pointer; border-radius: 11px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; display: flex; align-items: center; justify-content: center; }
+.reply-send:hover { opacity: .92; } .reply-send[disabled] { opacity: .45; cursor: default; }
+.reply-send svg { width: 18px; height: 18px; }
+
+.loading { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 13px; }
+.spinner { display: inline-block; width: 26px; height: 26px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.aviso { background: var(--blue-dim); border: 1px solid rgba(90,140,220,0.3); border-radius: 12px; padding: 14px 16px; font-size: 12.5px; color: var(--off); line-height: 1.6; margin-bottom: 20px; }
+.aviso strong { color: var(--white); } .aviso code { color: var(--gold-light); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(20,20,24,0.96); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 11px; padding: 13px 22px; font-size: 12px; color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.toast.vis { opacity: 1; }
+@media (max-width: 600px){ .top-bar{left:12px;right:12px;padding:0 16px;} .main{padding:112px 14px 40px;} }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div class="top-bar">
+  <div class="top-left">
+    <img class="top-logo-img" src="/assets/logo-guide.svg" alt="Guide">
+    <span class="top-painel-badge">Atendimento</span>
+  </div>
+  <div class="top-right">
+    <span class="top-arquiteto" id="top-arquiteto"></span>
+    <button class="btn-logout" onclick="window.location.href='/admin-dono'">Administração</button>
+    <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+  </div>
+</div>
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-saudacao" id="saudacao">Conversas da plataforma</div>
+      <h1 class="page-titulo">Atendimento</h1>
+    </div>
+    <div class="filtros">
+      <select class="filtro-sel" id="f-origem" onchange="renderLista()">
+        <option value="todas">Todas as origens</option>
+        <option value="painel">Painel do cliente</option>
+        <option value="institucional">Site institucional</option>
+      </select>
+      <select class="filtro-sel" id="f-status" onchange="renderLista()">
+        <option value="ativas">Em aberto</option>
+        <option value="todos">Todos os status</option>
+        <option value="pendente">Pendentes</option>
+        <option value="em_atendimento">Em atendimento</option>
+        <option value="bot">Automático (bot)</option>
+        <option value="resolvido">Resolvidas</option>
+      </select>
+      <input type="text" class="busca-input" id="f-busca" placeholder="Buscar por nome/e-mail..." oninput="renderLista()">
+    </div>
+  </div>
+  <div id="conteudo">
+    <div class="loading"><div class="spinner"></div><p>Carregando conversas...</p></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://fkbvwcppbjlodtnjrmbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrYnZ3Y3BwYmpsb2R0bmpybWJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDk2OTAsImV4cCI6MjA5NTM4NTY5MH0.yjO-PxGPgQrV6dVYK8OjkaaKQWfaVbTrpnl_1qCSjB8';
+let sb = null;
+if (window.supabase && window.supabase.createClient) { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+else { console.error('Biblioteca Supabase não carregou.'); }
+
+// ── DONOS (mesma lista do admin-dono.html / is_chat_admin no SQL) ──
+const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
+
+let eu = null;                 // user id do admin
+let conversas = [];            // todas as conversas
+let ultimaMsg = {};            // conversa_id -> { conteudo, criado_em, remetente }
+let projetosMap = {};          // projeto_id -> { nome, email }
+let selId = null;              // conversa aberta
+let msgs = [];                 // mensagens da conversa aberta
+let vistos = {};               // dedupe do realtime na thread aberta
+let canalThread = null;
+let recarregarTimer = null;
+
+const ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+const ST_NOME = { bot:'Automático', pendente:'Pendente', em_atendimento:'Em atendimento', resolvido:'Resolvida' };
+const esc = (t) => String(t==null?'':t).replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+const horaCurta = (iso) => { try { return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
+const dataHora = (iso) => { try { const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
+
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('vis'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('vis'),2600); }
+
+// fundo animado (igual admin-dono)
+(function(){
+  const c = document.getElementById('bg-canvas'); const ctx = c.getContext('2d'); let W,H,t=0;
+  const orbs = [ {x:0.15,y:0.2,r:0.42,c:[201,162,39],a:0.045}, {x:0.85,y:0.8,r:0.36,c:[201,162,39],a:0.03}, {x:0.5,y:0.5,r:0.28,c:[80,100,200],a:0.02} ];
+  function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
+  function draw(){ ctx.clearRect(0,0,W,H); t+=0.0025; orbs.forEach((o,i)=>{ const dx=Math.sin(t*0.7+i*1.3)*0.05; const dy=Math.cos(t*0.5+i*0.9)*0.04; const x=(o.x+dx)*W,y=(o.y+dy)*H; const r=o.r*Math.min(W,H); const g=ctx.createRadialGradient(x,y,0,x,y,r); g.addColorStop(0,`rgba(${o.c},${o.a})`); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }); requestAnimationFrame(draw); }
+  window.addEventListener('resize',resize); resize(); draw();
+})();
+
+async function inicializar() {
+  if (!sb) { document.getElementById('conteudo').innerHTML = '<div class="lista-vazia">Erro de conexão. Recarregue a página.</div>'; return; }
+  const { data } = await sb.auth.getSession();
+  if (!data.session) { window.location.href = '/admin'; return; }
+  const email = (data.session.user.email || '').toLowerCase();
+  eu = data.session.user.id;
+
+  if (!DONOS.includes(email)) {
+    document.getElementById('conteudo').innerHTML = '<div class="lista-vazia">Esta área é exclusiva da administração da plataforma.</div>';
+    setTimeout(() => window.location.href = '/admin-projetos', 1800);
+    return;
+  }
+  try {
+    const { data: arq } = await sb.from('arquitetos').select('nome').eq('email', email).maybeSingle();
+    document.getElementById('top-arquiteto').textContent = (arq && arq.nome) ? arq.nome : email;
+    if (arq && arq.nome) document.getElementById('saudacao').textContent = `Olá, ${arq.nome.split(' ')[0]}`;
+  } catch(_) {}
+
+  await carregarTudo();
+  assinarGlobal();
+
+  // deep link ?c=<id> (vem do e-mail de notificação)
+  const alvo = new URLSearchParams(location.search).get('c');
+  if (alvo && conversas.some(c => c.id === alvo)) abrirConversa(alvo);
+}
+
+async function carregarTudo() {
+  const [cRes, mRes, pRes] = await Promise.all([
+    sb.from('chat_conversas').select('*').order('atualizado_em', { ascending: false }),
+    sb.from('chat_mensagens').select('conversa_id, conteudo, criado_em, remetente').order('criado_em', { ascending: false }).limit(2000),
+    sb.from('projetos').select('id, nome_cliente, email'),
+  ]);
+  if (cRes.error) {
+    document.getElementById('conteudo').innerHTML = `<div class="aviso"><strong>Não foi possível ler as conversas.</strong> Rode a migração <code>supabase-migration-chat.sql</code> no Supabase e recarregue.</div>`;
+    console.error(cRes.error); return;
+  }
+  conversas = cRes.data || [];
+  ultimaMsg = {};
+  (mRes.data || []).forEach(m => { if (!ultimaMsg[m.conversa_id]) ultimaMsg[m.conversa_id] = m; });
+  projetosMap = {};
+  (pRes.data || []).forEach(p => { projetosMap[p.id] = { nome: p.nome_cliente, email: p.email }; });
+
+  // monta a casca (lista + thread) uma vez
+  document.getElementById('conteudo').innerHTML =
+    '<div class="at-grid"><div class="at-lista" id="lista"></div><div class="at-thread" id="thread"><div class="thread-vazio">Selecione uma conversa à esquerda para acompanhar ou responder.</div></div></div>';
+  renderLista();
+}
+
+function nomeConversa(c) {
+  if (c.origem === 'painel') {
+    const p = projetosMap[c.cliente_id];
+    return (p && p.nome) ? p.nome : 'Cliente do painel';
+  }
+  return c.visitante_nome || c.visitante_email || 'Visitante do site';
+}
+function subConversa(c) {
+  if (c.origem === 'painel') { const p = projetosMap[c.cliente_id]; return p && p.email ? p.email : ''; }
+  return c.visitante_email || '';
+}
+
+function renderLista() {
+  const lista = document.getElementById('lista');
+  if (!lista) return;
+  const fo = document.getElementById('f-origem').value;
+  const fs = document.getElementById('f-status').value;
+  const fb = (document.getElementById('f-busca').value || '').trim().toLowerCase();
+
+  let arr = conversas.slice();
+  if (fo !== 'todas') arr = arr.filter(c => c.origem === fo);
+  if (fs === 'ativas') arr = arr.filter(c => c.status !== 'resolvido');
+  else if (fs !== 'todos') arr = arr.filter(c => c.status === fs);
+  if (fb) arr = arr.filter(c => (nomeConversa(c) + ' ' + subConversa(c)).toLowerCase().includes(fb));
+
+  if (!arr.length) { lista.innerHTML = '<div class="lista-vazia">Nenhuma conversa aqui ainda.</div>'; return; }
+
+  lista.innerHTML = arr.map(c => {
+    const prev = ultimaMsg[c.id];
+    const pTxt = prev ? ((prev.remetente === 'usuario' ? '' : prev.remetente === 'bot' ? 'Bot: ' : 'Você: ') + prev.conteudo) : 'Sem mensagens ainda';
+    return `<button class="conv-card st-${c.status} ${c.id===selId?'sel':''}" onclick="abrirConversa('${c.id}')">
+      <div class="conv-top"><span class="conv-nome">${esc(nomeConversa(c))}</span><span class="conv-hora">${horaCurta(c.atualizado_em)}</span></div>
+      <div class="conv-prev">${esc(pTxt)}</div>
+      <div class="conv-tags">
+        <span class="chip origem">${c.origem === 'painel' ? 'Painel' : 'Site'}</span>
+        <span class="chip st-${c.status}">${ST_NOME[c.status] || c.status}</span>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+async function abrirConversa(id) {
+  selId = id;
+  renderLista();
+  const thread = document.getElementById('thread');
+  thread.innerHTML = '<div class="loading" style="margin:auto"><div class="spinner"></div><p>Abrindo conversa...</p></div>';
+  const r = await sb.from('chat_mensagens').select('*').eq('conversa_id', id).order('criado_em', { ascending: true });
+  if (r.error) { thread.innerHTML = '<div class="thread-vazio">Não foi possível abrir esta conversa.</div>'; console.error(r.error); return; }
+  msgs = r.data || [];
+  vistos = {}; msgs.forEach(m => vistos[m.id] = true);
+  renderThread();
+  assinarThread(id);
+}
+
+function conversaAtual() { return conversas.find(c => c.id === selId) || null; }
+
+function renderThread() {
+  const thread = document.getElementById('thread');
+  const c = conversaAtual();
+  if (!c) { thread.innerHTML = '<div class="thread-vazio">Conversa não encontrada.</div>'; return; }
+
+  const emAtend = c.status === 'em_atendimento';
+  const resolvido = c.status === 'resolvido';
+  const sub = [c.origem === 'painel' ? 'Painel do cliente' : 'Site institucional', subConversa(c), ST_NOME[c.status] || c.status].filter(Boolean).join(' · ');
+
+  let acoes = '';
+  if (!emAtend && !resolvido) acoes += `<button class="btn-acao primario" onclick="assumir()">Assumir atendimento</button>`;
+  if (!resolvido) acoes += `<button class="btn-acao ok" onclick="resolver()">Marcar como resolvido</button>`;
+  if (resolvido) acoes += `<button class="btn-acao" onclick="reabrir()">Reabrir</button>`;
+
+  let rodape;
+  if (emAtend) {
+    rodape = `<div class="reply-row">
+      <textarea class="reply-input" id="reply" rows="1" placeholder="Escreva sua resposta..."></textarea>
+      <button class="reply-send" id="btn-reply" onclick="responder()" aria-label="Enviar">${ICON_SEND}</button>
+    </div>`;
+  } else if (resolvido) {
+    rodape = `<div class="foot-aviso">Conversa resolvida. Reabra para responder.</div>`;
+  } else {
+    rodape = `<div class="foot-aviso">Você está acompanhando esta conversa. Clique em “Assumir atendimento” para responder.</div>`;
+  }
+
+  thread.innerHTML =
+    `<div class="thread-head">
+      <div class="thread-head-txt">
+        <div class="thread-head-nome">${esc(nomeConversa(c))}</div>
+        <div class="thread-head-sub">${esc(sub)}</div>
+      </div>
+      <div class="thread-acoes">${acoes}</div>
+    </div>
+    <div class="thread-body" id="tbody"></div>
+    <div class="thread-foot">${rodape}</div>`;
+
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = msgs.map(linhaMsg).join('') || '<div class="thread-vazio" style="margin:auto">Ainda sem mensagens.</div>';
+  tb.scrollTop = tb.scrollHeight;
+
+  const rep = document.getElementById('reply');
+  if (rep) {
+    rep.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); responder(); } });
+    rep.addEventListener('input', () => { rep.style.height='auto'; rep.style.height = Math.min(rep.scrollHeight,120)+'px'; });
+    rep.focus();
+  }
+}
+
+function linhaMsg(m) {
+  const cls = m.remetente === 'usuario' ? 'in' : m.remetente === 'bot' ? 'bot' : 'out';
+  const label = m.remetente === 'atendente' ? 'Você' : m.remetente === 'bot' ? 'Bot' : '';
+  return `<div class="tmsg ${cls}">${label?`<div class="tmsg-label">${esc(label)}</div>`:''}<div class="tmsg-bolha">${esc(m.conteudo)}</div><div class="tmsg-time">${horaCurta(m.criado_em)}</div></div>`;
+}
+
+function appendMsg(m) {
+  if (vistos[m.id]) return; vistos[m.id] = true;
+  msgs.push(m);
+  const tb = document.getElementById('tbody');
+  if (tb) { tb.insertAdjacentHTML('beforeend', linhaMsg(m)); tb.scrollTop = tb.scrollHeight; }
+}
+
+// ── ações ───────────────────────────────────────────────────────────────
+async function assumir() {
+  const c = conversaAtual(); if (!c) return;
+  const r = await sb.from('chat_conversas').update({ atendente_id: eu, status: 'em_atendimento', atualizado_em: new Date().toISOString() }).eq('id', c.id).select().single();
+  if (r.error) { toast('Não foi possível assumir.'); console.error(r.error); return; }
+  aplicarConversa(r.data); toast('Você assumiu o atendimento.');
+}
+async function resolver() {
+  const c = conversaAtual(); if (!c) return;
+  const r = await sb.from('chat_conversas').update({ status: 'resolvido', atualizado_em: new Date().toISOString() }).eq('id', c.id).select().single();
+  if (r.error) { toast('Não foi possível resolver.'); console.error(r.error); return; }
+  aplicarConversa(r.data); toast('Conversa marcada como resolvida.');
+}
+async function reabrir() {
+  const c = conversaAtual(); if (!c) return;
+  const r = await sb.from('chat_conversas').update({ status: 'em_atendimento', atendente_id: eu, atualizado_em: new Date().toISOString() }).eq('id', c.id).select().single();
+  if (r.error) { toast('Não foi possível reabrir.'); console.error(r.error); return; }
+  aplicarConversa(r.data); toast('Conversa reaberta.');
+}
+async function responder() {
+  const rep = document.getElementById('reply'); if (!rep) return;
+  const texto = (rep.value || '').trim(); if (!texto) return;
+  const c = conversaAtual(); if (!c) return;
+  const btn = document.getElementById('btn-reply'); if (btn) btn.setAttribute('disabled','disabled');
+  rep.value = ''; rep.style.height = 'auto';
+  const r = await sb.from('chat_mensagens').insert({ conversa_id: c.id, remetente: 'atendente', conteudo: texto }).select().single();
+  if (r.error) { toast('Mensagem não enviada.'); console.error(r.error); rep.value = texto; }
+  else { appendMsg(r.data); sb.from('chat_conversas').update({ atualizado_em: new Date().toISOString() }).eq('id', c.id).then(()=>{}); }
+  if (btn) btn.removeAttribute('disabled'); rep.focus();
+}
+
+function aplicarConversa(nova) {
+  const i = conversas.findIndex(x => x.id === nova.id);
+  if (i >= 0) conversas[i] = nova; else conversas.unshift(nova);
+  renderLista();
+  if (selId === nova.id) renderThread();
+}
+
+// ── realtime ─────────────────────────────────────────────────────────────
+function recarregarListaDebounced() {
+  clearTimeout(recarregarTimer);
+  recarregarTimer = setTimeout(async () => {
+    const [cRes, mRes] = await Promise.all([
+      sb.from('chat_conversas').select('*').order('atualizado_em', { ascending: false }),
+      sb.from('chat_mensagens').select('conversa_id, conteudo, criado_em, remetente').order('criado_em', { ascending: false }).limit(2000),
+    ]);
+    if (!cRes.error) conversas = cRes.data || [];
+    if (!mRes.error) { ultimaMsg = {}; (mRes.data || []).forEach(m => { if (!ultimaMsg[m.conversa_id]) ultimaMsg[m.conversa_id] = m; }); }
+    renderLista();
+  }, 350);
+}
+
+function assinarGlobal() {
+  sb.channel('gc-admin-conversas')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_conversas' }, (p) => {
+      if (p.new && p.new.id) {
+        const i = conversas.findIndex(x => x.id === p.new.id);
+        if (i >= 0) conversas[i] = p.new; else conversas.unshift(p.new);
+        if (selId === p.new.id) renderThread();
+      }
+      renderLista();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens' }, (p) => {
+      const m = p.new;
+      ultimaMsg[m.conversa_id] = m; // vem em ordem — sempre a mais nova
+      if (m.conversa_id === selId) appendMsg(m);
+      recarregarListaDebounced();
+    })
+    .subscribe();
+}
+
+function assinarThread(id) {
+  if (canalThread) { sb.removeChannel(canalThread); canalThread = null; }
+  // a assinatura global já cobre as mensagens; manter esta função por clareza/futuro.
+}
+
+async function fazerLogout() { await sb.auth.signOut(); window.location.href = '/admin'; }
+
+inicializar();
+</script>
+</body>
+</html>

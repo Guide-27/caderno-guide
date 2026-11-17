@@ -1271,6 +1271,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .parceiro-card.plano-travado .parceiro-acoes { opacity: .55; }
 .carta-guide-selo.plano-destaque { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold-mid), 0 14px 40px rgba(201,162,39,0.18); }
 </style>
+<link rel="stylesheet" href="/chat-widget.css">
 </head>
 <body>
 
@@ -1330,6 +1331,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
     <div class="top-saudacao" id="top-saudacao">Olá</div>
     <div class="tb-nav-icones">
       <button class="icon-btn" id="btn-inicio" title="Início"><i data-lucide="home"></i></button>
+      <button class="icon-btn" id="btn-chat" title="Falar com a Guide"><i data-lucide="message-circle"></i><span class="gc-unread-dot" id="chat-unread"></span></button>
       <div class="dropdown-wrap">
         <button class="icon-btn" id="btn-notif" title="Notificações"><i data-lucide="bell"></i></button>
         <div class="dropdown-panel" id="painel-notif"></div>
@@ -1372,6 +1374,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 
 <!-- SUPABASE JS CLIENT (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script src="/chat-widget.js"></script>
 <!-- LUCIDE ICONS (CDN) — todo ícone da interface é vetorial, via data-lucide + createIcons() -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -2118,6 +2121,16 @@ async function inicializar() {
   document.getElementById('top-saudacao').innerHTML = marcarPalavras(`Olá, ${primeiroNome(projeto.nome_cliente)}!`);
   revelarPalavras(document.getElementById('top-saudacao'));
   document.getElementById('perfil-nome').textContent = projeto.nome_cliente || 'Perfil';
+
+  // Chat de atendimento (widget compartilhado — abre pelo ícone do header)
+  if (window.GuideChat && projeto && projeto.id) {
+    GuideChat.init({
+      sb, origem: 'painel', clienteId: projeto.id, clienteNome: projeto.nome_cliente, bubble: false,
+      onUnread: (tem) => { const d = document.getElementById('chat-unread'); if (d) d.classList.toggle('on', !!tem); },
+    });
+    const btnChat = document.getElementById('btn-chat');
+    if (btnChat) btnChat.addEventListener('click', () => GuideChat.open());
+  }
 
   // conta sem plano: chamada para contratar no cabeçalho, ao lado da saudação
   if (semPlano) {
