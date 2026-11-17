@@ -1231,9 +1231,14 @@ if (window.lucide) lucide.createIcons();
 
 </div><!-- /page-fg -->
 <script>
-  // Chat da Guide (visitante do site) — nasce o login anônimo só ao abrir.
-  if (window.GuideChat && typeof sb !== 'undefined' && sb) {
-    GuideChat.init({ sb: sb, origem: 'institucional', bubble: true });
+  // Chat da Guide (visitante do site). Usa um cliente Supabase SEPARADO, com
+  // "cofre" (storageKey) próprio, para o login anônimo do chat NUNCA mexer na
+  // sessão do resto do app (login de arquiteto/cliente no mesmo domínio).
+  if (window.GuideChat && window.supabase && window.supabase.createClient) {
+    const sbChat = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { storageKey: 'guide-chat-auth', persistSession: true, autoRefreshToken: true }
+    });
+    GuideChat.init({ sb: sbChat, origem: 'institucional', bubble: true });
   }
 </script>
 </body>
