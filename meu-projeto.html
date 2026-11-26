@@ -1033,6 +1033,25 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .conta-bloco-titulo { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); margin-bottom: 8px; display:flex; align-items:center; gap:8px; }
 .conta-bloco-corpo { font-size: var(--fs-base); color: var(--muted); line-height: 1.7; }
 .conta-bloco-corpo a { color: var(--gold-light); }
+/* plano expansível */
+.conta-plano-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 15px; cursor: pointer; font-family: 'Outfit', sans-serif; transition: border-color .2s; }
+.conta-plano-head:hover { border-color: var(--gold-mid); }
+.conta-plano-nome { font-size: var(--fs-base); font-weight: 600; color: var(--gold-light); text-transform: capitalize; }
+.conta-plano-chevron { width: 18px; height: 18px; color: var(--muted); transition: transform .25s; flex-shrink: 0; }
+.conta-plano-head.aberto .conta-plano-chevron { transform: rotate(180deg); }
+.conta-plano-lista { list-style: none; margin: 10px 2px 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.conta-plano-lista li { display: flex; align-items: flex-start; gap: 9px; font-size: var(--fs-sm); color: var(--off); line-height: 1.5; }
+.conta-plano-lista li svg.lucide, .conta-plano-lista li i { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+/* link e voltar */
+.conta-link { background: none; border: none; color: var(--gold-light); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; padding: 0; }
+.conta-voltar { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); cursor: pointer; margin-bottom: 14px; padding: 0; }
+.conta-voltar:hover { color: var(--gold-light); }
+.conta-voltar svg.lucide, .conta-voltar i { width: 15px; height: 15px; }
+/* termo */
+.conta-termos h3 { font-family: 'Sora', sans-serif; font-size: var(--fs-base); font-weight: 600; color: var(--white); margin: 20px 0 7px; }
+.conta-termos h3:first-child { margin-top: 8px; }
+.conta-termos p { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 9px; }
+.conta-termos strong { color: var(--off); }
 
 .loading-inline { text-align: center; padding: 30px; color: var(--muted); font-size: var(--fs-sm); }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 10px; }
@@ -1338,12 +1357,10 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
   <div class="tb-bubble tb-nav">
     <div class="top-saudacao" id="top-saudacao">Olá</div>
     <div class="tb-nav-icones">
-      <button class="icon-btn" id="btn-inicio" title="Início"><i data-lucide="home"></i></button>
       <div class="dropdown-wrap">
         <button class="icon-btn" id="btn-notif" title="Notificações"><i data-lucide="bell"></i></button>
         <div class="dropdown-panel" id="painel-notif"></div>
       </div>
-      <button class="icon-btn" id="btn-config" title="Configurações"><i data-lucide="settings"></i></button>
     </div>
   </div>
   <div class="tb-bubble tb-perfil">
@@ -2661,6 +2678,7 @@ function ligarEventosExpandido(key) {
   if (key === 'ateaqui') ligarAteAqui();
   if (key === 'sonhou') ligarSonhou();
   if (key === 'parceiros') ligarParceiros();
+  if (key === 'ajuda') ligarAjuda();
 }
 
 // ── "O que você sonhou" — flip das promessas, reveal escalonado, compartilhar, 1º acesso ──
@@ -5300,19 +5318,115 @@ function ligarMural() {
   });
 }
 
-// ── Conta e ajuda ──
+// ── Sua Conta ──
+// Planos (espelham contratar.html): preço por m² + o que cada plano abrange.
+const PLANOS_INFO = {
+  essencial: { nome:'Essencial', preco:20, inclui:[
+    'Acesso à plataforma Guide completa',
+    'Indicação de profissionais para execução da obra',
+    'Plataforma de controle da obra',
+    'Assessoria guiada pós entrega das chaves',
+  ]},
+  visual: { nome:'Visual', preco:40, inclui:[
+    'Acesso à plataforma Guide completa',
+    'Indicação de profissionais para execução da obra',
+    'Plataforma de controle da obra',
+    'Assessoria guiada pós entrega das chaves',
+    'Projeto visual personalizado de referência: Layout 2D e Imagens 3D',
+  ]},
+  completo: { nome:'Completo', preco:60, inclui:[
+    'Acesso à plataforma Guide completa',
+    'Indicação de profissionais para execução da obra',
+    'Plataforma de controle da obra',
+    'Assessoria guiada pós entrega das chaves',
+    'Projeto visual personalizado de referência: Layout 2D e Imagens 3D',
+    'Especificações completas: materiais, quantidades, dimensões gerais e links de compra',
+  ]},
+};
+
+// Termo de aceite aprovado na contratação (mesmo texto de contratar.html).
+const TERMOS_HTML = `
+  <h3>1. Introdução e aceitação dos termos</h3>
+  <p>Estes Termos de Uso explicam como funciona a plataforma Guide e as regras para utilizá-la. Eles valem para todos os Guiders (nossos clientes) que criam uma conta ou usam qualquer parte da plataforma.</p>
+  <p>Ao se cadastrar ou usar a Guide, você confirma que leu e concorda com estes Termos e com a nossa Política de Privacidade.</p>
+  <h3>2. Cadastro e conta</h3>
+  <p>Para usar a Guide, você precisa criar uma conta com informações verdadeiras e atualizadas. É preciso ter 18 anos ou mais.</p>
+  <p>Você é responsável por manter sua senha em segurança e por tudo o que acontece na sua conta. Se perceber qualquer uso não autorizado, avise a Guide imediatamente.</p>
+  <h3>3. Uso da plataforma e regras de conduta</h3>
+  <p>Ao usar a Guide, você concorda em não usar a plataforma para fins ilegais ou fraudulentos; tentar acessar dados que não sejam seus; copiar ou explorar comercialmente conteúdo sem autorização; publicar conteúdo ofensivo na Comunidade; ou usar ferramentas automatizadas para extrair dados.</p>
+  <h3>4. Planos, pagamentos e cancelamento</h3>
+  <p>Os valores, formas de pagamento e condições são sempre apresentados antes da contratação. Você pode cancelar em até 7 dias corridos após a compra, com devolução integral, conforme o Código de Defesa do Consumidor. Depois desse prazo, como o trabalho já terá sido iniciado, eventual reembolso de etapas ainda não iniciadas fica a critério da Guide.</p>
+  <h3>5. Propriedade intelectual e uso de imagens</h3>
+  <p>A marca, identidade visual, textos, código e metodologia pertencem à Guide. O conteúdo que você envia continua sendo seu; você autoriza a Guide a usá-lo para prestar o serviço. A Guide pode usar imagens do seu projeto em divulgação, sempre sem expor dados pessoais.</p>
+  <h3>6. Privacidade e proteção de dados (LGPD)</h3>
+  <p>Seus dados são tratados conforme a Lei nº 13.709/2018 e a nossa Política de Privacidade. Usamos seus dados para prestar o serviço, falar com você e melhorar a plataforma, respeitando seus direitos como titular.</p>
+  <h3>7. Limitação de responsabilidade</h3>
+  <p>A Guide não se responsabiliza por serviços de terceiros indicados, nem pelo orçamento, prazos e qualidade dos materiais da obra. Como não são feitas medições presenciais, a aferição de medidas no local é de responsabilidade do prestador contratado ou do proprietário.</p>
+  <h3>8. Encerramento e suspensão de conta</h3>
+  <p>Você pode encerrar sua conta quando quiser, pelos canais da plataforma. A Guide pode suspender ou encerrar o acesso, mediante aviso, em caso de violação destes Termos.</p>
+  <h3>9. Alterações nestes Termos</h3>
+  <p>Podemos atualizar estes Termos quando necessário. Mudanças importantes serão avisadas com antecedência.</p>
+  <h3>10. Lei aplicável e foro</h3>
+  <p>Estes Termos seguem as leis brasileiras, com foro do domicílio do consumidor, conforme o Código de Defesa do Consumidor.</p>
+`;
+
 function expandidoAjuda() {
-  const dados = bfDados() || {};
-  const temPrazo = dados['tem-prazo'];
+  const planoKey = (projeto.plano || '').toString().trim().toLowerCase();
+  const info = PLANOS_INFO[planoKey];
+  const nomePlano = info ? info.nome : (projeto.plano || 'Fale com a Guide para confirmar seu plano.');
+  const topicos = info ? info.inclui.map(t => `<li>${ic('check','ic-sm')} ${t}</li>`).join('') : '';
   return `
-    <div class="modal-eyebrow">${ic('settings')} Conta e ajuda</div>
+    <div class="modal-eyebrow">${ic('user')} Sua Conta</div>
     <div class="modal-titulo">Tudo sobre sua conta</div>
-    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('badge-check','ic-sm')} Plano contratado</div><div class="conta-bloco-corpo">${projeto.plano || 'Fale com a Guide para confirmar seu plano.'}</div></div>
-    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('calendar','ic-sm')} Prazos</div><div class="conta-bloco-corpo">${temPrazo ? `Data limite: ${dados['prazo-data'] || '—'}${dados['prazo-motivo'] ? ' · ' + dados['prazo-motivo'] : ''}` : 'Nenhum prazo específico registrado.'}</div></div>
-    <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('life-buoy','ic-sm')} Central de ajuda</div><div class="conta-bloco-corpo">Dúvidas sobre qualquer etapa? Fale direto com a equipe Guide pelos canais abaixo.</div></div>
+
+    <div class="conta-bloco">
+      <div class="conta-bloco-titulo">${ic('badge-check','ic-sm')} Plano contratado</div>
+      <button class="conta-plano-head" data-acao="toggle-plano" aria-expanded="false">
+        <span class="conta-plano-nome">${nomePlano}</span>
+        ${info ? `<i data-lucide="chevron-down" class="conta-plano-chevron"></i>` : ''}
+      </button>
+      ${info ? `<ul class="conta-plano-lista" hidden>${topicos}</ul>` : ''}
+    </div>
+
+    <div class="conta-bloco">
+      <div class="conta-bloco-titulo">${ic('file-text','ic-sm')} Termo de aceite</div>
+      <div class="conta-bloco-corpo">Você aceitou os Termos de Uso da Guide ao contratar. <button class="conta-link" data-acao="ver-termo">Ver termo aprovado</button></div>
+    </div>
+
     <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('shield-check','ic-sm')} Política e privacidade</div><div class="conta-bloco-corpo">Seus dados de briefing, diário e mural são privados entre você e a Guide — nunca compartilhados com terceiros.</div></div>
     <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('mail','ic-sm')} Contato</div><div class="conta-bloco-corpo"><a href="mailto:contato@guidearquitetura.com.br">contato@guidearquitetura.com.br</a><br><a href="https://instagram.com/guidearquitetura" target="_blank" rel="noopener">@guidearquitetura</a></div></div>
   `;
+}
+
+function ligarAjuda() {
+  const inner = document.getElementById('modal-inner');
+  if (!inner) return;
+  const head = inner.querySelector('[data-acao="toggle-plano"]');
+  if (head) head.addEventListener('click', () => {
+    const lista = inner.querySelector('.conta-plano-lista');
+    const aberto = head.getAttribute('aria-expanded') === 'true';
+    head.setAttribute('aria-expanded', String(!aberto));
+    head.classList.toggle('aberto', !aberto);
+    if (lista) lista.hidden = aberto;
+  });
+  const verTermo = inner.querySelector('[data-acao="ver-termo"]');
+  if (verTermo) verTermo.addEventListener('click', abrirTermo);
+}
+
+function abrirTermo() {
+  const inner = document.getElementById('modal-inner');
+  inner.innerHTML = `
+    <button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>
+    <button class="conta-voltar" data-acao="voltar-ajuda">${ic('arrow-left','ic-sm')} Voltar</button>
+    <div class="modal-eyebrow">${ic('file-text')} Termo de aceite</div>
+    <div class="modal-titulo">Termos de Uso — Guide</div>
+    <div class="conta-termos">${TERMOS_HTML}</div>
+  `;
+  inner.querySelector('[data-acao="voltar-ajuda"]').addEventListener('click', () => {
+    inner.innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoAjuda();
+    ligarAjuda(); icons(); revelarPalavras(inner);
+  });
+  icons();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -5320,8 +5434,6 @@ function expandidoAjuda() {
 // ─────────────────────────────────────────────────────────────
 
 function ligarHeader() {
-  document.getElementById('btn-inicio').addEventListener('click', () => { fecharExpandido(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
   const painelNotif = document.getElementById('painel-notif');
   document.getElementById('btn-notif').addEventListener('click', (e) => {
     e.stopPropagation();
@@ -5341,7 +5453,7 @@ function ligarHeader() {
       <div class="dropdown-perfil-nome">${projeto.nome_cliente || 'Cliente Guide'}</div>
       <div class="dropdown-perfil-email">${usuarioAtual.email}</div>
       <div class="dropdown-sep"></div>
-      <button class="dropdown-item" id="item-conta-ajuda">${ic('life-buoy','ic-sm')} Conta e ajuda</button>
+      <button class="dropdown-item" id="item-conta-ajuda">${ic('user','ic-sm')} Sua Conta</button>
       <button class="dropdown-item" onclick="fazerLogout()">${ic('log-out','ic-sm')} Sair</button>
     `;
     icons();
@@ -5349,8 +5461,6 @@ function ligarHeader() {
     painelPerfil.classList.toggle('vis');
     document.getElementById('item-conta-ajuda').addEventListener('click', () => { painelPerfil.classList.remove('vis'); abrirDeNav('ajuda', document.getElementById('btn-perfil')); });
   });
-
-  document.getElementById('btn-config').addEventListener('click', () => abrirDeNav('ajuda', document.getElementById('btn-config')));
 
   document.addEventListener('click', () => { painelNotif.classList.remove('vis'); painelPerfil.classList.remove('vis'); });
 }
