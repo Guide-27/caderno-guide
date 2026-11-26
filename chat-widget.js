@@ -68,7 +68,7 @@ window.GuideChat = (function () {
     return '<div class="gc-chat">' +
         '<div class="gc-header">' +
           '<button class="gc-back" type="button" aria-label="Voltar">' + SVG.back + '</button>' +
-          '<div class="gc-avatar"><img src="' + esc(cfg.avatarUrl) + '" alt="Gui"></div>' +
+          '<div class="gc-avatar">' + (cfg.expandido ? SVG.chat : '<img src="' + esc(cfg.avatarUrl) + '" alt="Gui">') + '</div>' +
           '<div class="gc-head-txt">' +
             '<div class="gc-head-title-row"></div>' +
             '<div class="gc-head-sub"><span class="gc-status-pip"></span><span class="gc-status-txt"></span></div>' +
@@ -95,8 +95,11 @@ window.GuideChat = (function () {
       root.innerHTML =
         '<div class="gc-overlay"><div class="gc-dock">' +
           '<aside class="gc-side">' +
-            '<div class="gc-side-head"><img class="gc-side-gui" src="' + esc(cfg.avatarUrl) + '" alt="Gui">' +
-              '<span class="gc-side-nome">Central de ajuda</span></div>' +
+            '<div class="gc-side-head">' +
+              '<img class="gc-side-gui" src="' + esc(cfg.avatarUrl) + '" alt="Gui">' +
+              '<div class="gc-side-nome">Central de ajuda</div>' +
+              '<p class="gc-side-intro">Oi! Eu sou o Gui, seu assistente da Guide. Aqui você tira suas dúvidas comigo — sobre o funcionamento da plataforma, as etapas do seu projeto e os materiais que você recebeu. Se preferir, te levo até um dos nossos atendentes.</p>' +
+            '</div>' +
             '<div class="gc-side-opts"></div>' +
             '<div class="gc-side-sec">Suas conversas</div>' +
             '<div class="gc-side-list"></div>' +
