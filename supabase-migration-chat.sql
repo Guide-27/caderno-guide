@@ -53,6 +53,9 @@ create table if not exists chat_conversas (
   visitante_email text,                 -- opcional
   -- Painel (cliente logado):
   cliente_id uuid references projetos(id) on delete set null,
+  -- Organização (home do chat):
+  titulo  text,                         -- nome que o usuário dá à conversa
+  assunto text,                         -- painel: 'plataforma' | 'projeto'; institucional: null
   -- Atendimento:
   atendente_id uuid,                    -- admin que assumiu (null = ninguém ainda)
   criado_em     timestamptz not null default now(),
@@ -63,6 +66,8 @@ alter table chat_conversas add column if not exists visitante_id uuid;
 alter table chat_conversas add column if not exists visitante_nome text;
 alter table chat_conversas add column if not exists visitante_email text;
 alter table chat_conversas add column if not exists atendente_id uuid;
+alter table chat_conversas add column if not exists titulo text;
+alter table chat_conversas add column if not exists assunto text;
 
 create index if not exists chat_conversas_visitante_idx on chat_conversas (visitante_id);
 create index if not exists chat_conversas_cliente_idx   on chat_conversas (cliente_id);

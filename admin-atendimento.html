@@ -62,7 +62,9 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .conv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
 .conv-nome { font-size: 13px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv-hora { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.conv-topic { font-size: 11.5px; color: var(--gold-light); font-weight: 500; margin: 1px 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv-prev { font-size: 11.5px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.chip.assunto { color: var(--gold-light); border-color: var(--border); background: var(--gold-dim); }
 .conv-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .chip { font-size: 9.5px; padding: 2px 8px; border-radius: 999px; letter-spacing: .03em; text-transform: uppercase; border: 1px solid var(--border2); color: var(--muted); }
 .chip.origem { color: var(--off); }
@@ -181,6 +183,8 @@ let recarregarTimer = null;
 
 const ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
 const ST_NOME = { bot:'Automático', pendente:'Pendente', em_atendimento:'Em atendimento', resolvido:'Resolvida' };
+const assuntoCurto = (a) => a === 'plataforma' ? 'Plataforma' : a === 'projeto' ? 'Projeto' : '';
+const tituloConv = (c) => c.titulo || (c.assunto === 'plataforma' ? 'Sobre a plataforma' : c.assunto === 'projeto' ? 'Sobre o seu projeto' : '');
 const esc = (t) => String(t==null?'':t).replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
 const horaCurta = (iso) => { try { return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
 const dataHora = (iso) => { try { const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
@@ -285,9 +289,11 @@ function renderLista() {
     const nova = precisaResposta(c) && c.id !== selId;
     return `<button class="conv-card st-${c.status} ${c.id===selId?'sel':''} ${nova?'nova':''}" onclick="abrirConversa('${c.id}')">
       <div class="conv-top"><span class="conv-nome">${nova?'<span class="conv-dot"></span>':''}${esc(nomeConversa(c))}</span><span class="conv-hora">${horaCurta(c.atualizado_em)}</span></div>
+      ${tituloConv(c) ? `<div class="conv-topic">${esc(tituloConv(c))}</div>` : ''}
       <div class="conv-prev">${esc(pTxt)}</div>
       <div class="conv-tags">
         <span class="chip origem">${c.origem === 'painel' ? 'Painel' : 'Site'}</span>
+        ${c.assunto ? `<span class="chip assunto">${esc(assuntoCurto(c.assunto))}</span>` : ''}
         <span class="chip st-${c.status}">${ST_NOME[c.status] || c.status}</span>
       </div>
     </button>`;
@@ -316,7 +322,7 @@ function renderThread() {
 
   const emAtend = c.status === 'em_atendimento';
   const resolvido = c.status === 'resolvido';
-  const sub = [c.origem === 'painel' ? 'Painel do cliente' : 'Site institucional', subConversa(c), ST_NOME[c.status] || c.status].filter(Boolean).join(' · ');
+  const sub = [tituloConv(c), c.origem === 'painel' ? 'Painel do cliente' : 'Site institucional', subConversa(c), ST_NOME[c.status] || c.status].filter(Boolean).join(' · ');
 
   let acoes = '';
   if (!emAtend && !resolvido) acoes += `<button class="btn-acao primario" onclick="assumir()">Assumir atendimento</button>`;

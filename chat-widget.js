@@ -1,48 +1,51 @@
 /* ══════════════════════════════════════════════════════════════════════
    CHAT WIDGET DA GUIDE — componente compartilhado (painel + institucional)
    ----------------------------------------------------------------------
+   Agora com TELA INICIAL (home): ao abrir, mostra as conversas salvas e os
+   pontos de partida para começar uma nova conversa (nomeável). Só entra na
+   conversa quando o usuário escolhe uma ou começa outra.
+
+   Painel do cliente: a home tem DOIS pontos de partida — "Sobre a plataforma"
+   e "Sobre o seu projeto". Institucional: um único "Iniciar uma conversa".
+
    Uso:
-     GuideChat.init({
-       sb,                       // cliente Supabase (obrigatório)
-       origem: 'painel',         // 'painel' | 'institucional'
-       clienteId: projeto.id,    // só no painel: id do projeto do cliente
-       clienteNome: 'Maria',     // opcional, para saudação
-       bubble: false,            // true  = cria bolha flutuante própria (institucional)
-                                 // false = você abre via GuideChat.open() (header do painel)
-       onUnread: function(tem){} // opcional: avisa p/ acender um pontinho no header
-     });
-     GuideChat.open();  GuideChat.close();  GuideChat.toggle();
+     GuideChat.init({ sb, origem:'painel'|'institucional', clienteId, clienteNome,
+                      bubble:false, onUnread:function(tem){} });
+     GuideChat.open(); GuideChat.close(); GuideChat.toggle();
 
    Depende de: chat-widget.css e das tabelas chat_conversas / chat_mensagens
-   (supabase-migration-chat.sql). O Realtime precisa estar ligado nessas tabelas.
+   (supabase-migration-chat.sql — inclui as colunas `titulo` e `assunto`).
    ══════════════════════════════════════════════════════════════════════ */
 
 window.GuideChat = (function () {
   'use strict';
 
-  var cfg = null;
-  var sb = null;
-  var conversa = null;     // linha de chat_conversas (null até a 1ª mensagem)
-  var uid = null;          // auth.uid() (cliente logado ou visitante anônimo)
-  var canalMsg = null;     // subscription de mensagens
-  var canalConv = null;    // subscription de updates da conversa
-  var aberto = false;
-  var enviando = false;
-  var iniciado = false;
-  var preparado = false;   // já resolvemos sessão + histórico?
-  var preparando = null;   // promise de preparo em andamento (evita corrida)
-  var vistos = {};         // ids de mensagens já renderizadas (dedupe do realtime)
-  var el = {};             // refs de DOM
+  var cfg = null, sb = null;
+  var uid = null;              // auth.uid() (cliente logado ou visitante anônimo)
+  var conversas = [];          // todas as conversas do usuário (para a home)
+  var ultimaMsg = {};          // conversa_id -> última mensagem (preview da home)
+  var conversa = null;         // conversa aberta na tela de chat
+  var pendente = null;         // { assunto, titulo } de uma conversa nova ainda não criada
+  var canalMsg = null, canalConv = null;
+  var aberto = false, enviando = false, iniciado = false;
+  var preparado = false, preparando = null;
+  var vistos = {};             // ids de mensagens já renderizadas (dedupe do realtime)
+  var el = {};
 
-  // ── ícones (SVG inline — não dependemos do Lucide no site institucional) ──
+  // ── ícones (SVG inline) ──
   var SVG = {
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
     close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
-    agent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11V3H7v8"/><path d="M4 11h16a1 1 0 0 1 1 1v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a1 1 0 0 1 1-1z"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>'
+    agent: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 11V3H7v8"/><path d="M4 11h16a1 1 0 0 1 1 1v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a1 1 0 0 1 1-1z"/><circle cx="8.5" cy="15.5" r="1"/><circle cx="15.5" cy="15.5" r="1"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+    layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+    proj: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
   };
 
-  // Frase de abertura (subtítulo do cabeçalho do chat).
   var FRASE_ABERTURA = 'A gente te entende, a gente te atende.';
 
   // STUB da resposta automática — PLACEHOLDER DA FASE 2 (integração com LLM).
@@ -59,40 +62,55 @@ window.GuideChat = (function () {
     try { return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
     catch (e) { return ''; }
   }
+  function primeiroNome(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
+
+  function assuntoLabel(a) {
+    return a === 'plataforma' ? 'Sobre a plataforma'
+         : a === 'projeto' ? 'Sobre o seu projeto' : 'Conversa';
+  }
+  function tituloPadrao(assunto) {
+    if (assunto === 'plataforma' || assunto === 'projeto') return assuntoLabel(assunto);
+    return 'Nova conversa';
+  }
+  function tituloDe(c) {
+    if (c && c.titulo) return c.titulo;
+    if (c && c.assunto) return assuntoLabel(c.assunto);
+    return 'Conversa';
+  }
 
   // ── DOM ───────────────────────────────────────────────────────────────
   function construir() {
     var root = document.createElement('div');
     root.className = 'gc-root ' + (cfg.origem === 'institucional' ? 'gc-institucional' : 'gc-painel');
 
-    var titulo = cfg.origem === 'institucional' ? 'Fale com a Guide' : 'Atendimento Guide';
-
     var partes = [];
     if (cfg.bubble) {
-      partes.push(
-        '<button class="gc-bubble" type="button" aria-label="Abrir conversa">' +
-          SVG.chat + '<span class="gc-dot"></span>' +
-        '</button>'
-      );
+      partes.push('<button class="gc-bubble" type="button" aria-label="Abrir conversa">' + SVG.chat + '<span class="gc-dot"></span></button>');
     }
     partes.push(
       '<div class="gc-panel" role="dialog" aria-label="Conversa com a Guide">' +
-        '<div class="gc-header">' +
-          '<div class="gc-avatar"><img src="' + esc(cfg.avatarUrl) + '" alt="Gui"></div>' +
-          '<div class="gc-head-txt">' +
-            '<div class="gc-head-title">' + esc(titulo) + '</div>' +
-            '<div class="gc-head-sub"><span class="gc-status-pip"></span><span class="gc-status-txt">' + esc(FRASE_ABERTURA) + '</span></div>' +
+        // ——— TELA INICIAL (home) ———
+        '<div class="gc-home"></div>' +
+        // ——— TELA DE CONVERSA (chat) ———
+        '<div class="gc-chat">' +
+          '<div class="gc-header">' +
+            '<button class="gc-back" type="button" aria-label="Voltar">' + SVG.back + '</button>' +
+            '<div class="gc-avatar"><img src="' + esc(cfg.avatarUrl) + '" alt="Gui"></div>' +
+            '<div class="gc-head-txt">' +
+              '<div class="gc-head-title-row"></div>' +
+              '<div class="gc-head-sub"><span class="gc-status-pip"></span><span class="gc-status-txt"></span></div>' +
+            '</div>' +
+            '<button class="gc-close" type="button" aria-label="Fechar">' + SVG.close + '</button>' +
           '</div>' +
-          '<button class="gc-close" type="button" aria-label="Fechar">' + SVG.close + '</button>' +
-        '</div>' +
-        '<div class="gc-body"></div>' +
-        '<div class="gc-footer">' +
-          '<button class="gc-handoff" type="button">' + SVG.agent + ' Falar com atendimento</button>' +
-          '<div class="gc-input-row">' +
-            '<textarea class="gc-input" rows="1" placeholder="Escreva sua mensagem..."></textarea>' +
-            '<button class="gc-send" type="button" aria-label="Enviar">' + SVG.send + '</button>' +
+          '<div class="gc-body"></div>' +
+          '<div class="gc-footer">' +
+            '<button class="gc-handoff" type="button">' + SVG.agent + ' Falar com atendimento</button>' +
+            '<div class="gc-input-row">' +
+              '<textarea class="gc-input" rows="1" placeholder="Escreva sua mensagem..."></textarea>' +
+              '<button class="gc-send" type="button" aria-label="Enviar">' + SVG.send + '</button>' +
+            '</div>' +
+            '<div class="gc-powered">Guide Arquitetura</div>' +
           '</div>' +
-          '<div class="gc-powered">Guide Arquitetura</div>' +
         '</div>' +
       '</div>'
     );
@@ -103,16 +121,21 @@ window.GuideChat = (function () {
     el.bubble = root.querySelector('.gc-bubble');
     el.dot = root.querySelector('.gc-dot');
     el.panel = root.querySelector('.gc-panel');
+    el.home = root.querySelector('.gc-home');
+    el.chat = root.querySelector('.gc-chat');
     el.body = root.querySelector('.gc-body');
-    el.close = root.querySelector('.gc-close');
+    el.back = root.querySelector('.gc-back');
+    el.close = root.querySelector('.gc-chat .gc-close');
     el.handoff = root.querySelector('.gc-handoff');
     el.input = root.querySelector('.gc-input');
     el.send = root.querySelector('.gc-send');
     el.headSub = root.querySelector('.gc-head-sub');
     el.statusTxt = root.querySelector('.gc-status-txt');
+    el.titleRow = root.querySelector('.gc-head-title-row');
 
     if (el.bubble) el.bubble.addEventListener('click', toggle);
     el.close.addEventListener('click', close);
+    el.back.addEventListener('click', irParaHome);
     el.send.addEventListener('click', enviar);
     el.handoff.addEventListener('click', falarComAtendimento);
     el.input.addEventListener('keydown', function (e) {
@@ -124,60 +147,174 @@ window.GuideChat = (function () {
     });
   }
 
+  // ── TELA INICIAL (home) ────────────────────────────────────────────────
+  function renderHome() {
+    var greet = 'Olá' + (cfg.clienteNome ? ', ' + esc(primeiroNome(cfg.clienteNome)) : '') + '!';
+
+    var novos;
+    if (cfg.origem === 'painel') {
+      novos =
+        botaoNovo('plataforma', SVG.layers, 'Sobre a plataforma', 'Dúvidas sobre a Guide e o painel') +
+        botaoNovo('projeto', SVG.proj, 'Sobre o seu projeto', 'Fale sobre o seu apartamento');
+    } else {
+      novos = botaoNovo('geral', SVG.chat, 'Iniciar uma conversa', 'A gente responde por aqui');
+    }
+
+    var lista;
+    if (!conversas.length) {
+      lista = '<div class="gc-home-vazio">' + (uid ? 'Você ainda não tem conversas. Comece uma acima.' : 'Não foi possível conectar o chat agora.') + '</div>';
+    } else {
+      lista = conversas.map(function (c) {
+        var m = ultimaMsg[c.id];
+        var prev = m ? ((m.remetente === 'usuario' ? 'Você: ' : m.remetente === 'atendente' ? 'Guide: ' : '') + m.conteudo) : 'Sem mensagens ainda';
+        var chip = (cfg.origem === 'painel' && c.assunto) ? '<span class="gc-conv-chip">' + esc(assuntoLabel(c.assunto)) + '</span>' : '';
+        var alerta = (c.status === 'em_atendimento' || c.status === 'pendente') ? '<span class="gc-conv-pip"></span>' : '';
+        return '<button class="gc-conv-item" type="button" data-id="' + esc(c.id) + '">' +
+            '<span class="gc-conv-ic">' + SVG.chat + '</span>' +
+            '<span class="gc-conv-mid">' +
+              '<span class="gc-conv-nome">' + alerta + esc(tituloDe(c)) + '</span>' +
+              '<span class="gc-conv-prev">' + esc(prev) + '</span>' +
+            '</span>' +
+            '<span class="gc-conv-meta">' + chip + '<span class="gc-conv-time">' + hora(c.atualizado_em) + '</span></span>' +
+          '</button>';
+      }).join('');
+    }
+
+    el.home.innerHTML =
+      '<div class="gc-home-head">' +
+        '<button class="gc-close gc-close-home" type="button" aria-label="Fechar">' + SVG.close + '</button>' +
+        '<div class="gc-home-ava"><img src="' + esc(cfg.avatarUrl) + '" alt="Gui"></div>' +
+        '<div class="gc-home-greet">' + greet + '<span>Como podemos ajudar?</span></div>' +
+      '</div>' +
+      '<div class="gc-home-body">' +
+        '<div class="gc-home-sec">Começar uma conversa</div>' +
+        '<div class="gc-new">' + novos + '</div>' +
+        '<div class="gc-home-sec">Suas conversas</div>' +
+        '<div class="gc-conv-list">' + lista + '</div>' +
+        '<div class="gc-home-hint">' + esc(FRASE_ABERTURA) + '</div>' +
+      '</div>';
+
+    el.home.querySelector('.gc-close-home').addEventListener('click', close);
+    el.home.querySelectorAll('.gc-newbtn').forEach(function (b) {
+      b.addEventListener('click', function () { novaConversa(b.getAttribute('data-assunto')); });
+    });
+    el.home.querySelectorAll('.gc-conv-item').forEach(function (b) {
+      b.addEventListener('click', function () { abrirConversaPorId(b.getAttribute('data-id')); });
+    });
+  }
+
+  function botaoNovo(assunto, icon, titulo, sub) {
+    return '<button class="gc-newbtn" type="button" data-assunto="' + esc(assunto) + '">' +
+        '<span class="gc-newbtn-ic">' + icon + '</span>' +
+        '<span class="gc-newbtn-tx"><strong>' + esc(titulo) + '</strong><small>' + esc(sub) + '</small></span>' +
+        '<span class="gc-newbtn-ch">' + SVG.chevron + '</span>' +
+      '</button>';
+  }
+
+  // ── TELA DE CONVERSA (chat) ─────────────────────────────────────────────
+  function setTitulo(txt) {
+    el.titleRow.innerHTML = '<span class="gc-head-title">' + esc(txt) + '</span>' +
+      '<button class="gc-rename" type="button" aria-label="Renomear conversa">' + SVG.edit + '</button>';
+    el.titleRow.querySelector('.gc-rename').addEventListener('click', iniciarRename);
+  }
+  function iniciarRename() {
+    var atual = el.titleRow.querySelector('.gc-head-title').textContent;
+    el.titleRow.innerHTML = '<input class="gc-title-input" maxlength="60" value="' + esc(atual) + '">';
+    var inp = el.titleRow.querySelector('.gc-title-input');
+    inp.focus(); inp.select();
+    var feito = false;
+    function salvar() {
+      if (feito) return; feito = true;
+      var novo = (inp.value || '').trim() || atual;
+      setTitulo(novo); persistirTitulo(novo);
+    }
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+      else if (e.key === 'Escape') { inp.value = atual; inp.blur(); }
+    });
+    inp.addEventListener('blur', salvar);
+  }
+  function persistirTitulo(novo) {
+    if (conversa) {
+      conversa.titulo = novo;
+      var c = conversas.filter(function (x) { return x.id === conversa.id; })[0];
+      if (c) c.titulo = novo;
+      sb.from('chat_conversas').update({ titulo: novo }).eq('id', conversa.id).then(function () {});
+    } else if (pendente) {
+      pendente.titulo = novo;
+    }
+  }
+
   function mostrarVazio() {
     el.body.innerHTML =
       '<div class="gc-welcome"><strong>Olá' +
       (cfg.clienteNome ? ', ' + esc(primeiroNome(cfg.clienteNome)) : '') +
-      '!</strong><br>Como podemos ajudar você hoje? Escreva abaixo que a gente te responde.</div>';
+      '!</strong><br>Escreva sua mensagem abaixo que a gente te responde.</div>';
   }
-  function primeiroNome(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
-
   function render(msgs) {
-    el.body.innerHTML = '';
-    vistos = {};
+    el.body.innerHTML = ''; vistos = {};
     if (!msgs || !msgs.length) { mostrarVazio(); return; }
     msgs.forEach(addMensagem);
     scrollFim();
   }
-
   function addMensagem(m) {
     if (!m || vistos[m.id]) return;
     vistos[m.id] = true;
-    var welcome = el.body.querySelector('.gc-welcome');
-    if (welcome) welcome.remove();
-
+    var w = el.body.querySelector('.gc-welcome'); if (w) w.remove();
     var meu = m.remetente === 'usuario';
     var div = document.createElement('div');
     div.className = 'gc-msg ' + (meu ? 'me' : 'them');
-    var label = m.remetente === 'atendente' ? 'Atendimento Guide'
-              : m.remetente === 'bot' ? 'Guia Guide' : '';
-    div.innerHTML =
-      (label ? '<div class="gc-msg-label">' + esc(label) + '</div>' : '') +
+    var label = m.remetente === 'atendente' ? 'Atendimento Guide' : m.remetente === 'bot' ? 'Guia Guide' : '';
+    div.innerHTML = (label ? '<div class="gc-msg-label">' + esc(label) + '</div>' : '') +
       '<div class="gc-bubble-msg">' + esc(m.conteudo) + '</div>' +
       '<div class="gc-msg-time">' + hora(m.criado_em) + '</div>';
     el.body.appendChild(div);
   }
-
   function addNota(txt) {
-    var div = document.createElement('div');
-    div.className = 'gc-note';
-    div.textContent = txt;
-    el.body.appendChild(div);
-    scrollFim();
+    var div = document.createElement('div'); div.className = 'gc-note'; div.textContent = txt;
+    el.body.appendChild(div); scrollFim();
   }
-
   function scrollFim() { el.body.scrollTop = el.body.scrollHeight; }
 
   function refletirStatus() {
-    if (!conversa) return;
-    var atendido = conversa.status === 'em_atendimento';
-    el.headSub.classList.toggle('at', atendido);
+    if (!conversa) { el.headSub.classList.remove('at'); el.statusTxt.textContent = FRASE_ABERTURA; return; }
+    el.headSub.classList.toggle('at', conversa.status === 'em_atendimento');
     el.statusTxt.textContent =
       conversa.status === 'em_atendimento' ? 'Você está falando com a equipe'
       : conversa.status === 'pendente' ? 'Avisamos a equipe — já te respondem'
-      : conversa.status === 'resolvido' ? 'Conversa encerrada'
-      : FRASE_ABERTURA;
+      : conversa.status === 'resolvido' ? 'Conversa encerrada' : FRASE_ABERTURA;
   }
+
+  // ── navegação entre telas ───────────────────────────────────────────────
+  function irParaHome() {
+    desassinar();
+    conversa = null; pendente = null;
+    el.root.classList.remove('gc-em-chat');
+    carregarConversas().then(renderHome);
+  }
+  function irParaChat(conv, assunto) {
+    desassinar(); vistos = {};
+    conversa = conv || null;
+    pendente = conv ? null : { assunto: assunto || null, titulo: tituloPadrao(assunto) };
+    el.root.classList.add('gc-em-chat');
+    el.handoff.removeAttribute('disabled');
+    setTitulo(conv ? tituloDe(conv) : pendente.titulo);
+    if (conv) {
+      if (conv.status === 'resolvido') el.handoff.setAttribute('disabled', 'disabled');
+      carregarMensagens(conv.id);
+      refletirStatus();
+      assinar();
+    } else {
+      render([]);
+      refletirStatus();
+    }
+    setTimeout(function () { el.input && el.input.focus(); scrollFim(); }, 120);
+  }
+  function abrirConversaPorId(id) {
+    var c = conversas.filter(function (x) { return x.id === id; })[0];
+    if (c) irParaChat(c);
+  }
+  function novaConversa(assunto) { irParaChat(null, assunto); }
 
   // ── abrir / fechar ──────────────────────────────────────────────────────
   function open() {
@@ -185,14 +322,13 @@ window.GuideChat = (function () {
     el.root.classList.add('gc-aberto');
     if (el.dot) el.dot.style.display = 'none';
     if (cfg.onUnread) cfg.onUnread(false);
-    if (!preparado) preparar(); // institucional: só aqui nasce o login anônimo
-    setTimeout(function () { el.input && el.input.focus(); scrollFim(); }, 120);
+    (preparado ? Promise.resolve() : preparar()).then(irParaHome);
   }
   function close() { aberto = false; el.root.classList.remove('gc-aberto'); }
   function toggle() { aberto ? close() : open(); }
 
   function avisarNova() {
-    if (aberto) return;
+    if (aberto && el.root.classList.contains('gc-em-chat')) return;
     if (el.dot) el.dot.style.display = 'block';
     if (cfg.onUnread) cfg.onUnread(true);
   }
@@ -204,87 +340,76 @@ window.GuideChat = (function () {
     if (!sessao) {
       if (cfg.origem === 'institucional') {
         if (typeof sb.auth.signInAnonymously !== 'function') {
-          console.error('[GuideChat] Este supabase-js não tem login anônimo. Use a versão 2.43+ (veja o embed institucional).');
+          console.error('[GuideChat] Este supabase-js não tem login anônimo. Use a versão 2.43+.');
           return null;
         }
-        // Login anônimo: o visitante não cria conta nem faz login; o Supabase
-        // guarda um "crachá" no localStorage deste navegador (id estável).
         var a = await sb.auth.signInAnonymously();
         if (a.error) { console.error('[GuideChat] login anônimo falhou:', a.error); return null; }
         sessao = a.data.session;
-      } else {
-        return null; // no painel o cliente já está logado; sem sessão não há chat
-      }
+      } else { return null; }
     }
     return sessao && sessao.user ? sessao.user.id : null;
   }
 
-  // Resolve a sessão (login anônimo no institucional) e carrega o histórico.
-  // Roda no máximo uma vez; chamadas simultâneas compartilham a mesma promise.
   function preparar() {
     if (preparado) return Promise.resolve();
     if (preparando) return preparando;
-    preparando = (async function () {
-      uid = await garantirSessao();
-      if (!uid) { addNota('Não foi possível conectar o chat agora.'); preparando = null; return; }
-      await retomarConversa();
-      preparado = true;
-    })();
+    preparando = (async function () { uid = await garantirSessao(); preparado = true; })();
     return preparando;
   }
 
-  async function retomarConversa() {
-    var q = sb.from('chat_conversas').select('*')
-      .eq('origem', cfg.origem).neq('status', 'resolvido')
-      .order('atualizado_em', { ascending: false }).limit(1);
-    if (cfg.origem === 'institucional') q = q.eq('visitante_id', uid);
-    else q = q.eq('cliente_id', cfg.clienteId);
+  async function carregarConversas() {
+    conversas = []; ultimaMsg = {};
+    if (!uid) return;
+    var q = sb.from('chat_conversas').select('*').eq('origem', cfg.origem).order('atualizado_em', { ascending: false });
+    if (cfg.origem === 'institucional') q = q.eq('visitante_id', uid); else q = q.eq('cliente_id', cfg.clienteId);
     var r = await q;
-    if (r.error) { console.error('[GuideChat] retomar conversa:', r.error); return; }
-    conversa = (r.data && r.data[0]) ? r.data[0] : null;
-    if (conversa) {
-      var m = await sb.from('chat_mensagens').select('*')
-        .eq('conversa_id', conversa.id).order('criado_em', { ascending: true });
-      render(m.data || []);
-      refletirStatus();
-      assinar();
-    } else {
-      mostrarVazio();
+    if (r.error) { console.error('[GuideChat] listar conversas:', r.error); return; }
+    conversas = r.data || [];
+    if (conversas.length) {
+      var ids = conversas.map(function (c) { return c.id; });
+      var mm = await sb.from('chat_mensagens').select('conversa_id,conteudo,remetente,criado_em').in('conversa_id', ids).order('criado_em', { ascending: false });
+      (mm.data || []).forEach(function (m) { if (!ultimaMsg[m.conversa_id]) ultimaMsg[m.conversa_id] = m; });
     }
   }
 
+  async function carregarMensagens(id) {
+    var m = await sb.from('chat_mensagens').select('*').eq('conversa_id', id).order('criado_em', { ascending: true });
+    if (m.error) { console.error('[GuideChat] mensagens:', m.error); render([]); return; }
+    render(m.data || []);
+  }
+
   async function criarConversa() {
-    var linha = { origem: cfg.origem, status: 'bot' };
-    if (cfg.origem === 'institucional') {
-      linha.visitante_id = uid;
-      if (cfg.clienteNome) linha.visitante_nome = cfg.clienteNome;
-    } else {
-      linha.cliente_id = cfg.clienteId;
-    }
+    var assunto = pendente ? pendente.assunto : (cfg.origem === 'painel' ? 'projeto' : null);
+    var titulo = (pendente && pendente.titulo) ? pendente.titulo : tituloPadrao(assunto);
+    var linha = { origem: cfg.origem, status: 'bot', assunto: assunto, titulo: titulo };
+    if (cfg.origem === 'institucional') { linha.visitante_id = uid; if (cfg.clienteNome) linha.visitante_nome = cfg.clienteNome; }
+    else { linha.cliente_id = cfg.clienteId; }
     var r = await sb.from('chat_conversas').insert(linha).select().single();
     if (r.error) { console.error('[GuideChat] criar conversa:', r.error); return null; }
-    conversa = r.data;
+    conversa = r.data; pendente = null;
+    conversas.unshift(conversa);
     assinar();
     return conversa;
   }
 
+  function desassinar() {
+    if (canalMsg) { try { sb.removeChannel(canalMsg); } catch (e) {} canalMsg = null; }
+    if (canalConv) { try { sb.removeChannel(canalConv); } catch (e) {} canalConv = null; }
+  }
   function assinar() {
     if (!conversa || canalMsg) return;
     canalMsg = sb.channel('gc-msg-' + conversa.id)
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_mensagens', filter: 'conversa_id=eq.' + conversa.id },
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens', filter: 'conversa_id=eq.' + conversa.id },
         function (payload) {
           var m = payload.new;
           if (vistos[m.id]) return;
-          addMensagem(m);
-          scrollFim();
+          addMensagem(m); scrollFim();
+          ultimaMsg[m.conversa_id] = m;
           if (m.remetente !== 'usuario') avisarNova();
-        })
-      .subscribe();
-
+        }).subscribe();
     canalConv = sb.channel('gc-conv-' + conversa.id)
-      .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'chat_conversas', filter: 'id=eq.' + conversa.id },
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_conversas', filter: 'id=eq.' + conversa.id },
         function (payload) {
           var antes = conversa ? conversa.status : null;
           conversa = payload.new;
@@ -293,29 +418,21 @@ window.GuideChat = (function () {
             addNota('Um atendente da Guide entrou na conversa.');
             el.handoff.setAttribute('disabled', 'disabled');
           }
-          if (conversa.status === 'resolvido' && antes !== 'resolvido') {
-            addNota('A equipe marcou esta conversa como resolvida.');
-          }
-        })
-      .subscribe();
+          if (conversa.status === 'resolvido' && antes !== 'resolvido') addNota('A equipe marcou esta conversa como resolvida.');
+        }).subscribe();
   }
 
-  async function tocarConversa() {
-    try { await sb.from('chat_conversas').update({ atualizado_em: new Date().toISOString() }).eq('id', conversa.id); }
-    catch (e) { /* silencioso */ }
+  function tocarConversa() {
+    var agora = new Date().toISOString();
+    if (conversa) conversa.atualizado_em = agora;
+    try { sb.from('chat_conversas').update({ atualizado_em: agora }).eq('id', conversa.id).then(function () {}); } catch (e) {}
   }
 
   // STUB da resposta automática — PLACEHOLDER DA FASE 2 (integração com LLM).
-  // Hoje: só devolve uma mensagem fixa de 'bot'. Depois, esta função será
-  // substituída por uma chamada ao modelo (provavelmente numa Edge Function,
-  // para a chave da IA não ficar exposta no navegador).
-  async function processarMensagemBot(conversaId /*, mensagemUsuario */) {
-    if (!conversa || conversa.status !== 'bot') return; // já com humano: bot cala
-    try {
-      await sb.from('chat_mensagens').insert({
-        conversa_id: conversaId, remetente: 'bot', conteudo: MSG_BOT_STUB
-      });
-    } catch (e) { console.error('[GuideChat] bot stub:', e); }
+  async function processarMensagemBot(conversaId) {
+    if (!conversa || conversa.status !== 'bot') return;
+    try { await sb.from('chat_mensagens').insert({ conversa_id: conversaId, remetente: 'bot', conteudo: MSG_BOT_STUB }); }
+    catch (e) { console.error('[GuideChat] bot stub:', e); }
   }
 
   async function enviar() {
@@ -323,19 +440,16 @@ window.GuideChat = (function () {
     if (!texto || enviando) return;
     enviando = true; el.send.setAttribute('disabled', 'disabled');
     el.input.value = ''; el.input.style.height = 'auto';
-
     try {
       if (!preparado) await preparar();
       if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); return; }
       if (!conversa) { if (!(await criarConversa())) throw new Error('sem conversa'); }
-      var ins = await sb.from('chat_mensagens').insert({
-        conversa_id: conversa.id, remetente: 'usuario', conteudo: texto
-      }).select().single();
+      var ins = await sb.from('chat_mensagens').insert({ conversa_id: conversa.id, remetente: 'usuario', conteudo: texto }).select().single();
       if (ins.error) throw ins.error;
-      addMensagem(ins.data);
-      scrollFim();
+      addMensagem(ins.data); scrollFim();
+      ultimaMsg[conversa.id] = ins.data;
       tocarConversa();
-      processarMensagemBot(conversa.id, texto);
+      processarMensagemBot(conversa.id);
     } catch (e) {
       console.error('[GuideChat] enviar:', e);
       addNota('Sua mensagem não foi enviada. Tente novamente.');
@@ -352,12 +466,9 @@ window.GuideChat = (function () {
       if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); el.handoff.removeAttribute('disabled'); return; }
       if (!conversa) { if (!(await criarConversa())) throw new Error('sem conversa'); }
       if (conversa.status === 'bot' || conversa.status === 'resolvido') {
-        var up = await sb.from('chat_conversas')
-          .update({ status: 'pendente', atualizado_em: new Date().toISOString() })
-          .eq('id', conversa.id).select().single();
+        var up = await sb.from('chat_conversas').update({ status: 'pendente', atualizado_em: new Date().toISOString() }).eq('id', conversa.id).select().single();
         if (up.error) throw up.error;
-        conversa = up.data;
-        refletirStatus();
+        conversa = up.data; refletirStatus();
       }
       addNota('Avisamos a equipe da Guide. Assim que alguém estiver disponível, responde por aqui.');
     } catch (e) {
@@ -377,8 +488,8 @@ window.GuideChat = (function () {
       origem: opts.origem === 'institucional' ? 'institucional' : 'painel',
       clienteId: opts.clienteId || null,
       clienteNome: opts.clienteNome || null,
-      bubble: opts.bubble !== false, // padrão: tem bolha (institucional). Painel passa false.
-      avatarUrl: opts.avatarUrl || '/assets/character-1.png', // imagem do Gui
+      bubble: opts.bubble !== false,
+      avatarUrl: opts.avatarUrl || '/assets/character-1.png',
       onUnread: typeof opts.onUnread === 'function' ? opts.onUnread : null
     };
     sb = cfg.sb;
@@ -388,15 +499,11 @@ window.GuideChat = (function () {
     }
     iniciado = true;
     construir();
-    mostrarVazio();
-
-    // Painel: cliente já logado — preparamos logo (histórico + pontinho de não-lida).
-    // Institucional: só preparamos quando o visitante abrir o chat, para não criar
-    // um login anônimo em todo mundo que apenas passa pela página.
-    if (cfg.origem === 'painel') preparar();
+    if (cfg.origem === 'painel') preparar(); // warm da sessão (cliente já logado)
   }
 
-  return { init: init, open: open, close: close, toggle: toggle,
-           // exposto p/ testes/depuração:
-           _estado: function () { return { conversa: conversa, uid: uid, aberto: aberto }; } };
+  return {
+    init: init, open: open, close: close, toggle: toggle,
+    _estado: function () { return { conversa: conversa, conversas: conversas, uid: uid, aberto: aberto }; }
+  };
 })();

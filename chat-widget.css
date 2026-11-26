@@ -193,6 +193,64 @@
 
 .gc-powered { text-align: center; font-size: 10px; color: var(--gc-muted); margin-top: 8px; letter-spacing: .02em; }
 
+/* ── Duas telas: home (inicial) e chat (conversa) ───────────────────────── */
+.gc-home, .gc-chat { display: none; flex: 1 1 auto; min-height: 0; flex-direction: column; }
+.gc-root:not(.gc-em-chat) .gc-home { display: flex; }
+.gc-root.gc-em-chat .gc-chat { display: flex; }
+
+/* cabeçalho da conversa: botão voltar + título editável */
+.gc-back { background: transparent; border: none; cursor: pointer; color: var(--gc-muted); width: 30px; height: 30px; flex-shrink: 0; border-radius: 9px; display: flex; align-items: center; justify-content: center; transition: background .2s, color .2s; }
+.gc-back:hover { background: rgba(127,127,127,0.12); color: var(--gc-text-strong); }
+.gc-back svg { width: 18px; height: 18px; }
+.gc-head-title-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.gc-rename { background: transparent; border: none; cursor: pointer; color: var(--gc-muted); padding: 2px; display: flex; flex-shrink: 0; opacity: .7; }
+.gc-rename:hover { color: var(--gc-accent); opacity: 1; }
+.gc-rename svg { width: 13px; height: 13px; }
+.gc-title-input { font-family: var(--gc-font-title); font-weight: 600; font-size: 14px; color: var(--gc-text-strong); background: var(--gc-body-bg); border: 1px solid var(--gc-accent); border-radius: 7px; padding: 2px 7px; outline: none; width: 100%; max-width: 210px; }
+
+/* home — topo */
+.gc-home-head { position: relative; padding: 22px 20px 20px; border-bottom: 1px solid var(--gc-panel-border); background: linear-gradient(160deg, rgba(201,162,39,0.14), transparent); }
+.gc-institucional .gc-home-head { background: linear-gradient(160deg, rgba(201,162,39,0.16), #ffffff); }
+.gc-home-ava { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--gc-them-bg); }
+.gc-home-ava img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
+.gc-home-greet { margin-top: 12px; font-family: var(--gc-font-title); font-weight: 700; font-size: 20px; color: var(--gc-text-strong); line-height: 1.25; }
+.gc-home-greet span { display: block; font-weight: 600; color: var(--gc-muted); }
+.gc-close-home { position: absolute; top: 16px; right: 16px; background: transparent; border: none; cursor: pointer; color: var(--gc-muted); width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: background .2s, color .2s; }
+.gc-close-home svg { width: 18px; height: 18px; }
+.gc-close-home:hover { background: rgba(127,127,127,0.12); color: var(--gc-text-strong); }
+
+/* home — corpo */
+.gc-home-body { flex: 1; overflow-y: auto; padding: 16px 16px 18px; background: var(--gc-body-bg); }
+.gc-home-body::-webkit-scrollbar { width: 7px; }
+.gc-home-body::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.25); border-radius: 4px; }
+.gc-home-sec { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--gc-muted); margin: 6px 2px 10px; }
+.gc-new { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.gc-newbtn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer; background: var(--gc-panel-bg); border: 1px solid var(--gc-panel-border); border-radius: 14px; padding: 13px 14px; font-family: var(--gc-font-body); transition: border-color .2s, transform .15s, box-shadow .2s; }
+.gc-newbtn:hover { border-color: var(--gc-accent); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+.gc-newbtn-ic { width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: var(--gc-them-bg); color: var(--gc-accent); }
+.gc-newbtn-ic svg { width: 19px; height: 19px; }
+.gc-newbtn-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gc-newbtn-tx strong { font-size: 13.5px; color: var(--gc-text-strong); font-weight: 600; }
+.gc-newbtn-tx small { font-size: 11.5px; color: var(--gc-muted); }
+.gc-newbtn-ch { color: var(--gc-muted); display: flex; }
+.gc-newbtn-ch svg { width: 18px; height: 18px; }
+
+/* home — lista de conversas */
+.gc-conv-list { display: flex; flex-direction: column; gap: 7px; }
+.gc-conv-item { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; cursor: pointer; background: transparent; border: 1px solid var(--gc-panel-border); border-radius: 12px; padding: 10px 12px; font-family: var(--gc-font-body); transition: background .2s, border-color .2s; }
+.gc-conv-item:hover { background: var(--gc-them-bg); border-color: var(--gc-accent); }
+.gc-conv-ic { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: var(--gc-them-bg); color: var(--gc-accent); display: flex; align-items: center; justify-content: center; }
+.gc-conv-ic svg { width: 15px; height: 15px; }
+.gc-conv-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gc-conv-nome { font-size: 13px; font-weight: 600; color: var(--gc-text-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-conv-prev { font-size: 11.5px; color: var(--gc-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.gc-conv-time { font-size: 10px; color: var(--gc-muted); }
+.gc-conv-chip { font-size: 9px; text-transform: uppercase; letter-spacing: .03em; color: var(--gc-accent); background: var(--gc-them-bg); border-radius: 999px; padding: 2px 7px; white-space: nowrap; }
+.gc-conv-pip { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gc-accent); margin-right: 6px; vertical-align: middle; }
+.gc-home-vazio { text-align: center; color: var(--gc-muted); font-size: 12.5px; padding: 20px 10px; line-height: 1.5; }
+.gc-home-hint { text-align: center; color: var(--gc-muted); font-size: 11px; margin-top: 18px; }
+
 @media (max-width: 460px) {
   .gc-panel { right: 10px; left: 10px; bottom: 10px; width: auto; height: calc(100vh - 20px); max-height: none; }
   .gc-bubble { right: 16px; bottom: 16px; }
