@@ -121,6 +121,35 @@ table.contratacoes tbody tr:hover td { background: rgba(255,255,255,0.02); }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(20,20,24,0.96); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 11px; padding: 13px 22px; font-size: 12px; color: var(--off); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 .toast.vis { opacity: 1; }
 @media (max-width: 600px){ .top-bar{left:12px;right:12px;padding:0 16px;} .main{padding:116px 16px 80px;} }
+
+/* ── Central de notificações (pedidos de cancelamento / troca) ── */
+.notif-sec { margin-bottom: 34px; }
+.notif-sec-top { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.notif-sec-top .sec-titulo { margin: 0; }
+.notif-count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px; background: #e06b6b; color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.notif-card { background: rgba(224,107,107,0.06); border: 1px solid rgba(224,107,107,0.3); border-radius: 16px; padding: 18px 20px; margin-bottom: 14px; }
+.notif-card.troca { background: var(--gold-dim); border-color: var(--gold-mid); }
+.notif-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.notif-tt { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 15px; color: var(--white); }
+.notif-cliente { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.notif-corpo { font-size: 13px; color: var(--off); line-height: 1.6; margin: 11px 0 0; }
+.notif-corpo strong { color: var(--gold-light); }
+.notif-valor-wrap { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.notif-valor-pre { font-size: 13px; color: var(--muted); }
+.notif-valor-input { width: 150px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: 9px; padding: 9px 12px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: 13px; outline: none; }
+.notif-valor-input:focus { border-color: var(--gold-mid); }
+.notif-conta { background: rgba(255,255,255,0.03); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 13px; font-size: 12px; color: var(--off); margin-top: 12px; line-height: 1.7; }
+.notif-conta strong { color: var(--white); }
+.notif-badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+.notif-badge.aguardando { color: var(--gold-light); background: var(--gold-dim); border: 1px solid var(--gold-mid); }
+.notif-badge.confirmado { color: var(--green); background: var(--green-dim); border: 1px solid rgba(80,200,120,0.35); }
+.notif-badge.revisao { color: #e2b93b; background: rgba(224,107,107,0.1); border: 1px solid rgba(224,107,107,0.4); }
+.notif-acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.notif-btn { background: transparent; border: 1px solid var(--border2); border-radius: 9px; padding: 9px 15px; font-size: 12px; color: var(--off); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all .2s; }
+.notif-btn:hover { border-color: var(--gold); color: var(--gold); }
+.notif-btn.ok { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; font-weight: 600; }
+.notif-btn.danger:hover { border-color: #e06b6b; color: #e06b6b; }
+.notif-vazia { font-size: 13px; color: var(--muted); background: rgba(255,255,255,0.02); border: 1px dashed var(--border2); border-radius: 14px; padding: 18px 20px; }
 </style>
 </head>
 <body>
@@ -190,6 +219,9 @@ const val = c => Number(c.valor_total) || 0;
 let contratacoes = [];
 let emailsProjetos = new Set();
 let totalProjetos = 0;
+let solicitacoesList = [];        // pedidos de cancelamento / troca
+let projetosById = {};            // id -> { nome_cliente, email }
+let contratacaoPorEmail = {};     // email (lower) -> contratação mais recente
 
 // fundo animado (mesmo do painel)
 (function(){
@@ -239,17 +271,26 @@ async function inicializar() {
 }
 
 async function carregarDados() {
-  const [cRes, pRes] = await Promise.all([
+  const [cRes, pRes, sRes] = await Promise.all([
     sb.from('contratacoes').select('*').order('aceite_data', { ascending: false }),
-    sb.from('projetos').select('email'),
+    sb.from('projetos').select('id, nome_cliente, email'),
+    sb.from('solicitacoes').select('*').order('criado_em', { ascending: false }),
   ]);
   if (cRes.error) {
     document.getElementById('conteudo').innerHTML = `<div class="aviso"><strong>Não foi possível ler as contratações.</strong> Provavelmente falta liberar a leitura para a administração no Supabase. Rode a migração <code>supabase-migration-admin-dono.sql</code> e recarregue.</div>`;
     console.error(cRes.error); return;
   }
   contratacoes = (cRes.data || []).map(c => ({ ...c, status: c.status || 'ativa', pagamento_status: c.pagamento_status || 'pendente' }));
-  totalProjetos = (pRes.data || []).length;
-  emailsProjetos = new Set((pRes.data || []).map(p => (p.email||'').toLowerCase()).filter(Boolean));
+  const projs = pRes.data || [];
+  totalProjetos = projs.length;
+  emailsProjetos = new Set(projs.map(p => (p.email||'').toLowerCase()).filter(Boolean));
+  projetosById = {};
+  projs.forEach(p => { projetosById[p.id] = p; });
+  // contratação mais recente por email (já vêm ordenadas desc por aceite_data)
+  contratacaoPorEmail = {};
+  contratacoes.forEach(c => { const k = (c.email||'').toLowerCase(); if (k && !contratacaoPorEmail[k]) contratacaoPorEmail[k] = c; });
+  // solicitações (tabela pode ainda não existir — silencioso)
+  solicitacoesList = (sRes && !sRes.error) ? (sRes.data || []) : [];
   render();
 }
 
@@ -296,6 +337,8 @@ function onPeriodoChange() {
 
 function render() {
   document.getElementById('conteudo').innerHTML = `
+    <span id="notificacoes"></span>
+    <div class="notif-sec" id="central-notif"></div>
     <div class="kpi-grid" id="kpis"></div>
     <div class="sec-titulo">Este mês vs. mês passado</div><div class="comp-grid" id="comparativo"></div>
     <div class="sec-titulo">Situação das contratações</div><div class="status-grid" id="status"></div><div class="status-churn" id="churn"></div>
@@ -310,8 +353,111 @@ function render() {
       <button class="btn-export" onclick="exportarCSV()">⭳ Exportar CSV</button>
     </div>
     <div class="tabela-wrap" id="tabela-wrap"></div>`;
+  renderNotificacoes();
   atualizar();
+  if (location.hash === '#notificacoes') { const a = document.getElementById('notificacoes'); if (a) setTimeout(() => a.scrollIntoView({ behavior: 'smooth' }), 200); }
 }
+
+// ── Central de notificações (cancelamento / troca de plano) ──
+const PLANO_NOMES = { essencial: 'Essencial', visual: 'Visual', completo: 'Completo' };
+const STATUS_ATIVOS = ['aberta','em_avaliacao','reembolso_proposto','reembolso_confirmado','reembolso_revisao'];
+function reembStatus(s) { return s && s.valor_reembolso != null ? fmtBRL(Number(s.valor_reembolso)) : '—'; }
+
+function renderNotificacoes() {
+  const alvo = document.getElementById('central-notif'); if (!alvo) return;
+  const abertas = (solicitacoesList || []).filter(s => STATUS_ATIVOS.includes(s.status));
+  const cabecalho = `<div class="notif-sec-top"><div class="sec-titulo">Central de notificações</div>${abertas.length ? `<span class="notif-count">${abertas.length}</span>` : ''}</div>`;
+  if (!abertas.length) { alvo.innerHTML = cabecalho + `<div class="notif-vazia">Nenhum pedido pendente no momento. Pedidos de cancelamento e troca de plano aparecem aqui.</div>`; return; }
+  alvo.innerHTML = cabecalho + abertas.map(cardNotificacao).join('');
+}
+
+function cardNotificacao(s) {
+  const proj = projetosById[s.projeto_id] || {};
+  const nome = proj.nome_cliente || 'Cliente';
+  const email = proj.email || '';
+  const abrir = `<button class="notif-btn" onclick="abrirProjetoSolic('${s.projeto_id}')">Abrir projeto</button>`;
+
+  if (s.tipo === 'alteracao_plano') {
+    const corpo = `De <strong>${PLANO_NOMES[s.plano_atual] || s.plano_atual || '—'}</strong> para <strong>${PLANO_NOMES[s.plano_novo] || s.plano_novo}</strong> · diferença ${s.valor_diferenca != null ? fmtBRL(Number(s.valor_diferenca)) : '—'}`;
+    return `<div class="notif-card troca">
+      <div class="notif-top"><div><div class="notif-tt">↺ Pedido de troca de plano</div><div class="notif-cliente">${esc(nome)}${email ? ' · ' + esc(email) : ''}</div></div></div>
+      <div class="notif-corpo">${corpo}</div>
+      <div class="notif-acoes">
+        <button class="notif-btn ok" onclick="resolverSolic('${s.id}','concluida')">Aprovar troca</button>
+        <button class="notif-btn danger" onclick="resolverSolic('${s.id}','recusada')">Recusar</button>
+        ${abrir}
+      </div>
+    </div>`;
+  }
+
+  // cancelamento
+  const motivo = s.justificativa ? esc(s.justificativa) : '— (não informado)';
+  const ct = contratacaoPorEmail[(email||'').toLowerCase()];
+  const forma = ct ? (FORMA_PAG[ct.forma_pagamento] || ct.forma_pagamento || '—') : '—';
+  const contaBox = `<div class="notif-conta">Reembolsar na <strong>mesma forma do pagamento</strong>: ${esc(forma)}<br>Cliente: <strong>${esc(nome)}</strong>${email ? ' · ' + esc(email) : ''}</div>`;
+
+  let titulo = '⚠ Pedido de cancelamento', corpo = `Motivo: ${motivo}<br>Avalie o reembolso conforme o material já entregue.`, meio = '', acoes = '';
+
+  if (s.status === 'aberta') {
+    meio = `<div class="notif-valor-wrap"><span class="notif-valor-pre">Reembolso possível: R$</span><input class="notif-valor-input" id="valor-${s.id}" type="text" inputmode="numeric" placeholder="0"></div>`;
+    acoes = `<button class="notif-btn ok" onclick="proporReembolso('${s.id}')">Enviar ao cliente</button>
+             <button class="notif-btn danger" onclick="resolverSolic('${s.id}','recusada')">Cliente desistiu</button>${abrir}`;
+  } else if (s.status === 'reembolso_proposto') {
+    titulo = '⏳ Reembolso enviado ao cliente';
+    corpo = `Valor proposto: <strong>${reembStatus(s)}</strong>. Aguardando o cliente seguir ou revisar.`;
+    meio = `<span class="notif-badge aguardando">Aguardando confirmação</span>`;
+    acoes = abrir;
+  } else if (s.status === 'reembolso_confirmado') {
+    titulo = '✓ Reembolso confirmado pelo cliente';
+    corpo = `O cliente confirmou o reembolso de <strong>${reembStatus(s)}</strong>. Faça o reembolso e marque como resolvido.`;
+    meio = `<span class="notif-badge confirmado">Cliente confirmou</span>` + contaBox;
+    acoes = `<button class="notif-btn ok" onclick="resolverSolic('${s.id}','concluida')">Marcar reembolso resolvido</button>${abrir}`;
+  } else if (s.status === 'reembolso_revisao') {
+    titulo = '↺ Cliente pediu revisão do reembolso';
+    corpo = `Valor proposto: <strong>${reembStatus(s)}</strong>. O cliente quer conversar antes de seguir.`;
+    meio = `<span class="notif-badge revisao">Em revisão</span><div class="notif-valor-wrap"><span class="notif-valor-pre">Novo valor: R$</span><input class="notif-valor-input" id="valor-${s.id}" type="text" inputmode="numeric" placeholder="${s.valor_reembolso != null ? Number(s.valor_reembolso) : '0'}"></div>`;
+    acoes = `<button class="notif-btn ok" onclick="proporReembolso('${s.id}')">Reenviar valor</button>
+             <button class="notif-btn" onclick="window.location.href='/admin-atendimento'">Ir ao atendimento</button>${abrir}`;
+  }
+
+  return `<div class="notif-card">
+    <div class="notif-top"><div><div class="notif-tt">${titulo}</div><div class="notif-cliente">${esc(nome)}${email ? ' · ' + esc(email) : ''}</div></div></div>
+    <div class="notif-corpo">${corpo}</div>
+    ${meio}
+    <div class="notif-acoes">${acoes}</div>
+  </div>`;
+}
+
+function parseValor(raw) {
+  const limpo = String(raw || '').replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+  const v = parseFloat(limpo);
+  return isNaN(v) ? null : v;
+}
+
+async function proporReembolso(id) {
+  const input = document.getElementById('valor-' + id);
+  const v = parseValor(input && input.value);
+  if (v == null || v < 0) { mostrarToast('Informe um valor de reembolso válido.'); return; }
+  const { error } = await sb.from('solicitacoes').update({ status: 'reembolso_proposto', valor_reembolso: v, atualizado_em: new Date().toISOString() }).eq('id', id);
+  if (error) { mostrarToast('Não foi possível enviar.'); console.error(error); return; }
+  mostrarToast('Reembolso de ' + fmtBRL(v) + ' enviado ao cliente.');
+  await recarregarSolic();
+}
+
+async function resolverSolic(id, status) {
+  const { error } = await sb.from('solicitacoes').update({ status, atualizado_em: new Date().toISOString() }).eq('id', id);
+  if (error) { mostrarToast('Não foi possível atualizar.'); console.error(error); return; }
+  mostrarToast('Solicitação atualizada.');
+  await recarregarSolic();
+}
+
+async function recarregarSolic() {
+  const { data, error } = await sb.from('solicitacoes').select('*').order('criado_em', { ascending: false });
+  if (!error) solicitacoesList = data || [];
+  renderNotificacoes();
+}
+
+function abrirProjetoSolic(projetoId) { window.location.href = '/admin-projeto?id=' + projetoId; }
 
 function doMes(c, offset) {
   const d = dataContratacao(c); if (!d) return false;

@@ -88,6 +88,7 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
   </div>
   <div class="top-right">
     <span class="top-arquiteto" id="top-arquiteto"></span>
+    <button class="btn-logout btn-notif" id="btn-notif" style="display:none" title="Notificações" onclick="window.location.href='/admin-dono#notificacoes'">🔔 Notificações</button>
     <button class="btn-logout" id="btn-admin" style="display:none" onclick="window.location.href='/admin-dono'">Administração</button>
     <button class="btn-logout" id="btn-atendimento" style="display:none" onclick="window.location.href='/admin-atendimento'">Atendimento</button>
     <button class="btn-logout" onclick="window.location.href='/admin-fornecedores'">Fornecedores</button>
@@ -131,7 +132,6 @@ if (window.supabase && window.supabase.createClient) { sb = window.supabase.crea
 else { console.error('Biblioteca Supabase não carregou.'); }
 const ETAPAS_NOMES = ['Briefing', 'Layout', 'Imagens 3D', 'Executivo', 'Obra'];
 let todosProjetos = [];
-let projetosComSolic = new Set();   // projetos com pedido de cancelamento/troca em aberto
 (function(){
   const c = document.getElementById('bg-canvas'); const ctx = c.getContext('2d'); let W, H, t = 0;
   const orbs = [ { x: 0.15, y: 0.2, r: 0.42, c: [201,162,39], a: 0.045 }, { x: 0.85, y: 0.8, r: 0.36, c: [201,162,39], a: 0.03 }, { x: 0.5, y: 0.5, r: 0.28, c: [80,100,200], a: 0.02 } ];
@@ -154,6 +154,20 @@ async function inicializar() {
   const DONOS = ['lucas_montre@hotmail.com', 'lucas.2002louenco@gmail.com'];
   if (DONOS.includes((email||'').toLowerCase())) {
     document.getElementById('btn-admin').style.display = '';
+    // sininho de notificações — pedidos de cancelamento / troca em aberto
+    const btnNotif = document.getElementById('btn-notif');
+    if (btnNotif) {
+      btnNotif.style.display = '';
+      try {
+        const { count } = await sb.from('solicitacoes').select('id', { count: 'exact', head: true })
+          .in('status', ['aberta','em_avaliacao','reembolso_proposto','reembolso_confirmado','reembolso_revisao']);
+        if (count && count > 0) {
+          btnNotif.innerHTML = '🔔 Notificações <span style="display:inline-block;min-width:16px;padding:0 5px;margin-left:4px;background:#e06b6b;color:#fff;border-radius:999px;font-size:10px;line-height:16px;text-align:center;font-weight:700;">' + count + '</span>';
+          btnNotif.style.borderColor = 'rgba(224,107,107,0.55)';
+          btnNotif.style.color = '#e06b6b';
+        }
+      } catch (_) {}
+    }
     const btnAt = document.getElementById('btn-atendimento');
     btnAt.style.display = '';
     // destaque quando há conversas pedindo atendimento (status 'pendente')
@@ -175,10 +189,6 @@ async function carregarProjetos() {
     console.error(error); return;
   }
   todosProjetos = projetos || [];
-  try {
-    const { data: sol } = await sb.from('solicitacoes').select('projeto_id, status').in('status', ['aberta','em_avaliacao']);
-    projetosComSolic = new Set((sol || []).map(s => s.projeto_id));
-  } catch (_) { projetosComSolic = new Set(); }
   renderProjetos(todosProjetos);
 }
 function renderProjetos(projetos) {
@@ -193,8 +203,7 @@ function renderProjetos(projetos) {
     let pipsHtml = '';
     for (let i = 1; i <= 5; i++) { let cls = 'pip'; if (i < etapa) cls += ' concluida'; else if (i === etapa) cls += ' ativa'; pipsHtml += `<div class="${cls}"></div>`; }
     const card = document.createElement('div'); card.className = 'projeto-card'; card.onclick = () => abrirProjeto(p.id);
-    const solicBadge = projetosComSolic.has(p.id) ? `<div class="projeto-solic-badge" title="Pedido de cancelamento ou troca de plano">● Solicitação</div>` : '';
-    card.innerHTML = `<div class="projeto-card-top"><div><div class="projeto-nome">${p.nome_cliente || 'Sem nome'}</div><div class="projeto-endereco">${p.endereco || 'Endereço não cadastrado'}</div></div><div class="projeto-etapa-badge">Etapa ${etapa}</div></div>${solicBadge}<div class="projeto-progresso"><div class="progresso-label"><span>${ETAPAS_NOMES[etapa-1]||''}</span><span>${pct}%</span></div><div class="progresso-bar"><div class="progresso-fill" style="width: ${pct}%"></div></div></div><div class="projeto-pips">${pipsHtml}</div>`;
+    card.innerHTML = `<div class="projeto-card-top"><div><div class="projeto-nome">${p.nome_cliente || 'Sem nome'}</div><div class="projeto-endereco">${p.endereco || 'Endereço não cadastrado'}</div></div><div class="projeto-etapa-badge">Etapa ${etapa}</div></div><div class="projeto-progresso"><div class="progresso-label"><span>${ETAPAS_NOMES[etapa-1]||''}</span><span>${pct}%</span></div><div class="progresso-bar"><div class="progresso-fill" style="width: ${pct}%"></div></div></div><div class="projeto-pips">${pipsHtml}</div>`;
     grid.appendChild(card);
   });
   conteudo.innerHTML = ''; conteudo.appendChild(grid);

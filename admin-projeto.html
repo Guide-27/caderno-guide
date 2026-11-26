@@ -215,7 +215,6 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
   </div>
 
   <div id="editor" style="display:none;">
-    <div id="solic-banner"></div>
     <div class="abas">
       <button class="aba-btn ativa" onclick="trocarAba('dados', this)">Dados Gerais</button>
       <button class="aba-btn" onclick="trocarAba('briefing', this)">Briefing<span class="aba-badge" id="aba-badge-briefing"></span></button>
@@ -480,7 +479,6 @@ async function inicializar() {
   await carregarExecutivo();
   await carregarObra();
   await carregarMarcosPosChaves();
-  await carregarSolicitacoes();
 
   document.getElementById('loading-geral').style.display = 'none';
   document.getElementById('editor').style.display = 'block';

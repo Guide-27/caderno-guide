@@ -1040,6 +1040,7 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .conta-plano-chevron { width: 18px; height: 18px; color: var(--muted); transition: transform .25s; flex-shrink: 0; }
 .conta-plano-head.aberto .conta-plano-chevron { transform: rotate(180deg); }
 .conta-plano-lista { list-style: none; margin: 10px 2px 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.conta-plano-lista[hidden] { display: none; }
 .conta-plano-lista li { display: flex; align-items: flex-start; gap: 9px; font-size: var(--fs-sm); color: var(--off); line-height: 1.5; }
 .conta-plano-lista li svg.lucide, .conta-plano-lista li i { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; margin-top: 2px; }
 /* link e voltar */
@@ -1068,6 +1069,8 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .conta-estado-tt svg.lucide, .conta-estado-tt i { width: 16px; height: 16px; color: var(--gold-light); }
 .conta-estado-tx { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; }
 .conta-estado-tx strong { color: var(--gold-light); }
+.conta-reembolso-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.conta-reembolso-acoes .conta-btn { margin-top: 0; }
 /* tela de cancelamento */
 .conta-cancel-texto { font-size: var(--fs-base); color: var(--off); line-height: 1.7; margin: 4px 0 16px; }
 .conta-cancel-label { display: block; font-size: var(--fs-sm); color: var(--muted); margin: 18px 0 8px; }
@@ -5412,7 +5415,9 @@ const TERMOS_HTML = `
 `;
 
 function solicAberta(tipo) {
-  const alvo = tipo === 'cancelamento' ? ['aberta'] : ['em_avaliacao'];
+  const alvo = tipo === 'cancelamento'
+    ? ['aberta','reembolso_proposto','reembolso_confirmado','reembolso_revisao']
+    : ['em_avaliacao'];
   return (minhaSolicitacoes || []).find(s => s.tipo === tipo && alvo.includes(s.status)) || null;
 }
 function metragemCliente() { return (minhaContratacao && Number(minhaContratacao.metragem)) || 0; }
@@ -5428,12 +5433,44 @@ function expandidoAjuda() {
 
   // banners de estado (cancelamento em andamento / troca em avaliação)
   let banner = '';
-  if (canc) banner += `
-    <div class="conta-estado conta-estado-canc">
-      <div class="conta-estado-tt">${ic('clock','ic-sm')} Cancelamento em andamento</div>
-      <div class="conta-estado-tx">Estamos avaliando seu reembolso de acordo com o que já foi entregue. Em breve entramos em contato. Caso mude de ideia, é só retomar seu plano.</div>
-      <button class="conta-btn conta-btn-ouro" data-acao="retomar" data-id="${canc.id}">${ic('rotate-ccw','ic-sm')} Retomar plano</button>
-    </div>`;
+  if (canc) {
+    const retomar = `<button class="conta-btn conta-btn-ouro" data-acao="retomar" data-id="${canc.id}">${ic('rotate-ccw','ic-sm')} Retomar plano</button>`;
+    const valor = canc.valor_reembolso != null ? contaBRL(Number(canc.valor_reembolso)) : null;
+    if (canc.status === 'reembolso_proposto') {
+      // o arquiteto definiu o valor e enviou — cliente decide seguir ou revisar
+      banner += `
+      <div class="conta-estado conta-estado-canc">
+        <div class="conta-estado-tt">${ic('check-circle','ic-sm')} Reembolso aprovado</div>
+        <div class="conta-estado-tx">Avaliamos seu cancelamento e aprovamos um reembolso de <strong>${valor || 'valor a confirmar'}</strong>. Ele será feito para a <strong>mesma conta usada no pagamento</strong>, sem precisar informar nada.</div>
+        <div class="conta-reembolso-acoes">
+          <button class="conta-btn conta-btn-ouro" data-acao="seguir-reembolso" data-id="${canc.id}">${ic('check','ic-sm')} Seguir com o reembolso</button>
+          <button class="conta-btn" data-acao="revisar-reembolso" data-id="${canc.id}">${ic('message-circle','ic-sm')} Revisar</button>
+        </div>
+        ${retomar}
+      </div>`;
+    } else if (canc.status === 'reembolso_confirmado') {
+      banner += `
+      <div class="conta-estado conta-estado-canc">
+        <div class="conta-estado-tt">${ic('check-circle','ic-sm')} Reembolso em processamento</div>
+        <div class="conta-estado-tx">Tudo certo! Seu reembolso de <strong>${valor || 'valor confirmado'}</strong> está sendo processado para a mesma conta usada no pagamento. Obrigado por ter confiado na Guide. 💛</div>
+      </div>`;
+    } else if (canc.status === 'reembolso_revisao') {
+      banner += `
+      <div class="conta-estado conta-estado-canc">
+        <div class="conta-estado-tt">${ic('message-circle','ic-sm')} Revisão do reembolso</div>
+        <div class="conta-estado-tx">Recebemos seu pedido de revisão${valor ? ` do reembolso de <strong>${valor}</strong>` : ''}. Fale com a gente pelo atendimento que a gente resolve junto.</div>
+        <button class="conta-btn conta-btn-ouro" data-acao="falar-atendimento">${ic('headset','ic-sm')} Ir para o atendimento</button>
+        ${retomar}
+      </div>`;
+    } else {
+      banner += `
+      <div class="conta-estado conta-estado-canc">
+        <div class="conta-estado-tt">${ic('clock','ic-sm')} Cancelamento em andamento</div>
+        <div class="conta-estado-tx">Estamos avaliando seu reembolso de acordo com o que já foi entregue. Em breve entramos em contato. Caso mude de ideia, é só retomar seu plano.</div>
+        ${retomar}
+      </div>`;
+    }
+  }
   if (alt) banner += `
     <div class="conta-estado">
       <div class="conta-estado-tt">${ic('clock','ic-sm')} Troca de plano em avaliação</div>
@@ -5486,6 +5523,30 @@ function ligarAjuda() {
   if (bCancelar) bCancelar.addEventListener('click', abrirCancelamento);
   const bRetomar = inner.querySelector('[data-acao="retomar"]');
   if (bRetomar) bRetomar.addEventListener('click', () => retomarPlano(bRetomar.dataset.id));
+  const bSeguir = inner.querySelector('[data-acao="seguir-reembolso"]');
+  if (bSeguir) bSeguir.addEventListener('click', () => seguirReembolso(bSeguir.dataset.id));
+  const bRevisar = inner.querySelector('[data-acao="revisar-reembolso"]');
+  if (bRevisar) bRevisar.addEventListener('click', () => revisarReembolso(bRevisar.dataset.id));
+  const bAtendBanner = inner.querySelector('.conta-estado [data-acao="falar-atendimento"]');
+  if (bAtendBanner) bAtendBanner.addEventListener('click', () => { fecharExpandido(); setTimeout(() => { if (window.GuideChat) GuideChat.open(); }, 400); });
+}
+
+async function seguirReembolso(id) {
+  const r = await tentar(sb.from('solicitacoes').update({ status: 'reembolso_confirmado', atualizado_em: new Date().toISOString() }).eq('id', id).select().single(), null);
+  if (!r) { toast('Não foi possível confirmar agora. Tente de novo.'); return; }
+  const i = minhaSolicitacoes.findIndex(s => s.id === id);
+  if (i >= 0) minhaSolicitacoes[i] = r;
+  toast('Reembolso confirmado! Vamos processar para a conta do pagamento.');
+  voltarParaAjuda();
+}
+async function revisarReembolso(id) {
+  const r = await tentar(sb.from('solicitacoes').update({ status: 'reembolso_revisao', atualizado_em: new Date().toISOString() }).eq('id', id).select().single(), null);
+  if (!r) { toast('Não foi possível enviar agora. Tente de novo.'); return; }
+  const i = minhaSolicitacoes.findIndex(s => s.id === id);
+  if (i >= 0) minhaSolicitacoes[i] = r;
+  toast('Avisamos a Guide. Vamos revisar junto com você.');
+  voltarParaAjuda();
+  setTimeout(() => { if (window.GuideChat) GuideChat.open(); }, 500);
 }
 
 function voltarParaAjuda() {
