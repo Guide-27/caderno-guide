@@ -167,6 +167,16 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .crop-btn-pular:hover { color: var(--off); border-color: var(--border); }
 .crop-btn-confirmar { background: var(--gold-dim); border: 1px solid var(--gold-mid); color: var(--gold); }
 .crop-btn-confirmar:hover { background: var(--gold-mid); }
+/* solicitações do cliente */
+.solic-card { background: var(--gold-dim); border: 1px solid var(--gold-mid); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+.solic-card.canc { background: rgba(224,107,107,0.08); border-color: rgba(224,107,107,0.35); }
+.solic-tt { font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; }
+.solic-corpo { font-size: 13px; color: var(--off); line-height: 1.6; }
+.solic-corpo strong { color: var(--gold-light); }
+.solic-acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.solic-btn { background: transparent; border: 1px solid var(--border2); border-radius: 9px; padding: 8px 14px; font-size: 12px; color: var(--off); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all .2s; }
+.solic-btn:hover { border-color: var(--gold); color: var(--gold); }
+.solic-btn.ok { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -205,6 +215,7 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
   </div>
 
   <div id="editor" style="display:none;">
+    <div id="solic-banner"></div>
     <div class="abas">
       <button class="aba-btn ativa" onclick="trocarAba('dados', this)">Dados Gerais</button>
       <button class="aba-btn" onclick="trocarAba('briefing', this)">Briefing<span class="aba-badge" id="aba-badge-briefing"></span></button>
@@ -469,9 +480,43 @@ async function inicializar() {
   await carregarExecutivo();
   await carregarObra();
   await carregarMarcosPosChaves();
+  await carregarSolicitacoes();
 
   document.getElementById('loading-geral').style.display = 'none';
   document.getElementById('editor').style.display = 'block';
+}
+
+// ── Solicitações do cliente (cancelamento / troca de plano) ──
+const PLANO_NOMES = { essencial: 'Essencial', visual: 'Visual', completo: 'Completo' };
+const fmtBRLsolic = (n) => (n == null ? '—' : Number(n).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: 0 }));
+async function carregarSolicitacoes() {
+  const alvo = document.getElementById('solic-banner');
+  const { data, error } = await sb.from('solicitacoes').select('*').eq('projeto_id', projetoId).order('criado_em', { ascending: false });
+  if (error) { alvo.innerHTML = ''; return; } // tabela ainda não criada: silencioso
+  const abertas = (data || []).filter(s => s.status === 'aberta' || s.status === 'em_avaliacao');
+  if (!abertas.length) { alvo.innerHTML = ''; return; }
+  alvo.innerHTML = abertas.map(s => {
+    const canc = s.tipo === 'cancelamento';
+    const titulo = canc ? 'Pedido de cancelamento' : 'Pedido de troca de plano';
+    const corpo = canc
+      ? `Motivo: ${s.justificativa ? escSolic(s.justificativa) : '— (não informado)'}<br>Avalie o reembolso conforme o material já entregue.`
+      : `De <strong>${PLANO_NOMES[s.plano_atual] || s.plano_atual || '—'}</strong> para <strong>${PLANO_NOMES[s.plano_novo] || s.plano_novo}</strong> · diferença ${fmtBRLsolic(s.valor_diferenca)}`;
+    return `<div class="solic-card ${canc ? 'canc' : ''}">
+      <div class="solic-tt">${canc ? '⚠' : '↺'} ${titulo}</div>
+      <div class="solic-corpo">${corpo}</div>
+      <div class="solic-acoes">
+        <button class="solic-btn ok" onclick="resolverSolic('${s.id}','concluida')">${canc ? 'Marcar reembolso resolvido' : 'Aprovar troca'}</button>
+        <button class="solic-btn" onclick="resolverSolic('${s.id}','recusada')">${canc ? 'Cliente desistiu' : 'Recusar'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function escSolic(t){ return String(t==null?'':t).replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s])); }
+async function resolverSolic(id, status) {
+  const { error } = await sb.from('solicitacoes').update({ status, atualizado_em: new Date().toISOString() }).eq('id', id);
+  if (error) { mostrarToast('Não foi possível atualizar', 'erro'); return; }
+  mostrarToast('Solicitação atualizada');
+  carregarSolicitacoes();
 }
 
 function preencherDados() {

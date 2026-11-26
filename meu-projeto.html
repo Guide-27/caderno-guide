@@ -1052,6 +1052,41 @@ svg.lucide.ic-xl { width: 28px; height: 28px; }
 .conta-termos h3:first-child { margin-top: 8px; }
 .conta-termos p { font-size: var(--fs-sm); color: var(--muted); line-height: 1.7; margin-bottom: 9px; }
 .conta-termos strong { color: var(--off); }
+/* botões de ação do card */
+.conta-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: var(--r-pill); padding: 10px 18px; font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); color: var(--off); cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+.conta-btn:hover { border-color: var(--gold-mid); color: var(--gold-light); }
+.conta-btn svg.lucide, .conta-btn i { width: 15px; height: 15px; }
+.conta-btn-ouro { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border: none; font-weight: 600; }
+.conta-btn-ouro:hover { color: #12100a; opacity: .92; }
+.conta-cancelar { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; background: none; border: none; color: #c98a8a; font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); cursor: pointer; padding: 6px 0; }
+.conta-cancelar:hover { color: #e06b6b; }
+.conta-cancelar svg.lucide, .conta-cancelar i { width: 15px; height: 15px; }
+/* banner de estado */
+.conta-estado { background: var(--gold-dim); border: 1px solid var(--gold-mid); border-radius: var(--r-md); padding: 16px 18px; margin-bottom: 22px; }
+.conta-estado-canc { background: rgba(224,107,107,0.08); border-color: rgba(224,107,107,0.3); }
+.conta-estado-tt { display: flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); margin-bottom: 6px; }
+.conta-estado-tt svg.lucide, .conta-estado-tt i { width: 16px; height: 16px; color: var(--gold-light); }
+.conta-estado-tx { font-size: var(--fs-sm); color: var(--off); line-height: 1.6; }
+.conta-estado-tx strong { color: var(--gold-light); }
+/* tela de cancelamento */
+.conta-cancel-texto { font-size: var(--fs-base); color: var(--off); line-height: 1.7; margin: 4px 0 16px; }
+.conta-cancel-label { display: block; font-size: var(--fs-sm); color: var(--muted); margin: 18px 0 8px; }
+.conta-cancel-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: var(--r-sm); padding: 12px 14px; font-family: 'Outfit', sans-serif; font-size: var(--fs-sm); color: var(--white); outline: none; resize: vertical; transition: border-color .2s; }
+.conta-cancel-input:focus { border-color: var(--gold-mid); }
+.conta-cancel-confirmar { margin-top: 16px; }
+/* tela de alterar plano */
+.conta-planos-opts { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.conta-plano-opt { text-align: left; width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border2); border-radius: var(--r-md); padding: 16px 18px; cursor: pointer; font-family: 'Outfit', sans-serif; transition: border-color .2s, background .2s; }
+.conta-plano-opt:hover:not(.atual) { border-color: var(--gold); background: rgba(201,162,39,0.06); }
+.conta-plano-opt.atual { opacity: .6; cursor: default; }
+.conta-plano-opt-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.conta-plano-opt-nome { font-family: 'Sora', sans-serif; font-weight: 600; font-size: var(--fs-base); color: var(--white); }
+.conta-plano-opt-dif { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); white-space: nowrap; }
+.conta-plano-opt-dif.mais { color: var(--gold-light); }
+.conta-plano-opt-dif.menos { color: #7fc99a; }
+.conta-plano-opt-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.conta-plano-opt-lista li { display: flex; align-items: flex-start; gap: 8px; font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.conta-plano-opt-lista li svg.lucide, .conta-plano-opt-lista li i { width: 14px; height: 14px; color: var(--gold); flex-shrink: 0; margin-top: 2px; }
 
 .loading-inline { text-align: center; padding: 30px; color: var(--muted); font-size: var(--fs-sm); }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 10px; }
@@ -1990,6 +2025,8 @@ let parceirosFiltroCategorias = []; // ids ticados no filtro do topo; vazio = mo
 let parceirosCapsulasFechadas = {}; // { [categoriaId]: true } — cápsula da categoria minimizada
 let humores = [];
 let cartas = [];
+let minhaContratacao = null;   // contratação do cliente (metragem/plano) — card "Sua Conta"
+let minhaSolicitacoes = [];    // cancelamento / troca de plano em aberto
 let cartaGuiaAberta = false;
 let mural = [];
 let muralComparando = false;
@@ -2168,7 +2205,7 @@ async function inicializar() {
 
   const faseAtualId = (FASES[(projeto.etapa_atual || 1) - 1] || FASES[0]).id;
 
-  const [bf, marcosRow, gloss, comum, parc, hums, cartasRows, muralRows, palpRows, marcosPersRows, cartaGuiaRow] = await Promise.all([
+  const [bf, marcosRow, gloss, comum, parc, hums, cartasRows, muralRows, palpRows, marcosPersRows, cartaGuiaRow, contratRows, solicRows] = await Promise.all([
     tentar(sb.from('briefing_respostas').select('dados, status').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('marcos_pos_chaves').select('*').eq('projeto_id', projeto.id).maybeSingle(), null),
     tentar(sb.from('glossario_termos').select('*').order('ordem', { ascending: true }), []),
@@ -2180,7 +2217,11 @@ async function inicializar() {
     tentar(sb.from('palpites_ambiente').select('*').eq('projeto_id', projeto.id), []),
     tentar(sb.from('marcos_personalizados').select('*').eq('projeto_id', projeto.id).order('ordem', { ascending: true }), []),
     tentar(sb.from('diario_carta_guide').select('aberta_em').eq('projeto_id', projeto.id).maybeSingle(), null),
+    tentar(sb.from('contratacoes').select('metragem, plano, valor_total').eq('email', usuarioAtual.email).order('aceite_data', { ascending: false }).limit(1), []),
+    projeto.id ? tentar(sb.from('solicitacoes').select('*').eq('projeto_id', projeto.id).order('criado_em', { ascending: false }), []) : Promise.resolve([]),
   ]);
+  minhaContratacao = (contratRows && contratRows[0]) || null;
+  minhaSolicitacoes = solicRows || [];
   briefing = bf;
   marcos = marcosRow;
   marcosPersonalizados = marcosPersRows || [];
@@ -5370,14 +5411,39 @@ const TERMOS_HTML = `
   <p>Estes Termos seguem as leis brasileiras, com foro do domicílio do consumidor, conforme o Código de Defesa do Consumidor.</p>
 `;
 
+function solicAberta(tipo) {
+  const alvo = tipo === 'cancelamento' ? ['aberta'] : ['em_avaliacao'];
+  return (minhaSolicitacoes || []).find(s => s.tipo === tipo && alvo.includes(s.status)) || null;
+}
+function metragemCliente() { return (minhaContratacao && Number(minhaContratacao.metragem)) || 0; }
+const contaBRL = (v) => (v || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: 0 });
+
 function expandidoAjuda() {
   const planoKey = (projeto.plano || '').toString().trim().toLowerCase();
   const info = PLANOS_INFO[planoKey];
   const nomePlano = info ? info.nome : (projeto.plano || 'Fale com a Guide para confirmar seu plano.');
   const topicos = info ? info.inclui.map(t => `<li>${ic('check','ic-sm')} ${t}</li>`).join('') : '';
+  const canc = solicAberta('cancelamento');
+  const alt = solicAberta('alteracao_plano');
+
+  // banners de estado (cancelamento em andamento / troca em avaliação)
+  let banner = '';
+  if (canc) banner += `
+    <div class="conta-estado conta-estado-canc">
+      <div class="conta-estado-tt">${ic('clock','ic-sm')} Cancelamento em andamento</div>
+      <div class="conta-estado-tx">Estamos avaliando seu reembolso de acordo com o que já foi entregue. Em breve entramos em contato. Caso mude de ideia, é só retomar seu plano.</div>
+      <button class="conta-btn conta-btn-ouro" data-acao="retomar" data-id="${canc.id}">${ic('rotate-ccw','ic-sm')} Retomar plano</button>
+    </div>`;
+  if (alt) banner += `
+    <div class="conta-estado">
+      <div class="conta-estado-tt">${ic('clock','ic-sm')} Troca de plano em avaliação</div>
+      <div class="conta-estado-tx">Recebemos seu pedido para o plano <strong>${(PLANOS_INFO[alt.plano_novo]||{}).nome || alt.plano_novo}</strong>. A equipe está avaliando conforme o andamento do projeto e logo te damos um retorno.</div>
+    </div>`;
+
   return `
     <div class="modal-eyebrow">${ic('user')} Sua Conta</div>
     <div class="modal-titulo">Tudo sobre sua conta</div>
+    ${banner}
 
     <div class="conta-bloco">
       <div class="conta-bloco-titulo">${ic('badge-check','ic-sm')} Plano contratado</div>
@@ -5386,6 +5452,7 @@ function expandidoAjuda() {
         ${info ? `<i data-lucide="chevron-down" class="conta-plano-chevron"></i>` : ''}
       </button>
       ${info ? `<ul class="conta-plano-lista" hidden>${topicos}</ul>` : ''}
+      ${info && !canc && !alt ? `<button class="conta-btn" data-acao="alterar-plano">${ic('refresh-cw','ic-sm')} Alterar plano</button>` : ''}
     </div>
 
     <div class="conta-bloco">
@@ -5395,6 +5462,8 @@ function expandidoAjuda() {
 
     <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('shield-check','ic-sm')} Política e privacidade</div><div class="conta-bloco-corpo">Seus dados de briefing, diário e mural são privados entre você e a Guide — nunca compartilhados com terceiros.</div></div>
     <div class="conta-bloco"><div class="conta-bloco-titulo">${ic('mail','ic-sm')} Contato</div><div class="conta-bloco-corpo"><a href="mailto:contato@guidearquitetura.com.br">contato@guidearquitetura.com.br</a><br><a href="https://instagram.com/guidearquitetura" target="_blank" rel="noopener">@guidearquitetura</a></div></div>
+
+    ${info && !canc ? `<button class="conta-cancelar" data-acao="cancelar">${ic('x-circle','ic-sm')} Cancelar contratação</button>` : ''}
   `;
 }
 
@@ -5411,6 +5480,101 @@ function ligarAjuda() {
   });
   const verTermo = inner.querySelector('[data-acao="ver-termo"]');
   if (verTermo) verTermo.addEventListener('click', abrirTermo);
+  const bAlterar = inner.querySelector('[data-acao="alterar-plano"]');
+  if (bAlterar) bAlterar.addEventListener('click', abrirAlterarPlano);
+  const bCancelar = inner.querySelector('[data-acao="cancelar"]');
+  if (bCancelar) bCancelar.addEventListener('click', abrirCancelamento);
+  const bRetomar = inner.querySelector('[data-acao="retomar"]');
+  if (bRetomar) bRetomar.addEventListener('click', () => retomarPlano(bRetomar.dataset.id));
+}
+
+function voltarParaAjuda() {
+  const inner = document.getElementById('modal-inner');
+  inner.innerHTML = `<button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>` + expandidoAjuda();
+  ligarAjuda(); icons(); revelarPalavras(inner);
+}
+
+// ── Cancelamento ──
+function abrirCancelamento() {
+  const inner = document.getElementById('modal-inner');
+  inner.innerHTML = `
+    <button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>
+    <button class="conta-voltar" data-acao="voltar-ajuda">${ic('arrow-left','ic-sm')} Voltar</button>
+    <div class="modal-eyebrow">${ic('x-circle')} Cancelamento</div>
+    <div class="modal-titulo">Antes de você ir</div>
+    <p class="conta-cancel-texto">Temos certeza de que você tomou a melhor decisão ao contratar a Guide. Conte pra gente o que te deixou insatisfeita — queremos muito ajudar a resolver antes de seguir com o cancelamento.</p>
+    <button class="conta-btn conta-btn-ouro conta-cancel-atend" data-acao="falar-atendimento">${ic('headset','ic-sm')} Ir para o atendimento</button>
+    <label class="conta-cancel-label">Se preferir seguir, conte o motivo:</label>
+    <textarea class="conta-cancel-input" id="canc-motivo" rows="4" placeholder="O que podemos melhorar?"></textarea>
+    <button class="conta-cancelar conta-cancel-confirmar" data-acao="confirmar-cancel">${ic('x-circle','ic-sm')} Confirmar cancelamento</button>
+  `;
+  inner.querySelector('[data-acao="voltar-ajuda"]').addEventListener('click', voltarParaAjuda);
+  inner.querySelector('[data-acao="falar-atendimento"]').addEventListener('click', () => { fecharExpandido(); setTimeout(() => { if (window.GuideChat) GuideChat.open(); }, 400); });
+  inner.querySelector('[data-acao="confirmar-cancel"]').addEventListener('click', confirmarCancelamento);
+  icons();
+}
+async function confirmarCancelamento() {
+  if (!projeto.id) { toast('Disponível após ativar seu plano.'); return; }
+  const motivo = (document.getElementById('canc-motivo').value || '').trim();
+  const r = await tentar(sb.from('solicitacoes').insert({ projeto_id: projeto.id, tipo: 'cancelamento', status: 'aberta', justificativa: motivo || null }).select().single(), null);
+  if (!r) { toast('Não foi possível enviar agora. Tente de novo.'); return; }
+  minhaSolicitacoes.unshift(r);
+  toast('Recebemos seu pedido. Vamos avaliar seu reembolso.');
+  voltarParaAjuda();
+}
+async function retomarPlano(id) {
+  const r = await tentar(sb.from('solicitacoes').update({ status: 'retomada', atualizado_em: new Date().toISOString() }).eq('id', id).select().single(), null);
+  if (!r) { toast('Não foi possível retomar agora. Tente de novo.'); return; }
+  const i = minhaSolicitacoes.findIndex(s => s.id === id);
+  if (i >= 0) minhaSolicitacoes[i] = r;
+  toast('Que bom que você ficou! Seu plano segue ativo.');
+  voltarParaAjuda();
+}
+
+// ── Alterar plano ──
+function abrirAlterarPlano() {
+  const inner = document.getElementById('modal-inner');
+  const atual = (projeto.plano || '').toString().trim().toLowerCase();
+  const m = metragemCliente();
+  const cards = Object.keys(PLANOS_INFO).map(k => {
+    const p = PLANOS_INFO[k];
+    const ehAtual = k === atual;
+    let dif = '';
+    if (!ehAtual && m > 0 && PLANOS_INFO[atual]) {
+      const d = (p.preco - PLANOS_INFO[atual].preco) * m;
+      dif = d === 0 ? 'Sem alteração de valor' : (d > 0 ? `+ ${contaBRL(d)}` : `− ${contaBRL(Math.abs(d))}`);
+    } else if (!ehAtual && m <= 0) { dif = 'Valor confirmado pela Guide'; }
+    return `
+      <button class="conta-plano-opt ${ehAtual ? 'atual' : ''}" ${ehAtual ? 'disabled' : `data-acao="sel-plano" data-plano="${k}"`}>
+        <div class="conta-plano-opt-top">
+          <span class="conta-plano-opt-nome">${p.nome}${ehAtual ? ' · atual' : ''}</span>
+          ${dif ? `<span class="conta-plano-opt-dif ${dif.startsWith('+') ? 'mais' : dif.startsWith('−') ? 'menos' : ''}">${dif}</span>` : ''}
+        </div>
+        <ul class="conta-plano-opt-lista">${p.inclui.map(t => `<li>${ic('check','ic-sm')} ${t}</li>`).join('')}</ul>
+      </button>`;
+  }).join('');
+  inner.innerHTML = `
+    <button class="modal-close" onclick="fecharExpandido()">${ic('x')}</button>
+    <button class="conta-voltar" data-acao="voltar-ajuda">${ic('arrow-left','ic-sm')} Voltar</button>
+    <div class="modal-eyebrow">${ic('refresh-cw')} Alterar plano</div>
+    <div class="modal-titulo">Escolha o novo plano</div>
+    <p class="conta-cancel-texto">${m > 0 ? `A diferença é calculada pela sua metragem (${m} m²), descontando o plano atual.` : 'A Guide confirma o valor com você após o pedido.'}</p>
+    <div class="conta-planos-opts">${cards}</div>
+  `;
+  inner.querySelector('[data-acao="voltar-ajuda"]').addEventListener('click', voltarParaAjuda);
+  inner.querySelectorAll('[data-acao="sel-plano"]').forEach(b => b.addEventListener('click', () => confirmarAlteracao(b.dataset.plano)));
+  icons();
+}
+async function confirmarAlteracao(novo) {
+  if (!projeto.id) { toast('Disponível após ativar seu plano.'); return; }
+  const atual = (projeto.plano || '').toString().trim().toLowerCase();
+  const m = metragemCliente();
+  const dif = (m > 0 && PLANOS_INFO[atual]) ? (PLANOS_INFO[novo].preco - PLANOS_INFO[atual].preco) * m : null;
+  const r = await tentar(sb.from('solicitacoes').insert({ projeto_id: projeto.id, tipo: 'alteracao_plano', status: 'em_avaliacao', plano_atual: atual || null, plano_novo: novo, valor_diferenca: dif }).select().single(), null);
+  if (!r) { toast('Não foi possível enviar agora. Tente de novo.'); return; }
+  minhaSolicitacoes.unshift(r);
+  toast('Pedido enviado! A Guide vai avaliar e te dar um retorno.');
+  voltarParaAjuda();
 }
 
 function abrirTermo() {

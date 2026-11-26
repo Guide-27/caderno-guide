@@ -43,6 +43,7 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .projeto-nome { font-family: 'Quicksand', sans-serif; font-size: 19px; font-weight: 600; color: var(--white); margin-bottom: 4px; line-height: 1.2; }
 .projeto-endereco { font-size: 12px; color: var(--muted); line-height: 1.4; }
 .projeto-etapa-badge { flex-shrink: 0; font-size: 10px; color: var(--gold); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--gold-dim); white-space: nowrap; }
+.projeto-solic-badge { display: inline-block; margin-top: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #e06b6b; background: rgba(224,107,107,0.1); border: 1px solid rgba(224,107,107,0.35); border-radius: 999px; padding: 3px 11px; }
 .projeto-progresso { margin-top: 18px; }
 .progresso-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
 .progresso-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
@@ -130,6 +131,7 @@ if (window.supabase && window.supabase.createClient) { sb = window.supabase.crea
 else { console.error('Biblioteca Supabase não carregou.'); }
 const ETAPAS_NOMES = ['Briefing', 'Layout', 'Imagens 3D', 'Executivo', 'Obra'];
 let todosProjetos = [];
+let projetosComSolic = new Set();   // projetos com pedido de cancelamento/troca em aberto
 (function(){
   const c = document.getElementById('bg-canvas'); const ctx = c.getContext('2d'); let W, H, t = 0;
   const orbs = [ { x: 0.15, y: 0.2, r: 0.42, c: [201,162,39], a: 0.045 }, { x: 0.85, y: 0.8, r: 0.36, c: [201,162,39], a: 0.03 }, { x: 0.5, y: 0.5, r: 0.28, c: [80,100,200], a: 0.02 } ];
@@ -173,6 +175,10 @@ async function carregarProjetos() {
     console.error(error); return;
   }
   todosProjetos = projetos || [];
+  try {
+    const { data: sol } = await sb.from('solicitacoes').select('projeto_id, status').in('status', ['aberta','em_avaliacao']);
+    projetosComSolic = new Set((sol || []).map(s => s.projeto_id));
+  } catch (_) { projetosComSolic = new Set(); }
   renderProjetos(todosProjetos);
 }
 function renderProjetos(projetos) {
@@ -187,7 +193,8 @@ function renderProjetos(projetos) {
     let pipsHtml = '';
     for (let i = 1; i <= 5; i++) { let cls = 'pip'; if (i < etapa) cls += ' concluida'; else if (i === etapa) cls += ' ativa'; pipsHtml += `<div class="${cls}"></div>`; }
     const card = document.createElement('div'); card.className = 'projeto-card'; card.onclick = () => abrirProjeto(p.id);
-    card.innerHTML = `<div class="projeto-card-top"><div><div class="projeto-nome">${p.nome_cliente || 'Sem nome'}</div><div class="projeto-endereco">${p.endereco || 'Endereço não cadastrado'}</div></div><div class="projeto-etapa-badge">Etapa ${etapa}</div></div><div class="projeto-progresso"><div class="progresso-label"><span>${ETAPAS_NOMES[etapa-1]||''}</span><span>${pct}%</span></div><div class="progresso-bar"><div class="progresso-fill" style="width: ${pct}%"></div></div></div><div class="projeto-pips">${pipsHtml}</div>`;
+    const solicBadge = projetosComSolic.has(p.id) ? `<div class="projeto-solic-badge" title="Pedido de cancelamento ou troca de plano">● Solicitação</div>` : '';
+    card.innerHTML = `<div class="projeto-card-top"><div><div class="projeto-nome">${p.nome_cliente || 'Sem nome'}</div><div class="projeto-endereco">${p.endereco || 'Endereço não cadastrado'}</div></div><div class="projeto-etapa-badge">Etapa ${etapa}</div></div>${solicBadge}<div class="projeto-progresso"><div class="progresso-label"><span>${ETAPAS_NOMES[etapa-1]||''}</span><span>${pct}%</span></div><div class="progresso-bar"><div class="progresso-fill" style="width: ${pct}%"></div></div></div><div class="projeto-pips">${pipsHtml}</div>`;
     grid.appendChild(card);
   });
   conteudo.innerHTML = ''; conteudo.appendChild(grid);
