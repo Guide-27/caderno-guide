@@ -257,9 +257,9 @@ async function inicializar() {
     else { document.getElementById('top-arquiteto').textContent = email; }
   } catch(_) {}
 
-  // destaque no botão Atendimento quando há conversas pedindo atendimento
+  // destaque no botão Atendimento quando há conversas novas ou pedindo atendimento (bot/pendente)
   try {
-    const { count } = await sb.from('chat_conversas').select('id', { count: 'exact', head: true }).eq('status', 'pendente');
+    const { count } = await sb.from('chat_conversas').select('id', { count: 'exact', head: true }).in('status', ['bot','pendente']);
     const b = document.getElementById('btn-atendimento');
     if (b && count && count > 0) {
       b.innerHTML = 'Atendimento <span style="display:inline-block;min-width:16px;padding:0 5px;margin-left:6px;background:#e06b6b;color:#fff;border-radius:999px;font-size:10px;line-height:16px;text-align:center;font-weight:700;">' + count + '</span>';

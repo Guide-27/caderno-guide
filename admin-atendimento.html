@@ -97,6 +97,8 @@ html, body { background: var(--black); color: var(--off); font-family: 'Outfit',
 .tmsg.bot { align-self: flex-start; } .tmsg.bot .tmsg-bolha { background: var(--blue-dim); color: #bcd0f0; border: 1px solid rgba(90,140,220,0.18); border-bottom-left-radius: 4px; }
 .tmsg.out { align-self: flex-end; align-items: flex-end; } .tmsg.out .tmsg-bolha { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #12100a; border-bottom-right-radius: 4px; }
 .tmsg-time { font-size: 9px; color: var(--muted); padding: 0 4px; }
+.tmsg-dia { align-self: center; margin: 10px 0 6px; }
+.tmsg-dia span { font-size: 10px; color: var(--muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border2); border-radius: 999px; padding: 3px 12px; text-transform: capitalize; }
 .thread-foot { border-top: 1px solid var(--border2); padding: 12px 14px; }
 .foot-aviso { font-size: 11.5px; color: var(--muted); text-align: center; padding: 4px; }
 .reply-row { display: flex; align-items: flex-end; gap: 9px; }
@@ -188,6 +190,11 @@ const tituloConv = (c) => c.titulo || (c.assunto === 'plataforma' ? 'Sobre a pla
 const esc = (t) => String(t==null?'':t).replace(/[&<>"]/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
 const horaCurta = (iso) => { try { return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
 const dataHora = (iso) => { try { const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); } catch(e){ return ''; } };
+const mesmoDia = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+const diaKey = (iso) => { try { const d=new Date(iso); return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); } catch(e){ return ''; } };
+const rotuloDia = (iso) => { try { const d=new Date(iso), hoje=new Date(), ont=new Date(); ont.setDate(hoje.getDate()-1); if (mesmoDia(d,hoje)) return 'Hoje'; if (mesmoDia(d,ont)) return 'Ontem'; return d.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'long', year:'numeric'}); } catch(e){ return ''; } };
+const horaOuData = (iso) => { try { const d=new Date(iso); return mesmoDia(d,new Date()) ? horaCurta(iso) : d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}); } catch(e){ return ''; } };
+function dividerDia(iso){ return `<div class="tmsg-dia"><span>${esc(rotuloDia(iso))}</span></div>`; }
 
 function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('vis'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('vis'),2600); }
 
@@ -288,7 +295,7 @@ function renderLista() {
     const pTxt = prev ? ((prev.remetente === 'usuario' ? '' : prev.remetente === 'bot' ? 'Bot: ' : 'Você: ') + prev.conteudo) : 'Sem mensagens ainda';
     const nova = precisaResposta(c) && c.id !== selId;
     return `<button class="conv-card st-${c.status} ${c.id===selId?'sel':''} ${nova?'nova':''}" onclick="abrirConversa('${c.id}')">
-      <div class="conv-top"><span class="conv-nome">${nova?'<span class="conv-dot"></span>':''}${esc(nomeConversa(c))}</span><span class="conv-hora">${horaCurta(c.atualizado_em)}</span></div>
+      <div class="conv-top"><span class="conv-nome">${nova?'<span class="conv-dot"></span>':''}${esc(nomeConversa(c))}</span><span class="conv-hora" title="${esc(dataHora(c.atualizado_em))}">${horaOuData(c.atualizado_em)}</span></div>
       ${tituloConv(c) ? `<div class="conv-topic">${esc(tituloConv(c))}</div>` : ''}
       <div class="conv-prev">${esc(pTxt)}</div>
       <div class="conv-tags">
@@ -353,7 +360,9 @@ function renderThread() {
     <div class="thread-foot">${rodape}</div>`;
 
   const tb = document.getElementById('tbody');
-  tb.innerHTML = msgs.map(linhaMsg).join('') || '<div class="thread-vazio" style="margin:auto">Ainda sem mensagens.</div>';
+  let html = ''; let ultimoDia = null;
+  msgs.forEach(m => { const dk = diaKey(m.criado_em); if (dk && dk !== ultimoDia) { html += dividerDia(m.criado_em); ultimoDia = dk; } html += linhaMsg(m); });
+  tb.innerHTML = html || '<div class="thread-vazio" style="margin:auto">Ainda sem mensagens.</div>';
   tb.scrollTop = tb.scrollHeight;
 
   const rep = document.getElementById('reply');
@@ -372,9 +381,13 @@ function linhaMsg(m) {
 
 function appendMsg(m) {
   if (vistos[m.id]) return; vistos[m.id] = true;
+  const anterior = msgs[msgs.length-1];
   msgs.push(m);
   const tb = document.getElementById('tbody');
-  if (tb) { tb.insertAdjacentHTML('beforeend', linhaMsg(m)); tb.scrollTop = tb.scrollHeight; }
+  if (tb) {
+    if (!anterior || diaKey(anterior.criado_em) !== diaKey(m.criado_em)) tb.insertAdjacentHTML('beforeend', dividerDia(m.criado_em));
+    tb.insertAdjacentHTML('beforeend', linhaMsg(m)); tb.scrollTop = tb.scrollHeight;
+  }
 }
 
 // ── ações ───────────────────────────────────────────────────────────────
