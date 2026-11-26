@@ -30,6 +30,8 @@ window.GuideChat = (function () {
   var preparado = false, preparando = null;
   var vistos = {};
   var el = {};
+  var botNo = 'inicio';   // nó atual da árvore de botões
+  var botOpcoes = null;   // opções (botões) mostradas agora
 
   var SVG = {
     chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
@@ -45,9 +47,75 @@ window.GuideChat = (function () {
   };
 
   var FRASE_ABERTURA = 'A gente te entende, a gente te atende.';
-  var MSG_BOT_STUB =
-    'Recebi sua mensagem! Em breve deixo isso mais inteligente — por ora, se ' +
-    'quiser falar com alguém da Guide agora, é só clicar em "Falar com atendimento".';
+  var MSG_MENU = 'Posso te ajudar com os atalhos abaixo 👇 Se preferir, é só tocar em "Falar com atendimento".';
+
+  // ── Árvore do bot de botões (Fase 1 — sem IA) ─────────────────────────────
+  // Cada nó: { texto, opcoes: [ {txt, vai} | {txt, url} | {txt, acao:'handoff'} ] }
+  // {NOME} no texto é trocado pelo primeiro nome do cliente (quando houver).
+  var _menu   = { txt: '⬅ Voltar ao menu', vai: 'inicio' };
+  var _hSite  = { txt: 'Falar com uma pessoa', acao: 'handoff' };
+  var _hPain  = { txt: 'Falar com a Guide', acao: 'handoff' };
+  var _contr  = { txt: 'Quero contratar', url: '/contratar' };
+  var _fimP   = [_menu, _hPain];
+
+  var FLUXOS = {
+    institucional: {
+      inicio: { texto: 'Oi! 👋 Eu sou o Gui, da Guide. Como posso te ajudar?', opcoes: [
+        { txt: 'O que é a Guide?', vai: 'oque' },
+        { txt: 'Como funciona?', vai: 'como' },
+        { txt: 'Planos e preços', vai: 'planos' },
+        { txt: 'Prazos e revisões', vai: 'prazos' },
+        { txt: 'Pagamento e cancelamento', vai: 'pagcanc' },
+        _contr, _hSite
+      ]},
+      oque: { texto: 'A Guide cuida do seu projeto de interiores depois da entrega das chaves — 100% pela plataforma, sem visita presencial. A gente transforma o seu apê em um lar com a sua cara. 💛', opcoes: [
+        { txt: 'Como funciona?', vai: 'como' }, { txt: 'Planos e preços', vai: 'planos' }, _hSite, _menu ]},
+      como: { texto: 'São 5 etapas, tudo pela plataforma:\n1️⃣ Contratação (você informa a metragem e vê o valor na hora)\n2️⃣ Briefing e Conceito Visual\n3️⃣ Layout 2D\n4️⃣ Imagens 3D\n5️⃣ Guia Final de Reforma\n\n➕ Ainda tem o Controle de Obra. O projeto leva cerca de 45 dias.', opcoes: [
+        { txt: 'Planos e preços', vai: 'planos' }, _contr, _hSite, _menu ]},
+      planos: { texto: 'O valor é por m² do seu imóvel:\n• Essencial — R$ 20/m²\n• Visual — R$ 40/m²\n• Completo — R$ 60/m²\n\nQuer ver o que cada um inclui?', opcoes: [
+        { txt: 'Ver Essencial', vai: 'pEss' }, { txt: 'Ver Visual', vai: 'pVis' }, { txt: 'Ver Completo', vai: 'pCom' }, _contr, _menu ]},
+      pEss: { texto: 'Plano Essencial — R$ 20/m²:\n✓ Acesso à plataforma Guide completa\n✓ Indicação de profissionais para a obra\n✓ Plataforma de controle da obra\n✓ Assessoria guiada pós entrega das chaves', opcoes: [
+        { txt: 'Ver Visual', vai: 'pVis' }, { txt: 'Ver Completo', vai: 'pCom' }, _contr, _menu ]},
+      pVis: { texto: 'Plano Visual — R$ 40/m²:\n✓ Tudo do Essencial\n✓ Projeto visual personalizado de referência: Layout 2D e Imagens 3D', opcoes: [
+        { txt: 'Ver Essencial', vai: 'pEss' }, { txt: 'Ver Completo', vai: 'pCom' }, _contr, _menu ]},
+      pCom: { texto: 'Plano Completo — R$ 60/m²:\n✓ Tudo do Visual\n✓ Especificações completas: materiais, quantidades, dimensões gerais e links de compra', opcoes: [
+        { txt: 'Ver Essencial', vai: 'pEss' }, { txt: 'Ver Visual', vai: 'pVis' }, _contr, _menu ]},
+      prazos: { texto: 'O projeto leva cerca de 45 dias, com as etapas na trilha da plataforma. Você tem 2 revisões no Layout e 2 nas Imagens 3D pra chegar no resultado ideal.', opcoes: [
+        { txt: 'Como funciona?', vai: 'como' }, { txt: 'Planos e preços', vai: 'planos' }, _hSite, _menu ]},
+      pagcanc: { texto: 'Pagamento: Pix ou cartão.\nCancelamento: até 7 dias após a compra, se nenhuma etapa foi entregue, com reembolso integral. Depois disso, o projeto pode ser pausado por até 30 dias.', opcoes: [
+        { txt: 'Planos e preços', vai: 'planos' }, _hSite, _menu ]}
+    },
+    plataforma: {
+      inicio: { texto: 'Oi{NOME}! 👋 Posso te explicar como usar a plataforma. O que você quer ver?', opcoes: [
+        { txt: 'Meus cadernos', vai: 'cadernos' },
+        { txt: 'Meu Diário', vai: 'diario' },
+        { txt: 'Mural de imagens', vai: 'mural' },
+        { txt: 'Parceiros Guide', vai: 'parceiros' },
+        { txt: 'Controle de obra', vai: 'obra' },
+        { txt: 'Minha conta e plano', vai: 'conta' },
+        _hPain
+      ]},
+      cadernos: { texto: 'Seus cadernos são as etapas do projeto: Layout, Imagens 3D, Executivo e Obra. É só tocar em cada card no painel para abrir, ver os arquivos e acompanhar o andamento.', opcoes: _fimP },
+      diario: { texto: 'O Diário é o seu espaço pessoal do projeto — registros, a Cápsula do Tempo e as memórias da jornada do seu novo lar. Fica no card "Seu Diário".', opcoes: _fimP },
+      mural: { texto: 'No Mural de imagens você guarda e organiza fotos e referências: dá para usar tags, comparar antes/depois e receber sugestões. Fica no card "Mural de imagens".', opcoes: _fimP },
+      parceiros: { texto: 'Em Parceiros Guide você encontra profissionais indicados para executar a obra e pede orçamentos por categoria, direto pelo painel.', opcoes: _fimP },
+      obra: { texto: 'O Controle de Obra organiza sua reforma — categorias, orçamentos e acompanhamento, tudo em um lugar só. Fica no card da Obra.', opcoes: _fimP },
+      conta: { texto: 'Em "Sua Conta" você vê seu plano e o que ele inclui, o termo que aceitou, e pode alterar o plano ou cancelar a contratação.', opcoes: [
+        { txt: 'Trocar ou cancelar plano', vai: 'contaAcao' }, _menu, _hPain ]},
+      contaAcao: { texto: 'É rapidinho: abra "Sua Conta" no seu perfil e toque em "Alterar plano" ou em "Cancelar contratação" no fim do card. Quer que eu chame alguém para te ajudar?', opcoes: [ _hPain, _menu ]}
+    },
+    projeto: {
+      inicio: { texto: 'Dúvidas do seu projeto (andamento, prazo, revisões) quem resolve melhor é a equipe. Posso adiantar algumas coisas:', opcoes: [
+        { txt: 'Qual o prazo do meu projeto', vai: 'prazo' },
+        { txt: 'Pedir uma revisão', vai: 'revisao' },
+        { txt: 'Trocar ou cancelar plano', vai: 'plano' },
+        _hPain
+      ]},
+      prazo: { texto: 'O prazo geral é de cerca de 45 dias, com as etapas na trilha da plataforma. Para saber exatamente em que ponto o seu está, é melhor falar com a equipe. 👇', opcoes: [ _hPain, _menu ]},
+      revisao: { texto: 'Você tem 2 revisões no Layout e 2 nas Imagens 3D. Para pedir uma revisão, fale com a equipe que a gente registra para você. 👇', opcoes: [ _hPain, _menu ]},
+      plano: { texto: 'Isso você faz em "Sua Conta": "Alterar plano" ou "Cancelar contratação". Se quiser, chamo alguém para te acompanhar. 👇', opcoes: [ _hPain, _menu ]}
+    }
+  };
 
   function esc(t) {
     return String(t == null ? '' : t).replace(/[&<>"]/g, function (s) {
@@ -264,6 +332,7 @@ window.GuideChat = (function () {
   function addMensagem(m) {
     if (!m || vistos[m.id]) return; vistos[m.id] = true;
     var w = el.body.querySelector('.gc-welcome'); if (w) w.remove();
+    var q = el.body.querySelector('.gc-quick'); if (q) q.remove(); // botões sempre no fim
     var meu = m.remetente === 'usuario';
     var div = document.createElement('div'); div.className = 'gc-msg ' + (meu ? 'me' : 'them');
     var label = m.remetente === 'atendente' ? 'Atendimento Guide' : m.remetente === 'bot' ? 'Guia Guide' : '';
@@ -273,6 +342,73 @@ window.GuideChat = (function () {
   }
   function addNota(txt) { var d = document.createElement('div'); d.className = 'gc-note'; d.textContent = txt; el.body.appendChild(d); scrollFim(); }
   function scrollFim() { el.body.scrollTop = el.body.scrollHeight; }
+
+  // ── Motor do bot de botões ────────────────────────────────────────────────
+  function fluxoCtx() {
+    if (cfg.origem === 'institucional') return FLUXOS.institucional;
+    var a = (conversa && conversa.assunto) || (pendente && pendente.assunto) || 'plataforma';
+    return FLUXOS[a] || FLUXOS.plataforma;
+  }
+  function noAtual() { var f = fluxoCtx(); return f[botNo] || f.inicio; }
+  function textoNo(no) { return String(no && no.texto || '').replace('{NOME}', cfg.clienteNome ? ', ' + primeiroNome(cfg.clienteNome) : ''); }
+  function bolhaBotLocal(texto) {
+    var div = document.createElement('div'); div.className = 'gc-msg them';
+    div.innerHTML = '<div class="gc-msg-label">Guia Guide</div><div class="gc-bubble-msg">' + esc(texto) + '</div>';
+    el.body.appendChild(div); scrollFim();
+  }
+  function pintarOpcoes() {
+    var old = el.body.querySelector('.gc-quick'); if (old) old.remove();
+    if (!botOpcoes || !botOpcoes.length) return;
+    if (conversa && (conversa.status === 'em_atendimento' || conversa.status === 'resolvido')) return;
+    var wrap = document.createElement('div'); wrap.className = 'gc-quick';
+    botOpcoes.forEach(function (op) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'gc-quick-btn'; b.textContent = op.txt;
+      b.addEventListener('click', function () { escolherOpcao(op); });
+      wrap.appendChild(b);
+    });
+    el.body.appendChild(wrap); scrollFim();
+  }
+  function mostrarBoasVindas() {
+    el.body.innerHTML = ''; vistos = {}; botNo = 'inicio';
+    var no = fluxoCtx().inicio;
+    bolhaBotLocal(textoNo(no));
+    botOpcoes = no.opcoes; pintarOpcoes();
+  }
+  async function garantirConversa() {
+    if (!preparado) await preparar();
+    if (!uid) { addNota('Não foi possível conectar. Recarregue a página e tente de novo.'); return false; }
+    if (!conversa) { if (!(await criarConversa())) { addNota('Não consegui iniciar a conversa. Tente de novo.'); return false; } }
+    return true;
+  }
+  async function inserirMsg(remetente, texto) {
+    var r = await sb.from('chat_mensagens').insert({ conversa_id: conversa.id, remetente: remetente, conteudo: texto }).select().single();
+    if (r.error) { console.error('[GuideChat] inserir msg:', r.error); return null; }
+    addMensagem(r.data); scrollFim(); ultimaMsg[conversa.id] = r.data; return r.data;
+  }
+  async function escolherOpcao(op) {
+    if (enviando || !op) return;
+    botOpcoes = null; pintarOpcoes();
+    enviando = true; el.send && el.send.setAttribute('disabled', 'disabled');
+    try {
+      if (!(await garantirConversa())) return;
+      await inserirMsg('usuario', op.txt);
+      if (op.acao === 'handoff') { tocarConversa(); enviando = false; el.send && el.send.removeAttribute('disabled'); return falarComAtendimento(); }
+      if (op.url) {
+        botNo = 'inicio';
+        await inserirMsg('bot', 'Abri a página em outra aba para você. 👉 Qualquer dúvida, é só voltar aqui!');
+        tocarConversa(); botOpcoes = fluxoCtx().inicio.opcoes; pintarOpcoes();
+        try { window.open(op.url, '_blank', 'noopener'); } catch (e) {}
+        if (cfg.expandido) renderSidebar();
+        return;
+      }
+      var destino = op.vai || 'inicio'; var f = fluxoCtx(); var no = f[destino] || f.inicio;
+      botNo = destino;
+      await inserirMsg('bot', textoNo(no));
+      tocarConversa(); botOpcoes = no.opcoes; pintarOpcoes();
+      if (cfg.expandido) renderSidebar();
+    } catch (e) { console.error('[GuideChat] opção:', e); addNota('Algo falhou. Tente novamente.'); }
+    finally { enviando = false; el.send && el.send.removeAttribute('disabled'); }
+  }
   function refletirStatus() {
     if (!conversa) { el.headSub.classList.remove('at'); el.statusTxt.textContent = FRASE_ABERTURA; return; }
     el.headSub.classList.toggle('at', conversa.status === 'em_atendimento');
@@ -297,7 +433,7 @@ window.GuideChat = (function () {
     if (conv) {
       if (conv.status === 'resolvido') el.handoff.setAttribute('disabled', 'disabled');
       carregarMensagens(conv.id); refletirStatus(); assinar();
-    } else { render([]); refletirStatus(); }
+    } else { refletirStatus(); mostrarBoasVindas(); }
     if (cfg.expandido) marcarAtivoSidebar();
     setTimeout(function () { el.input && el.input.focus(); scrollFim(); }, 120);
   }
@@ -368,9 +504,12 @@ window.GuideChat = (function () {
     var m = await sb.from('chat_mensagens').select('*').eq('conversa_id', id).order('criado_em', { ascending: true });
     if (m.error) { console.error('[GuideChat] mensagens:', m.error); render([]); return; }
     render(m.data || []);
+    // reabrir conversa ainda no bot → mostra o menu de botões de novo
+    if (conversa && conversa.status === 'bot') { botNo = 'inicio'; botOpcoes = fluxoCtx().inicio.opcoes; pintarOpcoes(); }
+    else { botOpcoes = null; }
   }
   async function criarConversa() {
-    var assunto = pendente ? pendente.assunto : (cfg.origem === 'painel' ? 'projeto' : null);
+    var assunto = pendente ? pendente.assunto : (cfg.origem === 'painel' ? 'plataforma' : null);
     var titulo = (pendente && pendente.titulo) ? pendente.titulo : tituloPadrao(assunto);
     var linha = { origem: cfg.origem, status: 'bot', assunto: assunto, titulo: titulo };
     if (cfg.origem === 'institucional') { linha.visitante_id = uid; if (cfg.clienteNome) linha.visitante_nome = cfg.clienteNome; }
@@ -392,6 +531,8 @@ window.GuideChat = (function () {
         function (payload) {
           var m = payload.new; if (vistos[m.id]) return;
           addMensagem(m); scrollFim(); ultimaMsg[m.conversa_id] = m;
+          if (m.remetente === 'atendente') botOpcoes = null;
+          pintarOpcoes();
           if (cfg.expandido) renderSidebar();
           if (m.remetente !== 'usuario') avisarNova();
         }).subscribe();
@@ -408,11 +549,16 @@ window.GuideChat = (function () {
     var agora = new Date().toISOString(); if (conversa) conversa.atualizado_em = agora;
     try { sb.from('chat_conversas').update({ atualizado_em: agora }).eq('id', conversa.id).then(function () {}); } catch (e) {}
   }
-  // STUB da resposta automática — PLACEHOLDER DA FASE 2 (integração com LLM).
+  // Resposta a TEXTO LIVRE (Fase 1 = bot de botões). Quando a pessoa digita em vez
+  // de clicar, o bot reexibe os atalhos do nó atual. (Fase 2 trocará isto por IA.)
   async function processarMensagemBot(conversaId) {
     if (!conversa || conversa.status !== 'bot') return;
-    try { await sb.from('chat_mensagens').insert({ conversa_id: conversaId, remetente: 'bot', conteudo: MSG_BOT_STUB }); }
-    catch (e) { console.error('[GuideChat] bot stub:', e); }
+    var no = noAtual();
+    try {
+      var r = await sb.from('chat_mensagens').insert({ conversa_id: conversaId, remetente: 'bot', conteudo: MSG_MENU }).select().single();
+      if (r.data) { addMensagem(r.data); scrollFim(); ultimaMsg[conversaId] = r.data; }
+    } catch (e) { console.error('[GuideChat] bot menu:', e); }
+    botOpcoes = no.opcoes; pintarOpcoes();
   }
   async function enviar() {
     var texto = (el.input.value || '').trim();
